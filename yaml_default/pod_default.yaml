@@ -1,0 +1,16 @@
+kind: pod
+name: zookeeper
+volumn: '/home/liuyixiang/docker_volumn'
+containers:
+  - image: zookeeper:3.4.10
+    command:
+    resource:
+      memory: 1g
+      cpu: 2
+    port: {'client': 2181}
+  - image: zookeeper:3.4.10
+    command:
+    resource:
+      memory: 1g
+      cpu: 2
+    port: {'client': 2182}
