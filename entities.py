@@ -1,8 +1,9 @@
+import re
 import sys
+from enum import Enum
+
 import docker
 import six
-import re
-from enum import Enum
 
 try:
     from docker.errors import APIError
@@ -12,13 +13,14 @@ except ImportError:
 
 
 class Container:
-    def __init__(self, name, image, command, memory, cpu, port):
+    def __init__(self, name, image, command, memory, cpu, port, network):
         self._name = name
         self._image = image
         self._command = command
         self._memory = memory
         self._cpu = cpu
         self._port = port
+        self._network = network
 
     def name(self):
         return self._name
@@ -37,6 +39,9 @@ class Container:
 
     def port(self):
         return self._port
+
+    def network(self):
+        return self._network
 
 
 class Status(Enum):
@@ -61,10 +66,12 @@ class Pod:
         _DEFAULT_PORT_PROTOCOL = 'tcp'
         backend_url = '{:s}://{:s}:{:d}'.format(
             "http", "localhost", 2375)
-        backend = docker.Client(
+        backend = docker.DockerClient(
             base_url=backend_url,
-            version=str(1.18),
+            version=str(1.21),
             timeout=5)
+        networkname = "zookeeper-net"
+        backend.networks.create(networkname, driver="bridge")
         self._backend = backend
 
         def _parse_ports(ports):
@@ -88,15 +95,22 @@ class Pod:
                 return s
 
             result = {}
+            '''
+            BUG: Need Fix Transfer Function
+            '''
             for name, spec in ports.items():
                 # Single number, interpreted as being a TCP port number and to be
                 # the same for the exposed port and external port bound on all
                 # interfaces.
+                '''
                 if type(spec) == int:
                     result[name] = {
                         'exposed': parse_port_spec(spec),
                         'external': ('0.0.0.0', parse_port_spec(spec)),
                     }
+                '''
+                if type(spec) == int:
+                    result[name] = spec
 
                 # Port spec is a string. This means either a protocol was specified
                 # with /tcp or /udp, that a port range was specified, or that a
@@ -142,7 +156,13 @@ class Pod:
                         spec, name))
                     return {}
 
+            # print result
+            '''
+            for key, value in result.items():
+                print(key)
+                print(value)
             return result
+            '''
 
         def _parse_bytes(s):
             if not s or not isinstance(s, six.string_types):
@@ -162,15 +182,25 @@ class Pod:
         for containercfg in containercfgs:
             container = Container(self._name + '-{}'.format(i), containercfg['image'], containercfg['command'],
                                   containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                  containercfg['port'])
+                                  containercfg['port'], networkname)
             self._containers.append(container)
             i += 1
+
+            '''
             host_config = backend.create_host_config(mem_limit=_parse_bytes(container.memory()))
             backend.create_container(image=container.image(), name=container.name(), volumes=list(volumes),
                                      cpu_shares=container.cpu(), host_config=host_config,
                                      ports=_parse_ports(containercfg['port']), detach=True, command=container.command())
+            '''
+            backend.containers.run(image=container.image(), name=container.name(), volumes=list(volumes),
+                                   cpu_shares=container.cpu(), mem_limit=_parse_bytes(container.memory()),
+                                   ports=_parse_ports(containercfg['port']), detach=True, command=container.command(),
+                                   network=networkname)
+
+            '''
             status = backend.inspect_container(container.name())
             backend.start(status.get('ID', status.get('Id', None)))
+            '''
 
     def name(self):
         return self._name
