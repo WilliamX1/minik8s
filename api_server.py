@@ -5,6 +5,7 @@ import base64
 import os
 import json
 import pika
+import uuid
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
@@ -22,29 +23,42 @@ def broadcast_message(channel_name: str, message: str):
     connect.close()
 
 
-@app.route('/pods', methods=["GET"])
+@app.route('/pods', methods=['GET', 'POST'])
 def get_pods():
-    if use_etcd:
-        return "Not implemented", 404
-    else:
-        return json.dumps(etcd_supplant), 200
+    if request.method == 'GET':
+        if use_etcd:
+            return "Not implemented", 404
+        else:
+            return json.dumps(etcd_supplant), 200
+    elif request.method == 'POST':
+        json_data = request.json
+        config: dict = json.loads(json_data)
+        instance_name = config['name'] + uuid.uuid1().__str__()
+        config['instance_name'] = instance_name
+        if use_etcd:
+            return "Not implemented", 404
+        else:
+            etcd_supplant[instance_name] = config
+            print("create {}".format(instance_name))
+
+        broadcast_message('pods', config.__str__())
+        return "Successfully create instance {}".format(instance_name), 200
 
 
-@app.route('/pods/<string:pod_name>', methods=['POST'])
-def post_pod(pod_name: str):
+
+@app.route('/pods/<string:instance_name>', methods=['POST'])
+def post_pod(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)
-    config['name'] = pod_name
     if use_etcd:
         return "Not implemented", 404
     else:
-        if etcd_supplant.__contains__(pod_name):
+        if etcd_supplant.__contains__(instance_name):
             for key in config.keys():
-                print("update {}[{}]".format(pod_name, key))
-                etcd_supplant[pod_name][key] = config[key]
+                print("update {}[{}]".format(instance_name, key))
+                etcd_supplant[instance_name][key] = config[key]
         else:
-            print("create {}".format(pod_name))
-            etcd_supplant[pod_name] = config
+            return "Instance Not Fount", 404
 
     broadcast_message('pods', config.__str__())
     return json.dumps(config), 200

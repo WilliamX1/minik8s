@@ -8,14 +8,13 @@ import json
 def callback(ch, method, properties, body):
     print("scheduler receive pod update!")
     config: dict = ast.literal_eval(body.decode())
-    name = config['name']
+    instance_name = config['instance_name']
     if not config.__contains__('node'):
         config['node'] = 'node1'
-        print("pod_name = ", name)
-        url = "http://127.0.0.1:5050/pods/{}".format(name)
+        print("instance_name = ", instance_name)
+        url = "http://127.0.0.1:5050/pods/{}".format(instance_name)
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
-
 
 
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ def upload():
     except Exception as e:
         print(e.__str__())
         return
-    url = "http://127.0.0.1:5050/pods/{}".format(object_name)
+    url = "http://127.0.0.1:5050/pods"
     try:
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
