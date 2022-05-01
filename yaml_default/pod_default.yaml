@@ -1,5 +1,5 @@
 kind: pod
-name: zookeeper
+name: zookeeper_pod
 volumn: '/home/liuyixiang/docker_volumn'
 containers:
   - image: zookeeper:3.4.10
@@ -7,10 +7,10 @@ containers:
     resource:
       memory: 1g
       cpu: 2
-    port: {'client': 2181}
+    port: {'2181/tcp': 2181}
   - image: zookeeper:3.4.10
     command:
     resource:
       memory: 1g
       cpu: 2
-    port: {'client': 2182}
+    port: {'2182/tcp': 2182}
