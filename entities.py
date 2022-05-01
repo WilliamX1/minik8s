@@ -222,32 +222,32 @@ class Pod:
 
     def start(self):
         for container in self._containers:
-            status = self._backend.inspect_container(container.name())
-            self._backend.start(status.get('ID', status.get('Id', None)))
+            status = self._backend.api.inspect_container(container.name())
+            self._backend.api.start(status.get('ID', status.get('Id', None)))
         self._status = Status.RUNNING
 
     def stop(self):
         for container in self._containers:
-            status = self._backend.inspect_container(container.name())
-            self._backend.stop(status.get('ID', status.get('Id', None)))
+            status = self._backend.api.inspect_container(container.name())
+            self._backend.api.stop(status.get('ID', status.get('Id', None)))
         self._status = Status.STOPPED
 
     def kill(self):
         for container in self._containers:
-            status = self._backend.inspect_container(container.name())
-            self._backend.kill(status.get('ID', status.get('Id', None)))
+            status = self._backend.api.inspect_container(container.name())
+            self._backend.api.kill(status.get('ID', status.get('Id', None)))
         self._status = Status.KILLED
 
     def restart(self):
         for container in self._containers:
-            status = self._backend.inspect_container(container.name())
-            self._backend.restart(status.get('ID', status.get('Id', None)))
+            status = self._backend.api.inspect_container(container.name())
+            self._backend.api.restart(status.get('ID', status.get('Id', None)))
         self._status = Status.RUNNING
 
     def remove(self):
         for container in self._containers:
-            status = self._backend.inspect_container(container.name())
-            self._backend.remove_container(status.get('ID', status.get('Id', None)))
+            status = self._backend.api.inspect_container(container.name())
+            self._backend.api.remove_container(status.get('ID', status.get('Id', None)))
 
 
 class Service:
