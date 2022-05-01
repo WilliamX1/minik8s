@@ -1,7 +1,7 @@
 import re
 import sys
 import os
-import yamlloader
+import yaml_loader
 import entities
 
 
@@ -46,7 +46,7 @@ def main():
                 invalidcmd("too many parameters for show")
                 continue
             if cmdparts[1] == "pods":
-                ## 展示pods
+                # 展示pods
                 sys.stdout.write("extant pods:\n")
                 sys.stdout.write("name   status   volumn   containers_num\n")
                 for name in pods:
@@ -55,7 +55,7 @@ def main():
                                                      len(pods[name].contains())))
 
             elif cmdparts[1] == "services":
-                ## 展示services
+                # 展示services
                 sys.stdout.write("extant services:\n")
 
             else:
@@ -75,7 +75,7 @@ def main():
                     sys.stdout.write("file not exist\n")
                     continue
                 # 成功打开文件
-                config = yamlloader.load(cmdparts[2])
+                config = yaml_loader.load(cmdparts[2])
                 if 'name' not in config:
                     sys.stdout.write('yaml name is missing')
                 if config.get('kind') == 'pod':
@@ -89,7 +89,7 @@ def main():
                     pods[name] = pod
                     sys.stdout.write('pod:{} created successfully\n'.format(name))
                 elif config.get('kind') == 'service':
-                    ## 创建service（检查重名）
+                    # 创建service（检查重名）
                     print('test')
                 else:
                     sys.stdout.write("file content error\n")
@@ -98,20 +98,20 @@ def main():
                 # 查找pod是否存在并判断状态是否为stopped
                 if cmdparts[2] not in pods:
                     sys.stdout.write("pod:{} not exist\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 pod = pods[cmdparts[2]]
                 if pod.status() == entities.Status.RUNNING:
                     sys.stdout.write("pod:{} has already started\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 if pod.status() == entities.Status.KILLED:
                     sys.stdout.write("pod:{} has already be killed\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 # 暂停该pod中的所有容器
                 pod.start()
                 sys.stdout.write('pod:{} started successfully\n'.format(pod.name()))
-                continue;
+                continue
             elif cmdparts[1] == "service":
-                ## 查找service是否存在并判断状态是否为stopped
+                # 查找service是否存在并判断状态是否为stopped
                 print("test")
             else:
                 invalidcmd("wrong parameter for start")
@@ -124,20 +124,20 @@ def main():
                 # 查找pod是否存在并判断状态是否为running
                 if cmdparts[2] not in pods:
                     sys.stdout.write("pod:{} not exist\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 pod = pods[cmdparts[2]]
                 if pod.status() == entities.Status.STOPPED:
                     sys.stdout.write("pod:{} has already stopped\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 if pod.status() == entities.Status.KILLED:
                     sys.stdout.write("pod:{} has already be killed\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 # 暂停该pod中的所有容器
                 pod.stop()
                 sys.stdout.write('pod:{} stopped successfully\n'.format(pod.name()))
-                continue;
+                continue
             elif cmdparts[1] == "service":
-                ## 查找service是否存在并判断状态是否为running
+                # 查找service是否存在并判断状态是否为running
                 print("test")
             else:
                 invalidcmd("wrong parameter for stop")
@@ -150,17 +150,17 @@ def main():
                 # 查找pod是否存在
                 if cmdparts[2] not in pods:
                     sys.stdout.write("pod:{} not exist\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 pod = pods[cmdparts[2]]
                 if pod.status() == entities.Status.KILLED:
                     sys.stdout.write("pod:{} has already be killed\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 # 杀死该pod中的所有容器
                 pod.kill()
                 sys.stdout.write('pod:{} be killed successfully\n'.format(pod.name()))
-                continue;
+                continue
             elif cmdparts[1] == "service":
-                ## 查找service是否存在
+                # 查找service是否存在
                 print("test")
             else:
                 invalidcmd("wrong parameter for kill")
@@ -173,17 +173,17 @@ def main():
                 # 查找pod是否存在
                 if cmdparts[2] not in pods:
                     sys.stdout.write("pod:{} not exist\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 pod = pods[cmdparts[2]]
                 if pod.status() == entities.Status.KILLED:
                     sys.stdout.write("pod:{} has already be killed\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 # 重启该pod中的所有容器
                 pod.restart()
                 sys.stdout.write('pod:{} restarted successfully\n'.format(pod.name()))
-                continue;
+                continue
             elif cmdparts[1] == "service":
-                ## 查找service是否存在并判断状态是否为running
+                # 查找service是否存在并判断状态是否为running
                 print("test")
             else:
                 invalidcmd("wrong parameter for restart")
@@ -196,7 +196,7 @@ def main():
                 # 查找pod是否存在
                 if cmdparts[2] not in pods:
                     sys.stdout.write("pod:{} not exist\n".format(cmdparts[2]))
-                    continue;
+                    continue
                 pod = pods[cmdparts[2]]
                 if pod.status() == entities.Status.RUNNING:
                     pod.stop()
@@ -205,9 +205,9 @@ def main():
                 # 删除该pod
                 pods.pop(pod.name())
                 sys.stdout.write('pod:{} removed successfully\n'.format(pod.name()))
-                continue;
+                continue
             elif cmdparts[1] == "service":
-                ## 查找service是否存在并判断状态是否为stopped
+                # 查找service是否存在并判断状态是否为stopped
                 print("test")
             else:
                 invalidcmd("wrong parameter for remove")
