@@ -1,16 +1,20 @@
 kind: pod
-name: zookeeper
+name: example-pod
 volumn: '/home/liuyixiang/docker_volumn'
+metadata:
+  namespace: pod-network
 containers:
   - image: zookeeper:3.4.10
+    name: zookeeper
     command:
     resource:
       memory: 1g
-      cpu: 2
+      cpu: 1
     port: {'2181/tcp': 2181}
-  - image: zookeeper:3.4.10
-    command:
+  - image: busybox
+    name: busybox
+    command: ['sh', '-c', 'sleep 3600']
     resource:
       memory: 1g
-      cpu: 2
+      cpu: 1
     port: {'2182/tcp': 2182}
