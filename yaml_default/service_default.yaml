@@ -1,5 +1,5 @@
 kind: service
-name:
+name: service_name
 selector:
 ports:
   port:
