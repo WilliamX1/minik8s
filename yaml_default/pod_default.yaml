@@ -1,5 +1,5 @@
 kind: pod
-name: zookeeper
+name: zookeeper_pod
 volumn: '/home/liuyixiang/docker_volumn'
 containers:
   - image: zookeeper:3.4.10
