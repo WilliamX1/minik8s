@@ -77,7 +77,8 @@ class Pod:
         print('\t==>INFO: Start launching `pause` container...')
         self._client.networks.prune()  # delete unused networks
         self._network = self._client.networks.create(name=self._namespace, driver="bridge")
-        self._client.containers.run(image='busybox', name='pause',
+        # self._network = self._client.networks.create(name=self._namespace, driver="host")
+        self._client.containers.run(image='busybox', name='pause-container',
                                     detach=True, # auto_remove=True,
                                     command=['sh', '-c', 'echo Hello World && sleep 3600'],
                                     network=self._network.name)
@@ -97,13 +98,13 @@ class Pod:
                                   containercfg['port'], self._namespace)
             self._containers.append(container)
             print("\t==>INFO: %s start launching...\n" % container.name())
-            self._client.containers.run(image=container.image(), name=container.name(), # volumes=list(volumes),
+            self._client.containers.run(image=container.image(), name=container.name(), volumes=list(volumes),
                                         # cpu_shares=container.cpu(), mem_limit=container.memory(),
                                         # ports=containercfg['port'],
                                         detach=True,
-                                        # auto_remove=True,
+                                        auto_remove=True,
                                         command=container.command(),
-                                        network_mode='container:pause')
+                                        network_mode='container:pause-container')
             print("\t==>INFO: %s is running successfully...\n", container.name())
 
     def name(self):
