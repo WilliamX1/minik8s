@@ -3,18 +3,22 @@ name: example-pod
 volumn: '/home/liuyixiang/docker_volumn'
 metadata:
   namespace: pod-network
+spec:
+  replicas: 3
+  selector:
+
 containers:
   - image: zookeeper:3.4.10
     name: zookeeper
     command:
     resource:
       memory: 1g
-      cpu: 1
+      cpu: 2
     port: {'2181/tcp': 2181}
   - image: busybox
     name: busybox
     command: ['sh', '-c', 'sleep 3600']
     resource:
       memory: 1g
-      cpu: 1
+      cpu: 2
     port: {'2182/tcp': 2182}
