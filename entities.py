@@ -1,3 +1,4 @@
+import random
 import re
 import sys
 from enum import Enum
@@ -78,7 +79,8 @@ class Pod:
         self._client.networks.prune()  # delete unused networks
         self._network = self._client.networks.create(name=self._namespace, driver="bridge")
         # self._network = self._client.networks.create(name=self._namespace, driver="host")
-        self._client.containers.run(image='busybox', name='pause-container',
+        pause_container_name = 'pause-' + self._network.name
+        self._client.containers.run(image='busybox', name=pause_container_name,
                                     detach=True, # auto_remove=True,
                                     command=['sh', '-c', 'echo Hello World && sleep 3600'],
                                     network=self._network.name)
@@ -98,13 +100,14 @@ class Pod:
                                   containercfg['port'], self._namespace)
             self._containers.append(container)
             print("\t==>INFO: %s start launching...\n" % container.name())
-            self._client.containers.run(image=container.image(), name=container.name(), volumes=list(volumes),
+            self._client.containers.run(image=container.image(), name=container.name() + "-" + str(random.random()),
+                                        volumes=list(volumes),
                                         # cpu_shares=container.cpu(), mem_limit=container.memory(),
                                         # ports=containercfg['port'],
                                         detach=True,
                                         auto_remove=True,
                                         command=container.command(),
-                                        network_mode='container:pause-container')
+                                        network_mode='container:' + pause_container_name)
             print("\t==>INFO: %s is running successfully...\n", container.name())
 
     def name(self):
