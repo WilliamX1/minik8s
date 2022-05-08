@@ -4,6 +4,7 @@ import os
 import yaml_loader
 import entities
 
+
 def print_info():
     print("version                       show minik8s version")
     print("show pods                      display extant pods")
@@ -28,7 +29,8 @@ def main():
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
         show_match = re.fullmatch(r'show (pods|services)', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start -f ([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
-        normal_command_match = re.fullmatch(r'(start|stop|kill|restart|remove) *(pod|service) *(\w*)', cmd.strip(), re.I)
+        normal_command_match = re.fullmatch(r'(start|stop|kill|restart|remove) *(pod|service) *([\w-]*)', cmd.strip(),
+                                            re.I)
 
         if exit_match:
             break

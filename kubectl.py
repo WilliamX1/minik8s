@@ -7,10 +7,12 @@ from ttkbootstrap.constants import *
 import yaml_loader
 import json
 
+
 def choose_file():
     print("please choose a file upload to api server")
     yaml_path = askopenfilename(filetypes=[('YAML', '*.yaml')])
     entry1.insert(0, yaml_path)
+
 
 def upload():
     yaml_path = entry1.get()
@@ -31,6 +33,7 @@ def upload():
     finally:
         text1.insert(ttk.END, '\n')
         text1.update()
+
 
 if __name__ == '__main__':
     root = ttk.Window(themename="journal")
