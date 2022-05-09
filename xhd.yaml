@@ -6,14 +6,15 @@ metadata:
   namespace: xhd-pod
   labels:
     app: xhd-pod
-# spec:
+spec:
+  replicas: 1
 containers:
   - name: nginx-container
     image: nginx
     command:
     resource:
       memory: 1g
-      cpu: 1
+      cpu: 2
     port:
       - containerPort: 80
   - name: busybox-container
@@ -21,14 +22,14 @@ containers:
     command: [ 'sh', '-c', 'sleep 3600' ]
     resource:
       memory: 1g
-      cpu: 1
+      cpu: 2
     port:
       - containerPort: 2182
   - name: sidecar-container
     image: curlimages/curl
-    command: ["sh", "-c", "echo Hello from the sidecar container", "sleep 300"]
+    command: ["sh", "-c", "sleep 300"]
     resource:
       memory: 1g
-      cpu: 1
+      cpu: 2
     port:
       - containerPort: 2888

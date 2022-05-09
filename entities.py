@@ -1,3 +1,4 @@
+import os
 import random
 import re
 import sys
@@ -5,6 +6,7 @@ from enum import Enum
 
 import docker
 import six
+import network_utils
 
 try:
     from docker.errors import APIError
@@ -60,12 +62,13 @@ class Pod:
         self._containers = []
         self._namespace = None
         self._pause = None
+        self._ipv4addr = None
 
-        # set network namespace
+        # set network namespace: cannot be the same as self._name
         if config.get('metadata') is None or config.get('metadata').get('namespace') is None:
-            self._namespace = 'default' + self._suffix
+            self._namespace = 'default' + self._suffix + '-namespace'
         else:
-            self._namespace = config.get('metadata').get('namespace') + self._suffix
+            self._namespace = config.get('metadata').get('namespace') + self._suffix + '-namespace'
 
         self._client = docker.from_env(version='1.25', timeout=5)
 
@@ -75,16 +78,25 @@ class Pod:
         they can communicate with each other using `localhost`
         '''
 
-        # create network bridge
-        print('\t==>INFO: Start launching `pause` container...')
         self._client.networks.prune()  # delete unused networks
-        self._network = self._client.networks.create(name=self._namespace, driver="bridge")
 
-        self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
+        # create network bridge
+        print('\t==>INFO: Start Creating Network Namespace ' + self._namespace + ' ...')
+
+        self._network = self._client.networks.create(
+            name=self._namespace,
+            driver="bridge",
+        )
+
+        pause_container = self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
                                     detach=True,  # auto_remove=True,
                                     command=['sh', '-c', 'echo Hello World && sleep 3600'],
                                     network=self._network.name)
-        print('\t==>INFO: `Pause` container is running successfully...\n')
+        ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) +\
+                 "\").IPv4Address }}' " + self._namespace
+        self._ipv4addr = os.popen(ip_cmd).read()
+        print('\t==>INFO: Create Network Namespace ' + self._namespace + ' successfully, IP Address: ' +
+              self._ipv4addr + ' ...')
 
         containercfgs = config.get('containers')
 
@@ -110,7 +122,7 @@ class Pod:
         _DEFAULT_PORT_PROTOCOL = 'tcp'
 
         for containercfg in containercfgs:
-            container = Container(containercfg['name']+self._suffix, containercfg['image'], containercfg['command'],
+            container = Container(containercfg['name'] + self._suffix, containercfg['image'], containercfg['command'],
                                   containercfg['resource']['memory'], containercfg['resource']['cpu'],
                                   containercfg['port'], self._namespace)
             self._containers.append(container)
