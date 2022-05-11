@@ -7,6 +7,9 @@ numpy
 flask
 flask_cors
 https://github.com/pallets/jinja/archive/refs/tags/3.0.0.zip
-pyyaml
+pyyaml~=6.0
 ttkbootstrap
 pika
+docker~=5.0.3
+python-iptables~=1.0.0
+jinja2~=3.1.2

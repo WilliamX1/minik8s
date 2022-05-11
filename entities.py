@@ -5,6 +5,7 @@ import sys
 from enum import Enum
 
 import docker
+import iptc
 import six
 import network_utils
 
@@ -83,16 +84,18 @@ class Pod:
         # create network bridge
         print('\t==>INFO: Start Creating Network Namespace ' + self._namespace + ' ...')
 
+        '''
         self._network = self._client.networks.create(
             name=self._namespace,
             driver="bridge",
         )
+        '''
 
         pause_container = self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
-                                    detach=True,  # auto_remove=True,
-                                    command=['sh', '-c', 'echo Hello World && sleep 3600'],
-                                    network=self._network.name)
-        ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) +\
+                                                      detach=True,  # auto_remove=True,
+                                                      command=['sh', '-c', 'sleep 365d'], )
+                                                    # network=self._network.name)
+        ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) + \
                  "\").IPv4Address }}' " + self._namespace
         self._ipv4addr = os.popen(ip_cmd).read()
         print('\t==>INFO: Create Network Namespace ' + self._namespace + ' successfully, IP Address: ' +
