@@ -7,7 +7,7 @@ from enum import Enum
 import docker
 import iptc
 import six
-import network_utils
+import kubeproxy
 
 try:
     from docker.errors import APIError
@@ -93,8 +93,8 @@ class Pod:
 
         pause_container = self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
                                                       detach=True,  # auto_remove=True,
-                                                      command=['sh', '-c', 'sleep 365d'], )
-                                                    # network=self._network.name)
+                                                      command=['sh', '-c', 'sleep 365d'],
+                                                      network="bridge")
         ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) + \
                  "\").IPv4Address }}' " + self._namespace
         self._ipv4addr = os.popen(ip_cmd).read()
