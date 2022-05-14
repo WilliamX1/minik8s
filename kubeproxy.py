@@ -4,7 +4,6 @@ import iptc
 import subprocess
 import utils
 
-
 default_ip = '-1.-1.-1.-1'
 ip_dict = {}
 
@@ -38,7 +37,7 @@ def print_all_filter_table():
         print("Chain ", chain.name)
         for rule in chain.rules:
             print("Rule", "proto:", rule.protocol, "src:", rule.src, "dst:", \
-                  rule.dst, "in:", rule.in_interface, "out:", rule.out_interface,)
+                  rule.dst, "in:", rule.in_interface, "out:", rule.out_interface, )
             print("Matches:")
             for match in rule.matches:
                 print(match.name)
@@ -135,20 +134,6 @@ def insert_single_forward_rule(clusterIP, podIps):
     chain = iptc.Chain(table, kubesvc_name)
     chain.insert_rule(rule)
 
-    # set KUBE-MARK-MASQ rule in KUBE-SEP- chain
-    util_create_chain_by_name(table, "MINI-KUBE-MARK-MASQ")
-
-    rule = iptc.Rule()
-    rule.src = podIps
-    rule.dst = '0.0.0.0/0'
-    rule.target = rule.create_target("MINI-KUBE-MARK-MASQ")
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes pod visit itself"
-
-    chain = iptc.Chain(table, kubesep_name)
-    chain.insert_rule(rule)
-
     # set DNAT rule in KUBE-SEP- chain
     util_create_chain_by_name(table, "DNAT")
 
@@ -159,6 +144,20 @@ def insert_single_forward_rule(clusterIP, podIps):
 
     match = rule.create_match("comment")
     match.comment = "mini kubernetes bind clusterIP to podIP"
+
+    chain = iptc.Chain(table, kubesep_name)
+    chain.insert_rule(rule)
+
+    # set KUBE-MARK-MASQ rule in KUBE-SEP- chain
+    util_create_chain_by_name(table, "MINI-KUBE-MARK-MASQ")
+
+    rule = iptc.Rule()
+    rule.src = podIps
+    rule.dst = '0.0.0.0/0'
+    rule.target = rule.create_target("MINI-KUBE-MARK-MASQ")
+
+    match = rule.create_match("comment")
+    match.comment = "mini kubernetes pod visit itself"
 
     chain = iptc.Chain(table, kubesep_name)
     chain.insert_rule(rule)
@@ -178,7 +177,7 @@ def insert_single_forward_rule(clusterIP, podIps):
     match.comment = "mini kubernetes service portals"
 
     chain = iptc.Chain(table, "OUTPUT")
-    chain.insert_rule(rule)
+    util_insert_rule_by_name(chain, rule)
 
     # set KUBE-FIREWALL rule in OUTPUT
     util_create_chain_by_name(table, "MINI-KUBE-FIREWALL")
@@ -189,11 +188,9 @@ def insert_single_forward_rule(clusterIP, podIps):
     rule.target = rule.create_target("MINI-KUBE-FIREWALL")
 
     chain = iptc.Chain(table, "OUTPUT")
-    chain.insert_rule(rule)
+    util_insert_rule_by_name(chain, rule)
 
     # set DROP rule in KUBE-FIREWALL
-    util_create_chain_by_name(table, "DROP")
-
     rule = iptc.Rule()
     rule.src = '0.0.0.0/0'
     rule.dst = '0.0.0.0/0'
@@ -206,25 +203,84 @@ def insert_single_forward_rule(clusterIP, podIps):
     match.comment = "mini kubernetes firewall for dropping marked packets"
 
     chain = iptc.Chain(table, "MINI-KUBE-FIREWALL")
-    chain.insert_rule(rule)
+    util_insert_rule_by_name(chain, rule)
 
     # set KUBE-POSTROUTING rule in POSTROUTING chain in nat table
 
 
+def set_iptables(cluster_ip, pod_ip_list):
+    """ set kube-proxy iptables, mainly for pod visit service using ClusterIP """
+    utils.create_chain("nat", "KUBE-SERVICES")
+    utils.insert_rule("nat", "OUTPUT", 1,
+                      utils.make_rulespec(comment="minik8s service portals",
+                                          jump="KUBE-SERVICES"),
+                      utils.make_target_extensions())
+    kubesvc = "KUBE-SVC-" + utils.generate_random_str(12, 1)
+    utils.create_chain("nat", kubesvc)
+    utils.insert_rule("nat", "KUBE-SERVICES", 1,
+                      utils.make_rulespec(protocol='tcp', dport=80,
+                                          destination=cluster_ip,
+                                          comment="default/nginx-service: cluster IP",
+                                          jump=kubesvc),
+                      utils.make_target_extensions())
+    # KUBE-SEP- chain might be several for load balancing
+    kubesep = "KUBE-SEP-" + utils.generate_random_str(12, 1)
+    utils.create_chain("nat", kubesep)
+    utils.insert_rule("nat", kubesvc, 1,
+                      utils.make_rulespec(jump=kubesep,
+                                          comment="default/nginx-service"),
+                      utils.make_target_extensions(match="statistic",
+                                                   mode="random",
+                                                   probability=1.0))
+    utils.create_chain("nat", "KUBE-MARK-MASQ")
+    utils.insert_rule("nat", kubesep, 1,
+                      utils.make_rulespec(source=pod_ip_list,
+                                          comment="default/nginx-service",
+                                          jump="KUBE-MARK-MASQ"),
+                      utils.make_target_extensions())
+    utils.insert_rule("nat", kubesep, 2,
+                      utils.make_rulespec(jump="DNAT",
+                                          protocol="tcp",
+                                          comment="default/nginx-service"),
+                      utils.make_target_extensions(to_destination=pod_ip_list + ":80"))
 
+    utils.create_chain("filter", "KUBE-SERVICES")
+    utils.insert_rule("filter", "OUTPUT", 1,
+                      utils.make_rulespec(jump="KUBE-SERVICES",
+                                          comment="minik8s service portals"),
+                      utils.make_target_extensions(ctstate="NEW"))
 
+    utils.create_chain("filter", "KUBE-FIREWALL")
+    utils.insert_rule("filter", "OUTPUT", 2,
+                      utils.make_rulespec(jump="KUBE-FIREWALL"),
+                      utils.make_target_extensions())
+    utils.insert_rule("filter", "KUBE-FIREWALL", 1,
+                      utils.make_rulespec(jump="DROP",
+                                          comment="minik8s firewall for dropping marked packets"),
+                      utils.make_target_extensions(mark="0x8000"))
 
-def clear_nat_table():
-    pass
+    utils.create_chain("nat", "KUBE-POSTROUTING")
+    utils.insert_rule("nat", "POSTROUTING", 1,
+                      utils.make_rulespec(jump="KUBE-POSTROUTING",
+                                          comment="minik8s postrouting rules"),
+                      utils.make_target_extensions())
+    utils.delete_rule("nat", "POSTROUTING",
+                      utils.make_rulespec(jump="MASQUERADE"),
+                      utils.make_target_extensions())
+    utils.insert_rule("nat", "POSTROUTING", 2,
+                      utils.make_rulespec(jump="MASQUERADE",
+                                          out_interface="!docker0",
+                                          source="192.168.1.0/24"),
+                      utils.make_target_extensions())
+
+    utils.insert_rule("nat", "KUBE-POSTROUTING", 1,
+                      utils.make_rulespec(jump="MASQUERADE",
+                                          comment="minik8s service traffic requiring SNAT"),
+                      utils.make_target_extensions(mark="0x4000"))
 
 
 if __name__ == '__main__':
-    '''
-    p = subprocess.Popen(["sudo", "iptables", "-A", "INPUT", "-p", "tcp", "-m", "tcp", "--dport", "22", "-j", "ACCEPT"],
-                         stdout=subprocess.PIPE)
-    output, err = p.communicate()
-    print(output, err)
-    '''
     # test_insert_rule()
     # print_all_filter_table()
-    insert_single_forward_rule('100.100.100.100', '192.168.1.2')
+    # insert_single_forward_rule('100.100.100.100', '192.168.1.2')
+    set_iptables('10.0.0.0', '192.168.1.1')
