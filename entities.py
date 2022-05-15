@@ -95,8 +95,9 @@ class Pod:
                                                       detach=True,  # auto_remove=True,
                                                       command=['sh', '-c', 'sleep 365d'],
                                                       network="bridge")
-        ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) + \
-                 "\").IPv4Address }}' " + self._namespace
+        # ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) + \
+        #          "\").IPv4Address }}' " + self._namespace
+        ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
         self._ipv4addr = os.popen(ip_cmd).read()
         print('\t==>INFO: Create Network Namespace ' + self._namespace + ' successfully, IP Address: ' +
               self._ipv4addr + ' ...')
@@ -140,7 +141,7 @@ class Pod:
                                         auto_remove=True,
                                         command=container.command(),
                                         network_mode='container:' + self.name())
-            print("\t==>INFO: %s is running successfully...\n", container.name())
+            print("\t==>INFO: %s is running successfully...\n" % container.name())
 
     def name(self):
         return self._name

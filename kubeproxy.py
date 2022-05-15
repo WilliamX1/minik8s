@@ -209,6 +209,7 @@ def insert_single_forward_rule(clusterIP, podIps):
 
 
 def set_iptables(cluster_ip, pod_ip_list):
+    # reference to: https://www.cnblogs.com/charlieroro/p/9588019.html
     """ set kube-proxy iptables, mainly for pod visit service using ClusterIP """
     utils.create_chain("nat", "KUBE-SERVICES")
     utils.insert_rule("nat", "OUTPUT", 1,
@@ -279,8 +280,216 @@ def set_iptables(cluster_ip, pod_ip_list):
                       utils.make_target_extensions(mark="0x4000"))
 
 
+def init_iptables():
+    # reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+    """ In table `nat`, set policy for some chains """
+    utils.policy_chain('nat', 'PREROUTING', ['ACCEPT'])
+    utils.policy_chain('nat', 'INPUT', ['ACCEPT'])
+    utils.policy_chain('nat', 'OUTPUT', ['ACCEPT'])
+    utils.policy_chain('nat', 'POSTROUTING', ['ACCEPT'])
+
+    """ In table `nat`, create some new chains """
+    utils.create_chain('nat', 'KUBE-SERVICES')
+    utils.create_chain('nat', 'KUBE-NODEPORTS')
+    utils.create_chain('nat', 'KUBE-POSTROUTING')
+    utils.create_chain('nat', 'KUBE-MARK-MASQ')
+    utils.create_chain('nat', 'KUBE-MARK-DROP')
+
+    """ In table `nat`, add some rule into chains """
+    utils.insert_rule('nat', 'PREROUTING', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-SERVICES',
+                          comment='kubernetes service portals'
+                      ),
+                      utils.make_target_extensions())
+    utils.insert_rule('nat', 'OUTPUT', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-SERVICES',
+                          comment='kubernetes service portals'
+                      ),
+                      utils.make_target_extensions())
+    utils.insert_rule('nat', 'POSTROUTING', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-POSTROUTING',
+                          comment='kubernetes postrouting rules'
+                      ),
+                      utils.make_target_extensions())
+    utils.insert_rule('nat', 'KUBE-MARK-DROP', 1,
+                      utils.make_rulespec(
+                          jump='MARK'
+                      ),
+                      utils.make_target_extensions(
+                          ormark='0x8000'
+                      ))
+    utils.insert_rule('nat', 'KUBE-MARK-MASQ', 1,
+                      utils.make_rulespec(
+                          jump='MARK'
+                      ),
+                      utils.make_target_extensions(
+                          ormark='0x4000'
+                      ))
+    utils.insert_rule('nat', 'KUBE-POSTROUTING', 1,
+                      utils.make_rulespec(
+                          jump='MASQUERADE',
+                          comment='kubernetes service traffic requiring SNAT'
+                      ),
+                      utils.make_target_extensions(
+                          mark='0x4000/0x4000'
+                      ))
+    utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-NODEPORTS',
+                          comment='kubernetes service nodeports; NOTE: this must be the last rule in this chain'
+                      ),
+                      utils.make_target_extensions(
+                          addrtype='ADDRTYPE',
+                          dst_type="LOCAL"
+                      ))
+
+    """ In table `filter`, set policy for some chains """
+    utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
+    utils.policy_chain('filter', 'FORWARD', ['ACCEPT'])
+    utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
+
+    """ In table `filter`, create some chains """
+    utils.create_chain('filter', 'KUBE-EXTERNAL-SERVICES')
+    utils.create_chain('filter', 'KUBE-FIREWALL')
+    utils.create_chain('filter', 'KUBE-FORWARD')
+    utils.create_chain('filter', 'KUBE-SERVICES')
+
+    """ In table `filter`, add some rule into chains """
+    utils.insert_rule('filter', 'INPUT', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-SERVICES',
+                          comment='kubernetes service portals'
+                      ),
+                      utils.make_target_extensions(
+                          ctstate='NEW'
+                      ))
+    utils.insert_rule('filter', 'INPUT', 2,
+                      utils.make_rulespec(
+                          jump='KUBE-EXTERNAL-SERVICES',
+                          comment='kubernetes externally-visible servie portals'
+                      ),
+                      utils.make_target_extensions(
+                          ctstate='NEW'
+                      ))
+    utils.insert_rule('filter', 'INPUT', 3,
+                      utils.make_rulespec(
+                          jump='KUBE-FIREWALL'
+                      ),
+                      utils.make_target_extensions())
+    utils.insert_rule('filter', 'FORWARD', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-FORWARD',
+                          comment='kubernetes forwarding rules'
+                      ),
+                      utils.make_target_extensions())
+    utils.insert_rule('filter', 'FORWARD', 2,
+                      utils.make_rulespec(
+                          jump='KUBE-SERVICES',
+                          comment='kubernetes service portals'
+                      ),
+                      utils.make_target_extensions(
+                          ctstate='NEW'
+                      ))
+    utils.insert_rule('filter', 'OUTPUT', 1,
+                      utils.make_rulespec(
+                          jump='KUBE-SERVICES',
+                          comment='kubernetes service portals'
+                      ),
+                      utils.make_target_extensions(
+                          ctstate='NEW'
+                      ))
+    utils.insert_rule('filter', 'OUTPUT', 2,
+                      utils.make_rulespec(
+                          jump='KUBE-FIREWALL'
+                      ),
+                      utils.make_target_extensions())
+    utils.insert_rule('filter', 'KUBE-FIREWALL', 1,
+                      utils.make_rulespec(
+                          jump='DROP',
+                          comment='kubernetes firewall for dropping marked packets'
+                      ),
+                      utils.make_target_extensions(
+                          mark='0x8000/0x8000'
+                      ))
+    utils.insert_rule('filter', 'KUBE-FORWARD', 1,
+                      utils.make_rulespec(
+                          jump='DROP',
+                      ),
+                      utils.make_target_extensions(
+                          ctstate='INVALID'
+                      ))
+    utils.insert_rule('filter', 'KUBE-FORWARD', 2,
+                      utils.make_rulespec(
+                          jump='ACCEPT',
+                          comment='kubernetes forwarding rules'
+                      ),
+                      utils.make_target_extensions(
+                          mark='0x4000/0x4000'
+                      ))
+
+
+def set_iptables_clusterIP(cluster_ip, service_name, dport, ip_prefix_len, pod_ip_list):
+    # reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+    kubesvc = 'KUBE-SVC-' + utils.generate_random_str(12, 1)
+    utils.create_chain('nat', kubesvc)
+    utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+                      utils.make_rulespec(
+                          jump=kubesvc,
+                          destination='/'.join([cluster_ip, str(ip_prefix_len)]),
+                          protocol='tcp',
+                          comment=service_name + ': cluster IP',
+                          dport=dport
+                      ),
+                      utils.make_target_extensions())
+
+    pod_num = len(pod_ip_list)
+    for i in range(0, pod_num):
+        kubesep = 'KUBE-SEP-' + utils.generate_random_str(12, 1)
+        utils.create_chain('nat', kubesep)
+        prob = 1 / (pod_num - i)
+        if i == 1:
+            utils.append_rule('nat', kubesvc,
+                              utils.make_rulespec(
+                                  jump=kubesep
+                              ),
+                              utils.make_target_extensions())
+        else:
+            utils.append_rule('nat', kubesvc,
+                              utils.make_rulespec(
+                                  jump=kubesep,
+                              ),
+                              utils.make_target_extensions(
+                                  statistic=True,
+                                  mode='random',
+                                  probability=prob
+                              ))
+        utils.append_rule('nat', kubesep,
+                          utils.make_rulespec(
+                              jump='KUBE-MARK-MASQ',
+                              source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
+                          ),
+                          utils.make_target_extensions())
+        utils.append_rule('nat', kubesep,
+                          utils.make_rulespec(
+                              jump='DNAT',
+                              protocol='tcp',
+                          ),
+                          utils.make_target_extensions(
+                              match='tcp',
+                              to_destination=':'.join([pod_ip_list[i], str(dport)])
+                          ))
+
+
 if __name__ == '__main__':
     # test_insert_rule()
     # print_all_filter_table()
     # insert_single_forward_rule('100.100.100.100', '192.168.1.2')
-    set_iptables('10.0.0.0', '192.168.1.1')
+    init_iptables()
+    set_iptables_clusterIP(cluster_ip='10.0.0.0',
+                           service_name='nginx-service',
+                           dport=80,
+                           ip_prefix_len=32,
+                           pod_ip_list=['192.168.1.1', '192.168.1.2'])

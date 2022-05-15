@@ -55,6 +55,12 @@ def insert_rule(table, chain, rulenum, rulespec, target_extension):
     exec_command(command)
 
 
+def append_rule(table, chain, rulespec, target_extension):
+    """ sudo iptables -t <table> -A <chain> <rule-specification>"""
+    command = ["sudo", "iptables", "-t", table, "-A", chain] + rulespec + target_extension
+    exec_command(command)
+
+
 def replace_rule(table, chain, rulenum, rulespec, target_extension):
     """sudo iptables -t <table> -R <chain> <rulenum> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-R", chain, rulenum] + rulespec + target_extension
@@ -163,7 +169,8 @@ def make_rulespec(protocol=None, dport=None, sport=None,
 
 
 def make_target_extensions(to_destination=None, mark=None, match=None, mode=None,
-                           probability=None, ctstate=None):
+                           probability=None, ctstate=None, ormark=None, addrtype=None,
+                           dst_type=None, statistic=None):
     """
     Make target extensions limit to --to-destination ans --set-mark
     :param to_destination: This allows you to DNAT connections in a round robin way
@@ -179,12 +186,15 @@ def make_target_extensions(to_destination=None, mark=None, match=None, mode=None
         target.append(to_destination)
     if mark is not None:
         target.append("-m")
-        target.append("connmark")
+        target.append("mark")
         target.append("--mark")
         target.append(mark)
     if match is not None:
         target.append("-m")
         target.append(match)
+    if statistic is not None:
+        target.append('-m')
+        target.append('statistic')
     if mode is not None:
         target.append("--mode")
         target.append(mode)
@@ -196,6 +206,15 @@ def make_target_extensions(to_destination=None, mark=None, match=None, mode=None
         target.append("conntrack")
         target.append("--ctstate")
         target.append(ctstate)
+    if ormark is not None:
+        target.append("--or-mark")
+        target.append(ormark)
+    if addrtype is not None:
+        target.append("-m")
+        target.append("addrtype")
+        if dst_type is not None:
+            target.append("--dst-type")
+            target.append(dst_type)
 
     return target
 
