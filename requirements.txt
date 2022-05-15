@@ -10,3 +10,4 @@ https://github.com/pallets/jinja/archive/refs/tags/3.0.0.zip
 pyyaml
 ttkbootstrap
 pika
+etcd3

@@ -51,7 +51,7 @@ class Status(Enum):
 
 
 class Pod:
-    def __init__(self, config):
+    def __init__(self, config, restart):
         self._suffix = config.get('suffix')
         self._name = config.get('name') + self._suffix
         self._status = Status.RUNNING
@@ -68,24 +68,6 @@ class Pod:
 
         self._client = docker.from_env(version='1.25', timeout=5)
 
-        '''
-        Create a 'pause' container each pod which use a veth,
-        Other containers attach to this container network, so
-        they can communicate with each other using `localhost`
-        '''
-
-        # create network bridge
-        print('\t==>INFO: Start launching `pause` container...')
-        self._client.networks.prune()  # delete unused networks
-        self._network = self._client.networks.create(name=self._namespace, driver="bridge")
-        self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
-                                    detach=True,  # auto_remove=True,
-                                    command=['sh', '-c', 'echo Hello World && sleep 3600'],
-                                    network=self._network.name)
-        print('\t==>INFO: `Pause` container is running successfully...\n')
-
-        containercfgs = config.get('containers')
-
         def _parse_bytes(s):
             if not s or not isinstance(s, six.string_types):
                 return s
@@ -101,28 +83,58 @@ class Pod:
                 return int(s)
             return int(s[:-1]) * units[suffix]
 
-        # 创建容器配置参数
-        volumes = set()
-        volumes.add(self._volumn)
-        _PORT_SPEC_REGEX = re.compile(r'^(?P<p1>\d+)(?:-(?P<p2>\d+))?(?:/(?P<proto>(tcp|udp)))?$')  # noqa
-        _DEFAULT_PORT_PROTOCOL = 'tcp'
+        if restart:
+            containercfgs = config.get('containers')
+            for containercfg in containercfgs:
+                container = Container(containercfg['name'] + self._suffix, containercfg['image'],
+                                      containercfg['command'],
+                                      containercfg['resource']['memory'], containercfg['resource']['cpu'],
+                                      containercfg['port'], self._namespace)
+                self._containers.append(container)
+            if config.get('status') == 'Status.RUNNING':
+                self._status = Status.RUNNING
+            elif config.get('status') == 'Status.STOPPED':
+                self._status = Status.STOPPED
+            elif config.get('status') == 'Status.KILLED':
+                self._status = Status.KILLED
+            print('\t==>INFO: pod {} restart'.format(self._name))
+        else:
+            '''
+                    Create a 'pause' container each pod which use a veth,
+                    Other containers attach to this container network, so
+                    they can communicate with each other using `localhost`
+                    '''
 
-        for containercfg in containercfgs:
-            container = Container(containercfg['name']+self._suffix, containercfg['image'], containercfg['command'],
-                                  containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                  containercfg['port'], self._namespace)
-            self._containers.append(container)
-            print("\t==>INFO: %s start launching...\n" % container.name())
-            print(container.cpu())
-            self._client.containers.run(image=container.image(), name=container.name(),  # volumes=list(volumes),
-                                        cpu_shares=container.cpu(),
-                                        mem_limit=_parse_bytes(container.memory()),
-                                        # ports=containercfg['port'],
-                                        detach=True,
-                                        # auto_remove=True,
-                                        command=container.command(),
-                                        network_mode='container:' + self.name())
-            print("\t==>INFO: %s is running successfully...\n", container.name())
+            # create network bridge
+            print('\t==>INFO: Start launching `pause` container...')
+            self._client.networks.prune()  # delete unused networks
+            self._network = self._client.networks.create(name=self._namespace, driver="bridge")
+            self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
+                                        detach=True,  # auto_remove=True,
+                                        command=['sh', '-c', 'echo Hello World && sleep 3600'],
+                                        network=self._network.name)
+            print('\t==>INFO: `Pause` container is running successfully...\n')
+
+            containercfgs = config.get('containers')
+
+            # 创建容器配置参数
+            volumes = set()
+            volumes.add(self._volumn)
+            for containercfg in containercfgs:
+                container = Container(containercfg['name'] + self._suffix, containercfg['image'],
+                                      containercfg['command'],
+                                      containercfg['resource']['memory'], containercfg['resource']['cpu'],
+                                      containercfg['port'], self._namespace)
+                self._containers.append(container)
+                print("\t==>INFO: %s start launching...\n" % container.name())
+                self._client.containers.run(image=container.image(), name=container.name(),  volumes=list(volumes),
+                                            cpu_shares=container.cpu(),
+                                            mem_limit=_parse_bytes(container.memory()),
+                                            detach=True,
+                                            # auto_remove=True,
+                                            command=container.command(),
+                                            network_mode='container:' + self.name())
+                print("\t==>INFO: %s is running successfully...\n", container.name())
 
     def name(self):
         return self._name
@@ -175,6 +187,11 @@ class Pod:
         status = self._client.api.inspect_container(self._name)
         self._client.api.stop(status.get('ID', status.get('Id', None)))
         self._client.api.remove_container(status.get('ID', status.get('Id', None)))
+
+    def cpu_monitor(self):
+        for container in self._containers:
+            status = self._client.api.inspect_container(container.name())
+            print(status)
 
 
 class Service:
