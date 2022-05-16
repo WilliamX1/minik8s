@@ -94,7 +94,7 @@ class Pod:
         pause_container = self._client.containers.run(image='busybox', name=self.name(),  # 这里原来是pause，防重名我改成了pod name
                                                       detach=True,  # auto_remove=True,
                                                       command=['sh', '-c', 'sleep 365d'],
-                                                      network="bridge")
+                                                      network_mode="bridge")
         # ip_cmd = "docker network inspect --format '{{(index .Containers \"" + str(pause_container.id) + \
         #          "\").IPv4Address }}' " + self._namespace
         ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name

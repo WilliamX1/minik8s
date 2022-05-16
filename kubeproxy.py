@@ -492,4 +492,4 @@ if __name__ == '__main__':
                            service_name='nginx-service',
                            dport=80,
                            ip_prefix_len=32,
-                           pod_ip_list=['192.168.1.1', '192.168.1.2'])
+                           pod_ip_list=['172.17.0.2', '172.17.0.3'])
