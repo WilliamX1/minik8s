@@ -1,0 +1,8 @@
+. {
+	proxy	. 8.8.8.8:53 {
+		protocol https_google
+	}
+	prometheus
+	errors
+	log
+}

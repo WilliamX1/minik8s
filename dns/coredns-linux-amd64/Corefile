@@ -1,0 +1,16 @@
+.:1053 {
+	log 
+	errors
+}
+
+example.comL:1053 {
+	forward . 172.17.0.2
+	log
+	errors
+}
+
+dongdong.cncn:1053 {
+	forward . 172.17.0.2
+	log
+	errors
+}
