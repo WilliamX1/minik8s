@@ -3,33 +3,22 @@ name: xhd-pod
 kind: pod
 volumn: '/home/liuyixiang/docker_volumn'
 metadata:
-  namespace: xhd-pod
   labels:
     app: xhd-pod
 spec:
   replicas: 1
 containers:
-  - name: nginx-container
+  - name: nginx
     image: nginx
     command:
     resource:
       memory: 1g
       cpu: 2
-    port:
-      - containerPort: 80
-  - name: busybox-container
-    image: busybox
-    command: [ 'sh', '-c', 'sleep 365d' ]
+    port: 80
+  - name: jenkins
+    image: jenkins/jenkins:lts-jdk11
+    command:
     resource:
       memory: 1g
       cpu: 2
-    port:
-      - containerPort: 2182
-  - name: sidecar-container
-    image: curlimages/curl
-    command: ["sh", "-c", "sleep 300"]
-    resource:
-      memory: 1g
-      cpu: 2
-    port:
-      - containerPort: 2888
+    port: 8080
