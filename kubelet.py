@@ -204,6 +204,7 @@ def callback(ch, method, properties, body):
                 json_data = json.dumps(msg)
                 r = requests.post(url=url, json=json_data)
                 time.sleep(2)
+            configs['pods'][config['name']] = config
         if config['kind'] == 'ReplicaSet':
             config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
             for i in range(0, auto_num):
@@ -219,6 +220,7 @@ def callback(ch, method, properties, body):
                 json_data = json.dumps(msg)
                 r = requests.post(url=url, json=json_data)
                 time.sleep(2)
+            configs['ReplicaSets'][config['name']] = config
 
 
     share.set('status', str(status))
