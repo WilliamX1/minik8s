@@ -1,3 +1,4 @@
+import logging
 import random
 import subprocess
 
@@ -20,7 +21,7 @@ def generate_random_str(randomlength=16, opts=0):
     elif opts == 2:
         base_str = base_str_num
     else:
-        print("Warn: in function generate_random_str() parameter opts should be 0/1/2...")
+        logging.warning("In function generate_random_str() parameter opts should be 0/1/2...")
     base_length = len(base_str) - 1
     for i in range(randomlength):
         random_str += base_str[random.randint(0, base_length)]
@@ -28,18 +29,24 @@ def generate_random_str(randomlength=16, opts=0):
 
 
 def exec_command(command):
-    print("> " + ' '.join(command))
+    logging.info("Execute Command > " + ' '.join(command))
     p = subprocess.Popen(command, stdout=subprocess.PIPE)
     output, err = p.communicate()
     if str(output, 'utf-8') != "":
-        print("output: " + str(output))
+        logging.info("output: %s" % str(output))
     if err is not None:
-        print("err: " + str(err))
+        logging.info("err: %s" % str(err))
+
+
+def dump_iptables():
+    """sudo iptables -X"""
+    command = ["sudo", "iptables", "-X"]
+    exec_command(command)
 
 
 def append_rule(table, chain, rulespec, target_extension):
-    """ sudo iptables -t <table> -I <chain> <rule-specification>"""
-    command = ["sudo", "iptables", "-t", table, "-I", chain] + rulespec + target_extension
+    """ sudo iptables -t <table> -A <chain> <rule-specification>"""
+    command = ["sudo", "iptables", "-t", table, "-A", chain] + rulespec + target_extension
     exec_command(command)
 
 
@@ -55,15 +62,15 @@ def insert_rule(table, chain, rulenum, rulespec, target_extension):
     exec_command(command)
 
 
-def append_rule(table, chain, rulespec, target_extension):
-    """ sudo iptables -t <table> -A <chain> <rule-specification>"""
-    command = ["sudo", "iptables", "-t", table, "-A", chain] + rulespec + target_extension
-    exec_command(command)
-
-
 def replace_rule(table, chain, rulenum, rulespec, target_extension):
     """sudo iptables -t <table> -R <chain> <rulenum> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-R", chain, rulenum] + rulespec + target_extension
+    exec_command(command)
+
+
+def clear_rules():
+    """sudo iptables -F"""
+    command = ["sudo", "iptables", "-F"]
     exec_command(command)
 
 
@@ -108,22 +115,19 @@ def get_help():
     exec_command(command)
 
 
-def make_rulespec(protocol=None, dport=None, sport=None,
-                  source=None, destination=None, jump=None, goto=None,
-                  in_interface=None, out_interface=None, fragment=None, set_counters=None, comment=None):
+def make_rulespec(protocol=None, dport=None,
+                  source=None, destination=None, jump=None,
+                  out_interface=None, comment=None):
     """
     Make up a rule specification ( as used in the add, delete, insert, replace and append command )
+    reference to: https://linux.die.net/man/8/iptables
     :param protocol: default: all, tcp/udp/icmp/all
-    :param dport:
-    :param sport:
+    :param dport: destination port or port range specification
     :param source: default: 0.0.0.0/0, a network name, a hostname, a network IP address or a plain IP address
     :param destination: default: 0.0.0.0/0, destination specification
     :param jump: a user-defined chain or one of the special builtin targets (ACCEPT, DROP...)
-    :param goto: continue in a user specified chain
-    :param in_interface: name of an interface via which a packet was received, INPUT/FORWARD/PREROUTING
-    :param fragment:
-    :param set_counters:
-    :param comment:
+    :param out_interface: name of an interface via which a packet is going to be sent
+    :param comment: just comments, you know
     :return: A format rule-specification string like '-p tcp -s 10.0.0.0'
     """
     rulespec = []
@@ -133,9 +137,6 @@ def make_rulespec(protocol=None, dport=None, sport=None,
         if dport is not None:
             rulespec.append("--dport")
             rulespec.append(str(dport))
-        if sport is not None:
-            rulespec.append("--sport")
-            rulespec.append(str(sport))
     if source is not None:
         rulespec.append("-s")
         rulespec.append(source)
@@ -145,21 +146,9 @@ def make_rulespec(protocol=None, dport=None, sport=None,
     if jump is not None:
         rulespec.append("-j")
         rulespec.append(jump)
-    if goto is not None:
-        rulespec.append("-g")
-        rulespec.append(goto)
-    if in_interface is not None:
-        rulespec.append("-i")
-        rulespec.append(in_interface)
     if out_interface is not None:
         rulespec.append("-o")
         rulespec.append(out_interface)
-    if fragment is not None:
-        rulespec.append("-f")
-        rulespec.append(fragment)
-    if set_counters is not None:
-        rulespec.append("-c")
-        rulespec.append(set_counters)
     if comment is not None:
         rulespec.append("-m")
         rulespec.append("comment")
@@ -169,15 +158,25 @@ def make_rulespec(protocol=None, dport=None, sport=None,
 
 
 def make_target_extensions(to_destination=None, mark=None, match=None, mode=None,
-                           probability=None, ctstate=None, ormark=None, addrtype=None,
+                           probability=None, every=None, packet=None,
+                           ctstate=None, ormark=None, addrtype=None,
                            dst_type=None, statistic=None):
     """
-    Make target extensions limit to --to-destination ans --set-mark
+    Make target extensions
+    reference to: https://linux.die.net/man/8/iptables
     :param to_destination: This allows you to DNAT connections in a round robin way
                             over a given range of destination address
     :param mark: Set connection mark
+    :param match: 
     :param mode: policy mode, random
-    :param possibility:
+    :param probability: used for nginx load balancing random
+    :param every: used for nginx load balancing nth, every packet
+    :param packet: used for nginx load balancing nth, start packet
+    :param ctstate: a comma separated list of the connection states to match, INVALID/ESTABLISHED/NEW/RELATED/SNAT/DNAT
+    :param ormark: perform bitwise 'or' on the IP address and this mask
+    :param addrtype: address type
+    :param dst_type: matches if the destination address is of given type
+    :param statistic:
     :return: a format target extension string like '--to-destination 192.168.1.1:80 --set-mark 0x8888'
     """
     target = []
@@ -201,6 +200,12 @@ def make_target_extensions(to_destination=None, mark=None, match=None, mode=None
         if probability is not None:
             target.append("--probability")
             target.append(str(probability))
+        if every is not None:
+            target.append("--every")
+            target.append(str(every))
+            if packet is not None:
+                target.append("--packet")
+                target.append(str(packet))
     if ctstate is not None:
         target.append("-m")
         target.append("conntrack")

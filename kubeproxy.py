@@ -1,287 +1,50 @@
-import os
-import random
-import iptc
 import subprocess
 import utils
-
-default_ip = '-1.-1.-1.-1'
-ip_dict = {}
+import logging
 
 
-def create_pod_ipaddr():
-    ip = ''
-    cnt = 1000
-    while cnt > 0:
-        num1, num2, num3, num4 = \
-            '192', '168', \
-            random.randint(0, 255), random.randint(0, 255)
-        ip = '.'.join([str(num1), str(num2), str(num3), str(num4)])
-        if ip not in ip_dict:
-            break
-        else:
-            cnt -= 1
-    if cnt > 0:
-        print('INFO: pod ip address ' + ip + ' is in use...')
-        return ip
-    else:
-        print('Error: No available ip address...')
-        return default_ip
-
-
-def print_all_filter_table():
-    # This function has to be run in root,
-    # so I try to not use this one
-    table = iptc.Table(iptc.Table.FILTER)
-    for chain in table.chains:
-        print("======================")
-        print("Chain ", chain.name)
-        for rule in chain.rules:
-            print("Rule", "proto:", rule.protocol, "src:", rule.src, "dst:", \
-                  rule.dst, "in:", rule.in_interface, "out:", rule.out_interface, )
-            print("Matches:")
-            for match in rule.matches:
-                print(match.name)
-            print("Target:")
-            print(rule.target.name)
-    print("=====================")
-
-
-def test_insert_rule():
-    rule = iptc.Rule()
-    rule.src = '127.0.0.1'
-    rule.protocol = 'udp'
-    rule.target = rule.create_target('ACCEPT')
-    match = rule.create_match('comment')
-    match.comment = 'This is a test comment'
-    chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), 'INPUT')
-    chain.insert_rule(rule)
-
-
-def test_insert_forward_rule():
-    pass
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
 def util_create_chain_by_name(table, name):
+    """
+    create user-defined chain in specified table, if the chain already exists just return
+    :param table: target table to create user-defined train
+    :param name: the name of user-defined train
+    :return: the first is a flag indicating if the chain already exists, False means it exists before your creation
+            the second is the chain itself
+    """
     for chain in table.chains:
-        # print(chain.name)
         if str(chain.name) == str(name):
             return False, chain
     chain = table.create_chain(name)
-    print("INFO: Create " + name + " Chain in NAT Table...")
+    logging.info("Create [%s] Chain in NAT Table..."
+                 % name)
     return True, chain
 
 
 def util_insert_rule_by_name(chain, target_rule):
+    """
+    insert user-defined rule into some chain
+    :param chain: target chain to insert your rule
+    :param target_rule: user-defined rule
+    :return: a flag indicating whether the rule already exists, False means it exists before your insertion
+    """
     for rule in chain.rules:
         if str(rule.target.name) == str(target_rule.target.name):
             return False
     chain.insert_rule(target_rule)
-    print("INFO: Insert " + target_rule.target.name + " Rule in " + chain.name + " Chain...")
+    logging.info("Insert [%s] Rule in [%s] Chain..."
+                 % (target_rule.target.name, chain.name))
     return True
 
 
-def insert_single_forward_rule(clusterIP, podIps):
-    """ Go into NAT table """
-    table = iptc.Table(iptc.Table.NAT)
-
-    # set `MINI-KUBE-SERVICES` rule in `OUTPUT` chain in `nat` table
-    util_create_chain_by_name(table, "MINI-KUBE-SERVICES")
-
-    rule = iptc.Rule()
-    rule.src = "0.0.0.0/0"
-    rule.dst = "0.0.0.0/0"
-    rule.target = rule.create_target("MINI-KUBE-SERVICES")
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes service portals"
-
-    chain = iptc.Chain(table, "OUTPUT")
-    util_insert_rule_by_name(chain, rule)
-
-    # set specific svc rule in MINI-KUBE-SERVICES chain
-    suffix = utils.generate_random_str(12, 1)
-    kubesvc_name = "MINI-KUBE-SVC-" + suffix
-    util_create_chain_by_name(table, kubesvc_name)
-
-    rule = iptc.Rule()
-    rule.src = "0.0.0.0/0"
-    rule.dst = clusterIP
-    rule.protocol = 'tcp'
-    rule.target = rule.create_target(kubesvc_name)
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes service: cluster IP"
-
-    chain = iptc.Chain(table, "MINI-KUBE-SERVICES")
-    chain.insert_rule(rule)
-
-    # set one or more sep rule in KUBE-SVC- chain
-    suffix = utils.generate_random_str(12, 1)
-    kubesep_name = "MINI-KUBE-SEP-" + suffix
-    util_create_chain_by_name(table, kubesep_name)
-
-    rule = iptc.Rule()
-    rule.src = "0.0.0.0/0"
-    rule.dst = "0.0.0.0/0"
-    rule.target = rule.create_target(kubesep_name)
-
-    # match = rule.create_match("statistic mode random probability")
-    # match.possibility = "0.3333333349"
-
-    match = rule.create_match("comment")
-    match.comment = "default mini kubernetes service"
-
-    chain = iptc.Chain(table, kubesvc_name)
-    chain.insert_rule(rule)
-
-    # set DNAT rule in KUBE-SEP- chain
-    util_create_chain_by_name(table, "DNAT")
-
-    rule = iptc.Rule()
-    rule.src = '0.0.0.0'
-    rule.dst = podIps
-    rule.target = rule.create_target("DNAT")
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes bind clusterIP to podIP"
-
-    chain = iptc.Chain(table, kubesep_name)
-    chain.insert_rule(rule)
-
-    # set KUBE-MARK-MASQ rule in KUBE-SEP- chain
-    util_create_chain_by_name(table, "MINI-KUBE-MARK-MASQ")
-
-    rule = iptc.Rule()
-    rule.src = podIps
-    rule.dst = '0.0.0.0/0'
-    rule.target = rule.create_target("MINI-KUBE-MARK-MASQ")
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes pod visit itself"
-
-    chain = iptc.Chain(table, kubesep_name)
-    chain.insert_rule(rule)
-
-    """ Go into FILTER table """
-    table = iptc.Table(iptc.Table.FILTER)
-
-    # set KUBE-SERVICES rule in OUTPUT chain in FILTER table
-    util_create_chain_by_name(table, "MINI-KUBE-SERVICES")
-
-    rule = iptc.Rule()
-    rule.src = '0.0.0.0/0'
-    rule.dst = '0.0.0.0/0'
-    rule.target = rule.create_target("MINI-KUBE-SERVICES")
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes service portals"
-
-    chain = iptc.Chain(table, "OUTPUT")
-    util_insert_rule_by_name(chain, rule)
-
-    # set KUBE-FIREWALL rule in OUTPUT
-    util_create_chain_by_name(table, "MINI-KUBE-FIREWALL")
-
-    rule = iptc.Rule()
-    rule.src = '0.0.0.0/0'
-    rule.dst = '0.0.0.0/0'
-    rule.target = rule.create_target("MINI-KUBE-FIREWALL")
-
-    chain = iptc.Chain(table, "OUTPUT")
-    util_insert_rule_by_name(chain, rule)
-
-    # set DROP rule in KUBE-FIREWALL
-    rule = iptc.Rule()
-    rule.src = '0.0.0.0/0'
-    rule.dst = '0.0.0.0/0'
-    rule.target = rule.create_target("DROP")
-
-    match = rule.create_match("mark")
-    match.mark = "0x8000"
-
-    match = rule.create_match("comment")
-    match.comment = "mini kubernetes firewall for dropping marked packets"
-
-    chain = iptc.Chain(table, "MINI-KUBE-FIREWALL")
-    util_insert_rule_by_name(chain, rule)
-
-    # set KUBE-POSTROUTING rule in POSTROUTING chain in nat table
-
-
-def set_iptables(cluster_ip, pod_ip_list):
-    # reference to: https://www.cnblogs.com/charlieroro/p/9588019.html
-    """ set kube-proxy iptables, mainly for pod visit service using ClusterIP """
-    utils.create_chain("nat", "KUBE-SERVICES")
-    utils.insert_rule("nat", "OUTPUT", 1,
-                      utils.make_rulespec(comment="minik8s service portals",
-                                          jump="KUBE-SERVICES"),
-                      utils.make_target_extensions())
-    kubesvc = "KUBE-SVC-" + utils.generate_random_str(12, 1)
-    utils.create_chain("nat", kubesvc)
-    utils.insert_rule("nat", "KUBE-SERVICES", 1,
-                      utils.make_rulespec(protocol='tcp', dport=80,
-                                          destination=cluster_ip,
-                                          comment="default/nginx-service: cluster IP",
-                                          jump=kubesvc),
-                      utils.make_target_extensions())
-    # KUBE-SEP- chain might be several for load balancing
-    kubesep = "KUBE-SEP-" + utils.generate_random_str(12, 1)
-    utils.create_chain("nat", kubesep)
-    utils.insert_rule("nat", kubesvc, 1,
-                      utils.make_rulespec(jump=kubesep,
-                                          comment="default/nginx-service"),
-                      utils.make_target_extensions(match="statistic",
-                                                   mode="random",
-                                                   probability=1.0))
-    utils.create_chain("nat", "KUBE-MARK-MASQ")
-    utils.insert_rule("nat", kubesep, 1,
-                      utils.make_rulespec(source=pod_ip_list,
-                                          comment="default/nginx-service",
-                                          jump="KUBE-MARK-MASQ"),
-                      utils.make_target_extensions())
-    utils.insert_rule("nat", kubesep, 2,
-                      utils.make_rulespec(jump="DNAT",
-                                          protocol="tcp",
-                                          comment="default/nginx-service"),
-                      utils.make_target_extensions(to_destination=pod_ip_list + ":80"))
-
-    utils.create_chain("filter", "KUBE-SERVICES")
-    utils.insert_rule("filter", "OUTPUT", 1,
-                      utils.make_rulespec(jump="KUBE-SERVICES",
-                                          comment="minik8s service portals"),
-                      utils.make_target_extensions(ctstate="NEW"))
-
-    utils.create_chain("filter", "KUBE-FIREWALL")
-    utils.insert_rule("filter", "OUTPUT", 2,
-                      utils.make_rulespec(jump="KUBE-FIREWALL"),
-                      utils.make_target_extensions())
-    utils.insert_rule("filter", "KUBE-FIREWALL", 1,
-                      utils.make_rulespec(jump="DROP",
-                                          comment="minik8s firewall for dropping marked packets"),
-                      utils.make_target_extensions(mark="0x8000"))
-
-    utils.create_chain("nat", "KUBE-POSTROUTING")
-    utils.insert_rule("nat", "POSTROUTING", 1,
-                      utils.make_rulespec(jump="KUBE-POSTROUTING",
-                                          comment="minik8s postrouting rules"),
-                      utils.make_target_extensions())
-    utils.delete_rule("nat", "POSTROUTING",
-                      utils.make_rulespec(jump="MASQUERADE"),
-                      utils.make_target_extensions())
-    utils.insert_rule("nat", "POSTROUTING", 2,
-                      utils.make_rulespec(jump="MASQUERADE",
-                                          out_interface="!docker0",
-                                          source="192.168.1.0/24"),
-                      utils.make_target_extensions())
-
-    utils.insert_rule("nat", "KUBE-POSTROUTING", 1,
-                      utils.make_rulespec(jump="MASQUERADE",
-                                          comment="minik8s service traffic requiring SNAT"),
-                      utils.make_target_extensions(mark="0x4000"))
-
-
 def init_iptables():
-    # reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+    """
+    init iptables for minik8s, create some necessary chains and insert some necessary rules
+    reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+    :return: None
+    """
     """ In table `nat`, set policy for some chains """
     utils.policy_chain('nat', 'PREROUTING', ['ACCEPT'])
     utils.policy_chain('nat', 'INPUT', ['ACCEPT'])
@@ -431,8 +194,28 @@ def init_iptables():
                       ))
 
 
-def set_iptables_clusterIP(cluster_ip, service_name, dport, ip_prefix_len, pod_ip_list):
-    # reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, pod_ip_list, strategy='random', ip_prefix_len=32):
+    """
+    used for set service clusterIP
+    reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+    :param cluster_ip: service clusterIP, which should be like xx.xx.xx.xx,
+                        don't forget to set security group for that ip address
+    :param service_name: service name, only used for comment here
+    :param port: exposed service port, which can be visited by other pods by cluster_ip:port
+    :param target_port: container runs on target_port actually, must be matched with `pod port`
+                        if not matched, we can reject this request or just let it go depending on me
+    :param pod_ip_list: a list of pod ip address, which belongs to the service target pod
+    :param strategy: service load balance strategy, which should be random/roundrobin
+    :param ip_prefix_len: must be 32 here, so use default value please
+    :return:
+    """
+    """
+    init iptables first, create some necessary chain and rules 
+    init_iptables is an idempotent function, which means the effect of
+    execute several times equals to the effect of execute one time
+    """
+    init_iptables()
+
     kubesvc = 'KUBE-SVC-' + utils.generate_random_str(12, 1)
     utils.create_chain('nat', kubesvc)
     utils.insert_rule('nat', 'KUBE-SERVICES', 1,
@@ -441,7 +224,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, dport, ip_prefix_len, pod_i
                           destination='/'.join([cluster_ip, str(ip_prefix_len)]),
                           protocol='tcp',
                           comment=service_name + ': cluster IP',
-                          dport=dport
+                          dport=port
                       ),
                       utils.make_target_extensions())
 
@@ -449,23 +232,46 @@ def set_iptables_clusterIP(cluster_ip, service_name, dport, ip_prefix_len, pod_i
     for i in range(0, pod_num):
         kubesep = 'KUBE-SEP-' + utils.generate_random_str(12, 1)
         utils.create_chain('nat', kubesep)
-        prob = 1 / (pod_num - i)
-        if i == 1:
-            utils.append_rule('nat', kubesvc,
-                              utils.make_rulespec(
-                                  jump=kubesep
-                              ),
-                              utils.make_target_extensions())
+
+        if strategy == 'random':
+            prob = 1 / (pod_num - i)
+            if i == pod_num - 1:
+                utils.append_rule('nat', kubesvc,
+                                  utils.make_rulespec(
+                                      jump=kubesep
+                                  ),
+                                  utils.make_target_extensions())
+            else:
+                utils.append_rule('nat', kubesvc,
+                                  utils.make_rulespec(
+                                      jump=kubesep,
+                                  ),
+                                  utils.make_target_extensions(
+                                      statistic=True,
+                                      mode='random',
+                                      probability=prob
+                                  ))
+        elif strategy == 'roundrobin':
+            if i == pod_num - 1:
+                utils.append_rule('nat', kubesvc,
+                                  utils.make_rulespec(
+                                      jump=kubesep
+                                  ),
+                                  utils.make_target_extensions())
+            else:
+                utils.append_rule('nat', kubesvc,
+                                  utils.make_rulespec(
+                                      jump=kubesep
+                                  ),
+                                  utils.make_target_extensions(
+                                      statistic=True,
+                                      mode='nth',
+                                      every=pod_num - i,
+                                      packet=0
+                                  ))
         else:
-            utils.append_rule('nat', kubesvc,
-                              utils.make_rulespec(
-                                  jump=kubesep,
-                              ),
-                              utils.make_target_extensions(
-                                  statistic=True,
-                                  mode='random',
-                                  probability=prob
-                              ))
+            logging.error("Strategy Not Found! Use `random` or `roundrobin` Please")
+
         utils.append_rule('nat', kubesep,
                           utils.make_rulespec(
                               jump='KUBE-MARK-MASQ',
@@ -479,17 +285,63 @@ def set_iptables_clusterIP(cluster_ip, service_name, dport, ip_prefix_len, pod_i
                           ),
                           utils.make_target_extensions(
                               match='tcp',
-                              to_destination=':'.join([pod_ip_list[i], str(dport)])
+                              to_destination=':'.join([pod_ip_list[i], str(target_port)])
                           ))
+    logging.info("Service [%s] Cluster IP: [%s] Port: [%s] Strategy: [%s]"
+                 % (service_name, cluster_ip, port, strategy))
+
+
+default_iptables_path = "./iptables-script"
+
+
+def save_iptables(path=default_iptables_path):
+    """
+    save current iptables to disk file, equals to the command:
+    ```sudo iptables-save > path```
+    :param path: saved file path
+    :return: None
+    """
+    p = subprocess.Popen("iptables-save", stdout=subprocess.PIPE)
+    f = open(path, "wb")
+    f.write(p.stdout.read())
+    f.close()
+    logging.info("Save iptables successfully!")
+
+
+def restore_iptables(path=default_iptables_path):
+    """
+    restore iptables from disk file, equals to the command:
+    ```sudo iptables-restore < path```
+    :param path: restored file path
+    :return: None
+    """
+    f = open(path, "wb")
+    p = subprocess.Popen("iptables-save", stdin=f)
+    p.communicate()
+    f.close()
+    logging.info("Restore iptables successfully!")
+
+
+def clear_iptables():
+    """
+    clear whole iptables, equals to the command:
+    ```sudo iptables -F && sudo iptables -X```
+    :return: None
+    """
+    utils.clear_rules()
+    utils.dump_iptables()
+    logging.info("Clear iptables successfully ...")
+
+
+def example():
+    set_iptables_clusterIP(cluster_ip='10.232.232.232',
+                           service_name='nginx-service',
+                           port=1111,
+                           target_port=8080,
+                           ip_prefix_len=32,
+                           pod_ip_list=['172.17.0.2', '172.17.0.3'],
+                           strategy='roundrobin')
 
 
 if __name__ == '__main__':
-    # test_insert_rule()
-    # print_all_filter_table()
-    # insert_single_forward_rule('100.100.100.100', '192.168.1.2')
-    init_iptables()
-    set_iptables_clusterIP(cluster_ip='10.0.0.0',
-                           service_name='nginx-service',
-                           dport=80,
-                           ip_prefix_len=32,
-                           pod_ip_list=['172.17.0.2', '172.17.0.3'])
+    example()
