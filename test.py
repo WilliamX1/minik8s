@@ -1,9 +1,9 @@
-import etcd3
-
-etcd = etcd3.client()
-for kvs in etcd.get_all_response().kvs:
-    etcd.delete(kvs.key)
-
+# import etcd3
+#
+# etcd = etcd3.client()
+# for kvs in etcd.get_all_response().kvs:
+#     etcd.delete(kvs.key)
+#
 #
 # import random
 # import string
@@ -35,7 +35,8 @@ for kvs in etcd.get_all_response().kvs:
 #     return int(s[:-1]) * units[suffix]
 # config = yaml_loader.load('yaml_default/pod_default.yaml')
 # config['containers'][0]['resource']['cpu'] = '0'
-# config['containers'][1]['resource']['cpu'] = '1,2'
+# config['containers'][1]['resource']['cpu'] = '1'
 # config['suffix'] = create_suffix()
 # pod = entities.Pod(config,False)
 # print(pod.resource_status())
+

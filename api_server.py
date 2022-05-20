@@ -10,6 +10,7 @@ import json
 import pika
 import uuid
 import etcd3
+import entities
 
 total_memory = 5 * 1024 * 1024 * 1024
 app = Flask(__name__)
@@ -26,15 +27,19 @@ nodes = {'node1': {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory
 #         'mem':,
 #         'heartbeat_time':
 #         }
+rescale = {'node1': {'pods': {}, 'ReplicaSets': {}}, 'node2': {'pods': {}, 'ReplicaSets': {}}}
 pods = {}
 #       podname:config                          //config中的['spec']['replicas']是所有node中应该跑的总数
 ReplicaSets = {}
+
+
 #       ReplicaSetname:config                   //config中的['spec']['replicas']是所有node中应该跑的总数
 
 def upgrade_etcd():
     etcd.put('nodes', str(nodes))
     etcd.put('pods', str(pods))
     etcd.put('ReplicaSets', str(ReplicaSets))
+
 
 upgrade_etcd()
 
@@ -49,9 +54,8 @@ def broadcast_message(channel_name: str, message: str):
     connect.close()
 
 
-# +++++++++++++++++
 def nodes_check():
-    # 检查是否存在node crash和replicaset数量是否正确，目前没有整合进去
+    # 检查是否存在node crash和replicaset数量是否正确，目前没有整合进去,需要放进service
     # 检查是否存在node crash
     time_now = datetime.datetime.now().second
     nodes_for_del = []
@@ -61,24 +65,28 @@ def nodes_check():
         last_check_time = nodes[node]['heartbeat_time']
         if time_now - last_check_time > 10:
             nodes_for_del.append(node)
-            pods_for_restart.update(nodes[node]['pods'])
-            ReplicaSets_for_restart.update(nodes[node]['ReplicaSets'])
+            pods_in_node = copy.deepcopy(nodes[node]['pods'])
+            ReplicaSets_in_node = copy.deepcopy(nodes[node]['ReplicaSets'])
+            for pod in pods_in_node:
+                if pods_for_restart.__contains__(pod):
+                    pods_for_restart[pod]['spec']['replicas'] += pods_in_node[pod]['spec']['replicas']
+                else:
+                    pods_for_restart[pod] = pods_in_node[pod]
+            for ReplicaSet in ReplicaSets_in_node:
+                if ReplicaSets_for_restart.__contains__(ReplicaSet):
+                    ReplicaSets_for_restart[ReplicaSet]['spec']['replicas'] += ReplicaSets_in_node[ReplicaSet]['spec'][
+                        'replicas']
+                else:
+                    ReplicaSets_for_restart[ReplicaSet] = ReplicaSets_in_node[ReplicaSet]
     for node in nodes_for_del:
         del nodes[node]
     # 将pods和ReplicaSets分给剩下的nodes
-    # pod因为逻辑的特殊性需要加一个'reschedule'字段方便schedule判断，ReplicaSet则不用
-    for pod in pods_for_restart:
-        pods_for_restart[pod][nodes] = nodes
-        pods_for_restart[pod]['reschedule'] = pods_for_restart[pod]['spec']['replicas']
-        del pods_for_restart[pod]['node']
-        broadcast_message('pods', pods_for_restart[pod].__str__())
-    for ReplicaSet in ReplicaSets_for_restart:
-        ReplicaSets_for_restart[ReplicaSet][nodes] = nodes
-        del ReplicaSets_for_restart[ReplicaSet]['node']
-        broadcast_message('pods', ReplicaSets_for_restart[ReplicaSet].__str__())
+    msg = {'kind': 'reschedule', 'pods': pods_for_restart, 'ReplicaSets': ReplicaSets_for_restart, 'nodes': nodes}
+    broadcast_message('pods', msg.__str__())
+
 
 def config_set(config1, config2):
-    # 用config2修正config1
+    # 用config2修正config1的cpu和mem以及containers的资源
     config1['cpu'] = config2['cpu']
     config1['mem'] = config2['mem']
     for container in config2['containers']:
@@ -91,10 +99,9 @@ def config_set(config1, config2):
                 break
 
 
-
-
 # pods ReplicaSets均是在第一次收到时修改pods ReplicaSets，第二次收到时修改nodes
 # HorizontalPodAutoscaler在第二次收到时修改pods ReplicaSets nodes
+# reschedule不需要修改pods和ReplicaSets，只修改nodes
 @app.route('/pods', methods=['GET', 'POST'])
 def get_pods():
     if request.method == 'GET':
@@ -119,8 +126,6 @@ def get_pods():
             # config['config']中的['spec']['replicas']是所有node中应该跑的总数，即现有总数
             if config['prekind'] == 'pod':
                 config_set(pods[config['name']], config)
-                print('new config')
-                print(pods[config['name']])
                 config['config'] = pods[config['name']]
             if config['prekind'] == 'ReplicaSet':
                 config_set(ReplicaSets[config['name']], config)
@@ -131,46 +136,88 @@ def get_pods():
         return "Successfully create instance {}".format(instance_name), 200
 
 
-
-
 @app.route('/pods/<string:instance_name>', methods=['POST'])
 def post_pod(instance_name: str):
     # 将调度结果发给所有nodes
     json_data = request.json
     config: dict = json.loads(json_data)
+    # 前两个若nodes的node中已经存在该config，则只会修改nodes里config的['spec']['replicas']值
     if config['kind'] == 'pod':
         print("send create pod msg to {}".format(config['node']))
-        # 内存更新
-        del config['nodes']
-        nodes[config['node']]['pods'][config['name']] = config
+        if config.__contains__('nodes'):
+            del config['nodes']
+        if nodes[config['node']]['pods'].__contains__(config['name']):
+            # 说明是reschedule
+            nodes[config['node']]['pods'][config['name']]['spec']['replicas'] += config['spec']['replicas']
+        else:
+            nodes[config['node']]['pods'][config['name']] = config
+        nodes[config['node']]['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
+        nodes[config['node']]['cpu'] -= config['cpu'] * config['spec']['replicas']
         # 发送
         broadcast_message('pods', config.__str__())
     if config['kind'] == 'ReplicaSet':
         print("send create ReplicaSet msg to {}".format(config['node']))
-        # 内存更新
-        del config['nodes']
-        nodes[config['node']]['ReplicaSets'][config['name']] = config
+        if config.__contains__('nodes'):
+            del config['nodes']
+        if nodes[config['node']]['ReplicaSets'].__contains__(config['name']):
+            # 说明是reschedule
+            nodes[config['node']]['ReplicaSets'][config['name']]['spec']['replicas'] += config['spec']['replicas']
+        else:
+            nodes[config['node']]['ReplicaSets'][config['name']] = config
+        nodes[config['node']]['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
+        nodes[config['node']]['cpu'] -= config['cpu'] * config['spec']['replicas']
+        # 发送
+        broadcast_message('pods', config.__str__())
+    if config['kind'] == 'delete':
+        if config['target_kind'] == 'pod':
+            pods[config['target_name']]['spec']['replicas'] -= config['num']
+            nodes[config['node']]['cpu'] += config['num'] * nodes[config['node']]['pods'][config['target_name']]['cpu']
+            nodes[config['node']]['mem'] += config['num'] * entities.parse_bytes(
+                nodes[config['node']]['pods'][config['target_name']]['mem'])
+            if pods[config['target_name']]['spec']['replicas'] == 0:
+                del pods[config['target_name']]
+            nodes[config['node']]['pods'][config['target_name']]['spec']['replicas'] -= config['num']
+            if nodes[config['node']]['pods'][config['target_name']]['spec']['replicas'] == 0:
+                del nodes[config['node']]['pods'][config['target_name']]
+        if config['target_kind'] == 'ReplicaSet':
+            ReplicaSets[config['target_name']]['spec']['replicas'] -= config['num']
+            nodes[config['node']]['cpu'] += config['num'] * nodes[config['node']]['ReplicaSets'][config['target_name']][
+                'cpu']
+            nodes[config['node']]['mem'] += config['num'] * entities.parse_bytes(
+                nodes[config['node']]['ReplicaSets'][config['target_name']]['mem'])
+            if ReplicaSets[config['target_name']]['spec']['replicas'] == 0:
+                del ReplicaSets[config['target_name']]
+            nodes[config['node']]['ReplicaSets'][config['target_name']]['spec']['replicas'] -= config['num']
+            if nodes[config['node']]['ReplicaSets'][config['target_name']]['spec']['replicas'] == 0:
+                del nodes[config['node']]['pods'][config['target_name']]
         # 发送
         broadcast_message('pods', config.__str__())
     if config['kind'] == 'HorizontalPodAutoscaler':
         print("send HorizontalPodAutoscaler msg to {}".format(config['node']))
-        del config['nodes']
-        if config['prekind'] == 'pod':
-            if not nodes[config['node']]['pods'].__contains__(config['name']):
-                nodes[config['node']]['pods'][config['name']] = config['config']
-            else:
-                nodes[config['node']]['pods'][config['name']]['spec']['replicas'] += config['config']['spec']['replicas']
-            pods[config['name']]['spec']['replicas'] += config['config']['spec']['replicas']
-        if config['prekind'] == 'ReplicaSet':
-            if not nodes[config['node']]['ReplicaSets'].__contains__(config['name']):
-                nodes[config['node']]['ReplicaSets'][config['name']] = config['config']
-            else:
-                nodes[config['node']]['ReplicaSets'][config['name']]['spec']['replicas'] += config['config']['spec']['replicas']
-            ReplicaSets[config['name']]['spec']['replicas'] += config['config']['spec']['replicas']
+        if config.__contains__('nodes'):
+            del config['nodes']
         broadcast_message('pods', config.__str__())
     # etcd更新
     upgrade_etcd()
     return json.dumps(config), 200
+
+
+@app.route('/rescale', methods=['POST'])
+def rescale_update():
+    json_data = request.json
+    msg: dict = json.loads(json_data)
+    if msg['kind'] == 'pod':
+        print('{} add one pod replica {}'.format(msg['node'], msg['name']))
+        if rescale[msg['node']]['pods'].__contains__(msg['name']):
+            rescale[msg['node']]['pods'][msg['name']] += 1
+        else:
+            rescale[msg['node']]['pods'][msg['name']] = 1
+    if msg['kind'] == 'ReplicaSet':
+        print('{} add one ReplicaSet replica {}'.format(msg['node'], msg['name']))
+        if rescale[msg['node']]['ReplicaSets'].__contains__(msg['name']):
+            rescale[msg['node']]['ReplicaSets'][msg['name']] += 1
+        else:
+            rescale[msg['node']]['ReplicaSets'][msg['name']] = 1
 
 
 @app.route('/heartbeat', methods=['POST'])
@@ -183,31 +230,26 @@ def receive_heartbeat():
     nodes[node_name]['cpu'] = heartbeat['cpu']
     nodes[node_name]['mem'] = heartbeat['mem']
     nodes[node_name]['heartbeat_time'] = datetime.datetime.now().second
-    # +++++++++++++++++
     # 检查数量，发现数量少于应有数量，向node发送重新启动相应数量的请求
     node_pods = heartbeat['pods']
     node_ReplicaSets = heartbeat['ReplicaSets']
+    # 从内存里拿config
     for pod in node_pods:
         if node_pods[pod] < nodes[node_name]['pods'][pod]['spec']['replicas']:
             num_for_recreate = nodes[node_name]['pods'][pod]['spec']['replicas'] - node_pods[pod]
             config = copy.deepcopy(nodes[node_name]['pods'][pod])
-            config['num_for_recreate'] = num_for_recreate
-            config['total_num'] = nodes[node_name]['pods'][pod]['spec']['replicas']
+            config['spec']['replicas'] = num_for_recreate
             config['node'] = node_name
             broadcast_message('pods', config.__str__())
-            del config
     for ReplicaSet in node_ReplicaSets:
         if node_ReplicaSets[ReplicaSet] < nodes[node_name]['ReplicaSets'][ReplicaSet]['spec']['replicas']:
-            num_for_recreate = nodes[node_name]['ReplicaSets'][ReplicaSet]['spec']['replicas'] - node_ReplicaSets[ReplicaSet]
+            num_for_recreate = nodes[node_name]['ReplicaSets'][ReplicaSet]['spec']['replicas'] - node_ReplicaSets[
+                ReplicaSet]
             config = copy.deepcopy(nodes[node_name]['ReplicaSets'][ReplicaSet])
-            config['num_for_recreate'] = num_for_recreate
-            config['total_num'] = nodes[node_name]['ReplicaSets'][ReplicaSet]['spec']['replicas']
+            config['spec']['replicas'] = num_for_recreate
             config['node'] = node_name
             broadcast_message('pods', config.__str__())
             del config
-    print(nodes)
-    print(pods)
-    print(ReplicaSets)
     return json.dumps(heartbeat), 200
 
 

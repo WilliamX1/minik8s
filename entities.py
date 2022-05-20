@@ -89,6 +89,7 @@ class Pod:
         self._mem = config.get('mem')
         self._cpu = {}
         self._ipv4addr = None
+        self._cpu_num = config.get('cpu')
         #            containername:'0,1,2'
 
         self._client = docker.from_env(version='1.25', timeout=5)
@@ -206,8 +207,8 @@ class Pod:
         self._client.api.remove_container(status.get('ID', status.get('Id', None)))
 
     def resource_status(self):
-        s = {'total_mem': self._mem, 'mem': 0,
-             'cpu': {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}}
+        s = {'total_mem': self._mem, 'mem': 0, 'cpu': 0,
+             'pre_cpu': {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}}
 
         for container in self._containers:
             name = container.name() + container.suffix()
@@ -219,9 +220,22 @@ class Pod:
             self._client.containers.get(status.get('ID', status.get('Id', None))).stats(stream=False)['cpu_stats'][
                 'cpu_usage']['percpu_usage']
             for i in range(0, 12):
-                s['cpu'][str(i)] += percpu_usage[i] / per_cpu_size
+                s['pre_cpu'][str(i)] += percpu_usage[i] / per_cpu_size
+                s['cpu'] += percpu_usage[i]
         s['mem'] = s['mem'] / parse_bytes(s['total_mem'])
+        s['cpu'] = s['cpu'] / (per_cpu_size * self._cpu_num)
         return s
+
+    def cpu(self):
+        cpu_list = []
+        for container in self._containers:
+            l = container.cpu().split(',')
+            for cpu in l:
+                cpu_list.append(cpu)
+        return cpu_list
+
+
+
 
     def scale(self, the_scale_config):
         index = 0
