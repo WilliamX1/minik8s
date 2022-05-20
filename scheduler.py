@@ -15,6 +15,7 @@ def callback(ch, method, properties, body):
     # 对请求进行调度，nodes信息储存在config['nodes']中
     config: dict = ast.literal_eval(body.decode())
     instance_name = config['instance_name']
+    print(config)
     if config['kind'] == 'pod':
         if not config.__contains__('node'):
             if config.__contains__('reschedule'):
@@ -38,6 +39,8 @@ def callback(ch, method, properties, body):
             else:
                 print("scheduler receive pod config")
                 mem_need = parse_bytes(config['mem'])
+                print(mem_need)
+                print(config['nodes'])
                 for node in config['nodes']:
                     if config['nodes'][node]['cpu'] >= config['cpu'] and config['nodes'][node]['mem'] >= mem_need:
                         config['node'] = node

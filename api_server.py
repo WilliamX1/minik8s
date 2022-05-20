@@ -211,6 +211,17 @@ def receive_heartbeat():
     return json.dumps(heartbeat), 200
 
 
+@app.route("/service", methods=["POST"])
+def launch_service():
+    """
+    Set Service through Yaml File
+    :return:
+    """
+    # json_data = request.json
+    # config: dict = json.loads(json_data)
+    pass
+
+
 
 if __name__ == '__main__':
     if etcd.get('nodes')[0] is not None:

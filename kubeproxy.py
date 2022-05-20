@@ -334,13 +334,13 @@ def clear_iptables():
 
 
 def example():
-    set_iptables_clusterIP(cluster_ip='10.232.232.232',
-                           service_name='nginx-service',
+    set_iptables_clusterIP(cluster_ip='10.1.2.3',
+                           service_name='you-service',
                            port=1111,
                            target_port=8080,
                            ip_prefix_len=32,
-                           pod_ip_list=['172.17.0.2', '172.17.0.3'],
-                           strategy='roundrobin')
+                           pod_ip_list=['172.17.0.2', '172.17.0.4'],
+                           strategy='random')
 
 
 if __name__ == '__main__':

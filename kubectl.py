@@ -23,7 +23,14 @@ def upload():
     except Exception as e:
         print(e.__str__())
         return
-    url = "http://127.0.0.1:5050/pods"
+    kind = config.get("kind")
+    if kind == "pod":
+        url = "http://127.0.0.1:5050/pods"
+    elif kind == "service":
+        url = "http://127.0.0.1:5050/service"
+    else:
+        print("Error: yaml kind should be pod or service, but current %s" % config.get("kind"))
+        return
     try:
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)

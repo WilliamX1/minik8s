@@ -1,24 +1,25 @@
 # apiVersion: v1
-name: xhd-pod-1
 kind: pod
+name: xhd-pod-1
 volumn: '/home/liuyixiang/docker_volumn'
+cpu: 2
+mem: 1500m
 metadata:
   labels:
-    app: xhd-pod-1
-spec:
-  replicas: 1
+    - app: xhd
+      version: rep
 containers:
   - name: nginx
     image: nginx
     command:
     resource:
-      memory: 1g
-      cpu: 2
+      memory: 500m
+      cpu: 1
     port: 80
-  - name: jenkins
-    image: jenkins/jenkins:lts-jdk11
+  - name: jetty
+    image: jetty
     command:
     resource:
-      memory: 1g
-      cpu: 2
+      memory: 500m
+      cpu: 1
     port: 8080

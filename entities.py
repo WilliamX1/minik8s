@@ -99,7 +99,7 @@ class Pod:
                 container = Container(containercfg['name'], self._suffix, containercfg['image'],
                                       containercfg['command'],
                                       containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                      containercfg['port'], self._namespace)
+                                      containercfg['port'])
                 self._containers.append(container)
             if config.get('status') == 'Status.RUNNING':
                 self._status = Status.RUNNING
@@ -114,7 +114,7 @@ class Pod:
                     Other containers attach to this container network, so
                     they can communicate with each other using `localhost`
                     '''
-            pause_container = self._client.containers.run(image='kubernetes/pause', name=self.name(),
+            pause_container = self._client.containers.run(image='kubernetes/pause', name=self._name + self._suffix,
                                                           detach=True, auto_remove=True,
                                                           network_mode="bridge")
 
@@ -134,6 +134,7 @@ class Pod:
                                       containercfg['port'])
                 self._cpu[containercfg['name']] = containercfg['resource']['cpu']
                 self._containers.append(container)
+                print(pause_container.name)
                 self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
                                             volumes=list(volumes),
                                             cpuset_cpus=container.cpu(),
@@ -141,7 +142,7 @@ class Pod:
                                             detach=True,
                                             # auto_remove=True,
                                             command=container.command(),
-                                            network_mode='container:' + self._name + self._suffix)
+                                            network_mode='container:' + pause_container.name)
 
     def name(self):
         return self._name
@@ -237,8 +238,10 @@ class Pod:
 
 
 class Service:
-    def __init__(self, name, selector, port, targetport):
-        self._name = name
-        self._selector = selector
-        self._port = port
-        self._targetport = targetport
+    def __init__(self, config):
+        self._name = config.get("name")
+        self._selector = config.get("selector")
+        self._ports = config.get("ports")  # include port and targetPort
+
+
+
