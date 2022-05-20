@@ -62,7 +62,18 @@ def create_suffix():
     res = '-' + res
     return res
 
-
+def config_set(config1, config2):
+    # 用config2修正config1
+    config1['cpu'] = config2['cpu']
+    config1['mem'] = config2['mem']
+    for container in config2['containers']:
+        for con in config1['containers']:
+            if con['name'] == container['name']:
+                if container['resource'].__contains__('cpu'):
+                    con['resource']['cpu'] = container['resource']['cpu']
+                if container['resource'].__contains__('mem'):
+                    con['resource']['mem'] = container['resource']['mem']
+                break
 
 # 回调函数
 def callback(ch, method, properties, body):
@@ -171,7 +182,8 @@ def callback(ch, method, properties, body):
                     config = configs['pods'][config['name']]
                     pods[config['name']] = {}
                 else:
-                    config = configs['pods'][config['name']]
+                    config = config['config']
+                    config_set(configs['pods'][config['name']], config)
                 for i in range(0, replica_num):
                     suffix = create_suffix()
                     configs['pods'][config['name']]['suffix'].append(suffix)
@@ -193,7 +205,8 @@ def callback(ch, method, properties, body):
                     config = configs['ReplicaSets'][config['name']]
                     ReplicaSets[config['name']] = {}
                 else:
-                    config = configs['ReplicaSet'][config['name']]
+                    config = config['config']
+                    config_set(configs['ReplicaSets'][config['name']], config)
                 for i in range(0, replica_num):
                     suffix = create_suffix()
                     configs['ReplicaSet'][config['name']]['suffix'].append(suffix)

@@ -3,12 +3,14 @@ name: example-pod
 prekind: pod
 minReplicas: 1
 maxReplicas: 5
+cpu: 5
+mem: 700m
 containers:
   - name: zookeeper
     resource:
-      memory: 1g
+      memory: 500m
       cpu: 3
   - name: busybox
     resource:
-      memory: 2g
+      memory: 200m
       cpu: 2
