@@ -5,21 +5,57 @@ import yaml_loader
 import entities
 import string
 import random
-import etcd3
+import pika
+import ast
+import requests
+import json
+import six
+import copy
+import memcache
+
+node_name = 'node1'
+per_cpu_size = 2.2 * 1024 * 1024 * 1024
+total_memory = 5 * 1024 * 1024 * 1024
+configs = {'pods': {}, 'ReplicaSets': {}}
+#         'pods':{podname:config},              //  config的'suffix'是所有后缀的数组
+#         'ReplicaSets':{ReplicaSetname:config} //  config的'suffix'是所有后缀的数组
+pods = {}
+#       podname:{suffix:pod}
+ReplicaSets = {}
+#       ReplicaSetname:{suffix:ReplicaSet}
+cpu = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}  # 0代表未被占用
+mem = 0
+# status方便发送心跳包
+status = {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory}
+#         'pods':{podname:replicas},
+#         'ReplicaSets':{ReplicaSetname:replicas},
+#         'cpu',             //这里的mem和cpu都是定义可用数
+#         'mem'
+
+# 与发送心跳脚本共享node信息
+share = memcache.Client(["127.0.0.1:11211"], debug=True)
+share.set('status', str(status))
 
 
-def print_info():
-    print("version                       show minik8s version")
-    print("show pods                      display extant pods")
-    print("show services              display extant services")
-    print("start -f filepath                  start container")
-    print("start pod/service name   start stopped pod/service")
-    print("stop pod/service name             stop pod/service")
-    print("kill pod/service name             kill pod/service")
-    print("restart pod/service name       restart pod/service")
-    print("remove pod/service name         remove pod/service")
+# 指派cpu并更新cpu
+def set_cpu(re_config):
+    containers = re_config['containers']
+    for container in containers:
+        cpugroup = ''
+        cpu_num = container['resource']['cpu']
+        while cpu_num > 0:
+            for cpuid in cpu:
+                if cpu[cpuid] == 0:
+                    cpugroup += ',' + cpuid
+                    cpu[cpuid] = 1
+                    cpu_num -= 1
+                    if cpu_num == 0:
+                        break
+        cpugroup = re.sub(r'.', '', cpugroup, count=1)
+        container['resource']['cpu'] = cpugroup
 
 
+# 创建后缀
 def create_suffix():
     res = ''.join(random.choices(string.ascii_letters +
                                  string.digits, k=10))
@@ -27,139 +63,171 @@ def create_suffix():
     return res
 
 
-def main():
-    version = '1.0.0'
-    # pods services和configs
-    configs = {}
-    pods = {}
-    services = {}
-    # etcd持久化存储
-    etcd = etcd3.client()
 
-    # 在修改pod状态时也要修改etcd内存储的pod状态
-    def etcd_set_status(target_name, status):
-        target_info = str(etcd.get(target_name)[0], 'UTF-8')
-        target_string_list = target_info.split(' ')
-        target_string_list[1] = status
-        target_info = target_string_list[0]
-        for index in range(1, len(target_string_list)):
-            target_info += ' ' + target_string_list[index]
-        etcd.put(target_name, target_info)
+# 回调函数
+def callback(ch, method, properties, body):
+    global mem
+    config: dict = ast.literal_eval(body.decode())
+    # config中不含node或者node不是自己都丢弃
+    if not config.__contains__('node'):
+        return
+    if config['node'] != node_name:
+        return
+    # 是自己的调度，进行操作
+    if config.get('num_for_recreate') is not None:
+        # 恢复数量
+        num_for_recreate = config['num_for_recreate']
+        total_num = config['total_num']
+        # 把对应的pod或ReplicaSet，cpu,mem修整一下，这个应该是pod自己检查发现并修改内存数据的，不是在这里+++++++++
 
-    # 恢复原数据
-    for kvs in etcd.get_all_response().kvs:
-        restart_pod_name = str(kvs.key, 'UTF-8')
-        restart_pod_info = str(etcd.get(kvs.key)[0], 'UTF-8')
-        string_list = restart_pod_info.split(' ')
-        config = yaml_loader.load(string_list[0])
-        config['status'] = string_list[1]
-        configs[restart_pod_name] = config
-        new_pods = []
-        print(restart_pod_name)
-        print(restart_pod_info)
-        print(string_list)
-        for i in range(2, len(string_list)):
-            config['suffix'] = string_list[i]
-            pod = entities.Pod(config, True)
-            new_pods.append(pod)
-        pods[restart_pod_name] = new_pods
-    while True:
-        cmd = input(">>")
-
-        exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
-        help_match = re.fullmatch(r'help', cmd.strip(), re.I)
-        version_match = re.fullmatch(r'version', cmd.strip(), re.I)
-        show_match = re.fullmatch(r'show (pods|services)', cmd.strip(), re.I)
-        start_file_match = re.fullmatch(r'start -f ([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
-        normal_command_match = re.fullmatch(r'(start|stop|kill|restart|remove) *(pod|service) *([\w-]*)', cmd.strip(),
-                                            re.I)
-        # ###
-        # if cmd == "test":
-        #     for name in pods:
-        #         the_pods = pods[name]
-        #         for pod in the_pods:
-        #             pod.cpu_monitor()
-        #     continue
-        # ###
-
-        if exit_match:
-            # 删除etcd全部kv
-            for kvs in etcd.get_all_response().kvs:
-                etcd.delete(kvs.key)
-            break
-        elif help_match:
-            print_info()
-        elif version_match:
-            print("{} v{}".format('minik8s'.title(), version))
-        elif show_match:
-            object_type = show_match.group(1)
-            if object_type == "pods":
-                print("extant pods:\nname   status   volumn   containers_num")
-                for name in pods:
-                    print("{}   {}   {}   {}".format(name, pods[name][0].status(), pods[name][0].volumn(),
-                                                     len(pods[name][0].contains())))
-            elif object_type == "services":
-                print("extant services:")
-        elif start_file_match:
-            file_path = start_file_match.group(1)
-            if not os.path.isfile(file_path):
-                print("file not exist")
-                continue
-            config = yaml_loader.load(file_path)
-            if 'name' not in config:
-                sys.stdout.write('yaml name is missing')
-            if config.get('kind') == 'pod':
-                name = config.get('name')
-                # 检查pod是否已存在
-                if name in pods:
-                    print("pod:{} already exist".format(name))
-                    continue
-                # 创建pod并创建开启容器
-                configs[name] = config
-                pod_num = config['spec']['replicas']
-                new_pods = []
-                # etcd存储准备
-                info = file_path + ' ' + str(entities.Status.RUNNING)
-                for i in range(pod_num):
+        # 开启对应数量的
+        if config['kind'] == 'pod':
+            config = configs['pods'][config['name']]
+            for i in range(0, num_for_recreate):
+                suffix = create_suffix()
+                configs['pods'][config['name']]['suffix'].append(suffix)
+                re_config = copy.deepcopy(config)
+                re_config['suffix'] = suffix
+                status['pods'][re_config['name']] += 1
+                status['mem'] -= entities.parse_bytes(re_config['mem'])
+                status['cpu'] -= re_config['cpu']
+                print("恢复数量")
+                print("{} create pod {}{}".format(node_name, re_config['name'], re_config['suffix']))
+                mem += entities.parse_bytes(re_config['mem'])
+                set_cpu(re_config)
+                pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+                del re_config
+        if config['kind'] == 'ReplicaSet':
+            config = configs['ReplicaSet'][config['name']]
+            for i in range(0, num_for_recreate):
+                suffix = create_suffix()
+                configs['ReplicaSet'][config['name']]['suffix'].append(suffix)
+                re_config = copy.deepcopy(config)
+                re_config['suffix'] = suffix
+                status['ReplicaSet'][re_config['name']] += 1
+                status['mem'] -= entities.parse_bytes(re_config['mem'])
+                status['cpu'] -= re_config['cpu']
+                mem += entities.parse_bytes(re_config['mem'])
+                set_cpu(re_config)
+                print("恢复数量")
+                print("{} create ReplicaSet {}{}".format(node_name, re_config['name'], re_config['suffix']))
+                ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+                del re_config
+    else:
+        # 新开或扩容
+        if config['kind'] == 'pod':
+            # pod只产生一个后缀
+            config['suffix'] = []
+            config['suffix'].append(create_suffix())
+            re_config = copy.deepcopy(config)
+            re_config['suffix'] = config['suffix'][0]
+            # 更新configs
+            configs['pods'][config['name']] = config
+            print("创建")
+            print("{} create pod {}{}".format(node_name, re_config['name'], re_config['suffix']))
+            # 更新status
+            status['pods'][config['name']] = 1
+            status['mem'] -= entities.parse_bytes(re_config['mem'])
+            status['cpu'] -= re_config['cpu']
+            mem += entities.parse_bytes(re_config['mem'])
+            set_cpu(re_config)
+            # 创建pod并更新内存pods
+            pods[re_config['name']] = {}
+            pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+            del re_config
+        if config['kind'] == 'service':
+            raise NotImplementedError
+        if config['kind'] == 'ReplicaSet':
+            # ReplicaSet产生多个后缀
+            config['suffix'] = []
+            replica_num = config['spec']['replicas']
+            for i in range(0, replica_num):
+                config['suffix'].append(create_suffix())
+            # 更新内存configs
+            configs['ReplicaSets'][config['name']] = config
+            # 准备参数
+            re_config = copy.deepcopy(config)
+            ReplicaSets[re_config['name']] = {}
+            # 更新status
+            status['ReplicaSets'][config['name']] = replica_num
+            for i in range(0, replica_num):
+                re_config = copy.deepcopy(config)
+                re_config['suffix'] = configs['ReplicaSets'][config['name']]['suffix'][i]
+                status['mem'] -= entities.parse_bytes(re_config['mem'])
+                status['cpu'] -= re_config['cpu']
+                mem += entities.parse_bytes(re_config['mem'])
+                set_cpu(re_config)
+                print("创建")
+                print("{} create ReplicaSet {}{}".format(node_name, re_config['name'], re_config['suffix']))
+                # 创建ReplicaSet并更新内存ReplicaSets
+                ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+                del re_config
+        if config['kind'] == 'HorizontalPodAutoscaler':
+            replica_num = config['config']['spec']['replicas']
+            if config['prekind'] == 'pod':
+                if not configs['pods'].__contains__(config['name']):
+                    configs['pods'][config['name']] = config['config']
+                    configs['pods'][config['name']]['suffix'] = []
+                    config = configs['pods'][config['name']]
+                    pods[config['name']] = {}
+                else:
+                    config = configs['pods'][config['name']]
+                for i in range(0, replica_num):
                     suffix = create_suffix()
-                    config['suffix'] = suffix
-                    pod = entities.Pod(config, False)
-                    new_pods.append(pod)
-                    info += ' ' + suffix
-                etcd.put(name, info)
-                # ###
-                # config['suffix'] = create_suffix()
-                # pod = entities.Pod(config, False)
-                # new_pods.append(pod)
-                # ###
-                pods[name] = new_pods
-                print('pod:{} created successfully'.format(name))
-            elif config.get('kind') == 'service':
-                # 创建service（检查重名）
-                print('test')
-            else:
-                print("file content error")
-        elif normal_command_match:
-            cmd_type = normal_command_match.group(1)
-            object_type = normal_command_match.group(2)
-            object_name = normal_command_match.group(3)
-            if object_type == 'service':
-                raise NotImplementedError
-            elif object_type == 'pod':
-                the_pods = pods[object_name]
-                for pod in the_pods:
-                    getattr(pod, cmd_type)()
-                if cmd_type == 'remove':
-                    pods.pop(object_name)
-                    configs.pop(object_name)
-                if cmd_type == 'restart' or cmd_type == 'start':
-                    etcd_set_status(object_name, 'Status.RUNNING')
-                if cmd_type == 'kill':
-                    etcd_set_status(object_name, 'Status.KILLED')
-                if cmd_type == 'stop':
-                    etcd_set_status(object_name, 'Status.STOPPED')
-        else:
-            print("Command does not match any valid command. Try 'help' for more information. ")
+                    configs['pods'][config['name']]['suffix'].append(suffix)
+                    re_config = copy.deepcopy(config)
+                    re_config['suffix'] = suffix
+                    status['pods'][re_config['name']] += 1
+                    status['mem'] -= entities.parse_bytes(re_config['mem'])
+                    status['cpu'] -= re_config['cpu']
+                    mem += entities.parse_bytes(re_config['mem'])
+                    set_cpu(re_config)
+                    print("扩容")
+                    print("{} create pod {}{}".format(node_name, re_config['name'], re_config['suffix']))
+                    pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+                    del re_config
+            elif config['prekind'] == 'ReplicaSet':
+                if not configs['ReplicaSets'].__contains__(config['name']):
+                    configs['ReplicaSets'][config['name']] = config['config']
+                    configs['ReplicaSets'][config['name']]['suffix'] = []
+                    config = configs['ReplicaSets'][config['name']]
+                    ReplicaSets[config['name']] = {}
+                else:
+                    config = configs['ReplicaSet'][config['name']]
+                for i in range(0, replica_num):
+                    suffix = create_suffix()
+                    configs['ReplicaSet'][config['name']]['suffix'].append(suffix)
+                    re_config = copy.deepcopy(config)
+                    re_config['suffix'] = suffix
+                    status['ReplicaSet'][re_config['name']] += 1
+                    status['mem'] -= entities.parse_bytes(re_config['mem'])
+                    status['cpu'] -= re_config['cpu']
+                    print("扩容")
+                    print("{} create ReplicaSet {}{}".format(node_name, re_config['name'], re_config['suffix']))
+                    mem += entities.parse_bytes(re_config['mem'])
+                    set_cpu(re_config)
+                    ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+                    del re_config
+
+
+    share.set('status', str(status))
+
+
+def main():
+    # 创建socket链接,声明管道
+    connect = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+    channel = connect.channel()
+    # 声明exchange名字和类型
+    channel.exchange_declare(exchange="pods", exchange_type="fanout")
+    # rabbit会随机分配一个名字, exclusive=True会在使用此queue的消费者断开后,自动将queue删除，result是queue的对象实例
+    result = channel.queue_declare(queue="", exclusive=True)  # 参数 exclusive=True 独家唯一的
+    queue_name = result.method.queue
+    # 绑定pods频道
+    channel.queue_bind(exchange="pods", queue=queue_name)
+    # 消费信息
+    channel.basic_consume(on_message_callback=callback, queue=queue_name, auto_ack=True)
+    # 开始消费
+    channel.start_consuming()
 
 
 if __name__ == '__main__':

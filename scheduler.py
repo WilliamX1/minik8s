@@ -2,19 +2,111 @@ import pika
 import ast
 import requests
 import json
+import six
+import sys
+from entities import parse_bytes
+
+total_memory = 5 * 1024 * 1024 * 1024
 
 
 # 回调函数
+# 暂时认为调度都能成功
 def callback(ch, method, properties, body):
-    print("scheduler receive pod update!")
+    # 对请求进行调度，nodes信息储存在config['nodes']中
     config: dict = ast.literal_eval(body.decode())
     instance_name = config['instance_name']
-    if not config.__contains__('node'):
-        config['node'] = 'node1'
-        print("instance_name = ", instance_name)
-        url = "http://127.0.0.1:5050/pods/{}".format(instance_name)
-        json_data = json.dumps(config)
-        r = requests.post(url=url, json=json_data)
+    if config['kind'] == 'pod':
+        if not config.__contains__('node'):
+            if config.__contains__('reschedule'):
+                print("scheduler receive reschedule pod config")
+                reschedule_num = config['reschedule']
+                del config['reschedule']
+                mem_need = parse_bytes(config['mem'])
+                while reschedule_num > 0:
+                    for node in config['nodes']:
+                        if config['nodes'][node]['cpu'] >= config['cpu'] and config['nodes'][node]['mem'] >= mem_need:
+                            config['nodes'][node]['cpu'] -= config['cpu']
+                            config['nodes'][node]['mem'] -= mem_need
+                            reschedule_num -= 1
+                            config['node'] = node
+                            break
+                        print('reschedule one pod replica {} to {}'.format(config['name'], config['node']))
+                        url = "http://127.0.0.1:5050/pods/{}".format(instance_name)
+                        json_data = json.dumps(config)
+                        # 向api_server发送调度结果
+                        r = requests.post(url=url, json=json_data)
+            else:
+                print("scheduler receive pod config")
+                mem_need = parse_bytes(config['mem'])
+                for node in config['nodes']:
+                    if config['nodes'][node]['cpu'] >= config['cpu'] and config['nodes'][node]['mem'] >= mem_need:
+                        config['node'] = node
+                        break
+                print('schedule pod {} to {}'.format(config['name'], config['node']))
+                url = "http://127.0.0.1:5050/pods/{}".format(instance_name)
+                json_data = json.dumps(config)
+                # 向api_server发送调度结果
+                r = requests.post(url=url, json=json_data)
+    if config['kind'] == 'ReplicaSet':
+        if not config.__contains__('node'):
+            print("scheduler receive ReplicaSet config")
+            replica_num = config['spec']['replicas']
+            mem_need = parse_bytes(config['mem'])
+            for node in config['nodes']:
+                config['nodes'][node]['replicas'] = 0
+            while replica_num > 0:
+                for node in config['nodes']:
+                    if config['nodes'][node]['cpu'] >= config['cpu'] and config['nodes'][node]['mem'] >= mem_need:
+                        config['nodes'][node]['cpu'] -= config['cpu']
+                        config['nodes'][node]['mem'] -= mem_need
+                        config['nodes'][node]['replicas'] += 1
+                        print('schedule one replica to {}'.format(node))
+                        replica_num -= 1
+                        if replica_num == 0:
+                            break
+            print('schedule result as below:')
+            for node in config['nodes']:
+                if config['nodes'][node]['replicas'] > 0:
+                    config['node'] = node
+                    config['spec']['replicas'] = config['nodes'][node]['replicas']
+                    url = "http://127.0.0.1:5050/pods/{}".format(instance_name)
+                    json_data = json.dumps(config)
+                    print('send replicanum {} to {}'.format(config['spec']['replicas'], node))
+                    # 向api_server发送调度结果
+                    r = requests.post(url=url, json=json_data)
+    # +++++++++++++++++
+    if config['kind'] == 'HorizontalPodAutoscaler':
+        if not config.__contains__('node'):
+            print("scheduler receive HorizontalPodAutoscaler config")
+            minReplicas = config['minReplicas']
+            maxReplicas = config['maxReplicas']
+            targetReplicas = (minReplicas + maxReplicas) / 2
+            if targetReplicas <= config['config']['spec']['replicas']:
+                return
+            replica_num = targetReplicas - config['config']['spec']['replicas']
+            mem_need = parse_bytes(config['config']['mem'])
+            for node in config['nodes']:
+                config['nodes'][node]['replicas'] = 0
+            while replica_num > 0:
+                for node in config['nodes']:
+                    if config['nodes'][node]['cpu'] >= config['config']['cpu'] and config['nodes'][node]['mem'] >= mem_need:
+                        config['nodes'][node]['cpu'] -= config['config']['cpu']
+                        config['nodes'][node]['mem'] -= mem_need
+                        config['nodes'][node]['replicas'] += 1
+                        print('schedule one replica to {}'.format(node))
+                        replica_num -= 1
+                        if replica_num == 0:
+                            break
+            print('schedule result as below:')
+            for node in config['nodes']:
+                if config['nodes'][node]['replicas'] > 0:
+                    config['node'] = node
+                    config['config']['spec']['replicas'] = config['nodes'][node]['replicas']
+                    url = "http://127.0.0.1:5050/pods/{}".format(instance_name)
+                    json_data = json.dumps(config)
+                    print('send replicanum {} to {}'.format(config['config']['spec']['replicas'], node))
+                    # 向api_server发送调度结果
+                    r = requests.post(url=url, json=json_data)
 
 
 if __name__ == '__main__':

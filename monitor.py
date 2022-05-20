@@ -1,6 +1,5 @@
 import time
 import entities
-import kubelet
 import random
 
 
@@ -13,25 +12,18 @@ def monitor():
         pods = {}
         configs = {}
         for name in pods:
-            the_pods = pods[name]
             config = configs[name]
-            num_for_create = 0
-            index_for_del = []
             for i in range(len(pods[name])):
                 if pods[name][i].status() == entities.Status.KILLED:
-                    num_for_create += 1
-                    index_for_del.append(i)
-
-            for i in range(len(index_for_del)):
-                del the_pods[num_for_create - 1 - i]
-            for i in range(num_for_create):
-                config['suffix'] = kubelet.create_suffix()
-                pod = entities.Pod(config)
-                the_pods.append(pod)
-            pods[name] = the_pods
+                    # 存在pod副本被kill，删除旧的pod副本
+                    pods[name][i].remove()
+                    # 重启一个pod副本
+                    config['suffix'] = pods[name][i].suffix()
+                    pods[name][i] = entities.Pod(config, False)
 
 
 # 随即负载均衡
 def lb():
+    # 获取service的一个pod的所有副本，随机返回一个
     the_pods = []
-    return the_pods[random.randint(0, len(the_pods)-1)]
+    return the_pods[random.randint(0, len(the_pods) - 1)]

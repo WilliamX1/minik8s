@@ -11,3 +11,4 @@ pyyaml
 ttkbootstrap
 pika
 etcd3
+memcache
