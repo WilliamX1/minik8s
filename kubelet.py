@@ -15,8 +15,10 @@ import six
 import copy
 import memcache
 
+
 node_name = 'node1'
 per_cpu_size = 2.2 * 1024 * 1024 * 1024
+cpu_sum = 12
 total_memory = 5 * 1024 * 1024 * 1024
 configs = {'pods': {}, 'ReplicaSets': {}}
 #         'pods':{podname:config},              //  config的'suffix'是所有后缀的数组
@@ -28,7 +30,7 @@ ReplicaSets = {}
 cpu = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}  # 0代表未被占用
 mem = 0
 # status方便发送心跳包
-status = {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory}
+status = {'pods': {}, 'ReplicaSets': {}, 'cpu': cpu_sum, 'mem': total_memory}
 #         'pods':{podname:replicas},
 #         'ReplicaSets':{ReplicaSetname:replicas},
 #         'cpu',             //这里的mem和cpu都是定义可用数
