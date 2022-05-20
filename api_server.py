@@ -79,6 +79,8 @@ def nodes_check():
 
 def config_set(config1, config2):
     # 用config2修正config1
+    config1['cpu'] = config2['cpu']
+    config1['mem'] = config2['mem']
     for container in config2['containers']:
         for con in config1['containers']:
             if con['name'] == container['name']:
@@ -117,6 +119,8 @@ def get_pods():
             # config['config']中的['spec']['replicas']是所有node中应该跑的总数，即现有总数
             if config['prekind'] == 'pod':
                 config_set(pods[config['name']], config)
+                print('new config')
+                print(pods[config['name']])
                 config['config'] = pods[config['name']]
             if config['prekind'] == 'ReplicaSet':
                 config_set(ReplicaSets[config['name']], config)
