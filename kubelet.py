@@ -1,6 +1,8 @@
 import re
 import sys
 import os
+import time
+
 import yaml_loader
 import entities
 import string
@@ -62,6 +64,7 @@ def create_suffix():
     res = '-' + res
     return res
 
+
 def config_set(config1, config2):
     # 用config2修正config1
     config1['cpu'] = config2['cpu']
@@ -75,6 +78,7 @@ def config_set(config1, config2):
                     con['resource']['mem'] = container['resource']['mem']
                 break
 
+
 # 回调函数
 def callback(ch, method, properties, body):
     global mem
@@ -85,142 +89,134 @@ def callback(ch, method, properties, body):
     if config['node'] != node_name:
         return
     # 是自己的调度，进行操作
-    if config.get('num_for_recreate') is not None:
-        # 恢复数量
-        num_for_recreate = config['num_for_recreate']
-        total_num = config['total_num']
-        # 把对应的pod或ReplicaSet，cpu,mem修整一下，这个应该是pod自己检查发现并修改内存数据的，不是在这里+++++++++
-
-        # 开启对应数量的
-        if config['kind'] == 'pod':
-            config = configs['pods'][config['name']]
-            for i in range(0, num_for_recreate):
-                suffix = create_suffix()
-                configs['pods'][config['name']]['suffix'].append(suffix)
-                re_config = copy.deepcopy(config)
-                re_config['suffix'] = suffix
-                status['pods'][re_config['name']] += 1
-                status['mem'] -= entities.parse_bytes(re_config['mem'])
-                status['cpu'] -= re_config['cpu']
-                print("恢复数量")
-                print("{} create pod {}{}".format(node_name, re_config['name'], re_config['suffix']))
-                mem += entities.parse_bytes(re_config['mem'])
-                set_cpu(re_config)
-                pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-                del re_config
-        if config['kind'] == 'ReplicaSet':
-            config = configs['ReplicaSet'][config['name']]
-            for i in range(0, num_for_recreate):
-                suffix = create_suffix()
-                configs['ReplicaSet'][config['name']]['suffix'].append(suffix)
-                re_config = copy.deepcopy(config)
-                re_config['suffix'] = suffix
-                status['ReplicaSet'][re_config['name']] += 1
-                status['mem'] -= entities.parse_bytes(re_config['mem'])
-                status['cpu'] -= re_config['cpu']
-                mem += entities.parse_bytes(re_config['mem'])
-                set_cpu(re_config)
-                print("恢复数量")
-                print("{} create ReplicaSet {}{}".format(node_name, re_config['name'], re_config['suffix']))
-                ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-                del re_config
-    else:
-        # 新开或扩容
-        if config['kind'] == 'pod':
-            # pod只产生一个后缀
+    if config['kind'] == 'pod':
+        if configs['pods'].__contains__(config['name']):
+            config['suffix'] = configs['pods'][config['name']]['suffix']
+            status['pods'][config['name']] += config['spec']['replicas']
+        else:
             config['suffix'] = []
-            config['suffix'].append(create_suffix())
+            status['pods'][config['name']] = config['spec']['replicas']
+        status['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
+        status['cpu'] -= config['cpu'] * config['spec']['replicas']
+        mem += entities.parse_bytes(config['mem']) * config['spec']['replicas']
+        for i in range(0, config['spec']['replicas']):
+            suffix = create_suffix()
+            config['suffix'].append(suffix)
             re_config = copy.deepcopy(config)
-            re_config['suffix'] = config['suffix'][0]
-            # 更新configs
-            configs['pods'][config['name']] = config
-            print("创建")
-            print("{} create pod {}{}".format(node_name, re_config['name'], re_config['suffix']))
-            # 更新status
-            status['pods'][config['name']] = 1
-            status['mem'] -= entities.parse_bytes(re_config['mem'])
-            status['cpu'] -= re_config['cpu']
-            mem += entities.parse_bytes(re_config['mem'])
+            re_config['suffix'] = suffix
             set_cpu(re_config)
-            # 创建pod并更新内存pods
-            pods[re_config['name']] = {}
+            if not pods.__contains__(re_config['name']):
+                pods[re_config['name']] = {}
+            print('{} create pod {}{}'.format(node_name, re_config['name'], re_config['suffix']))
             pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-            del re_config
-        if config['kind'] == 'service':
-            raise NotImplementedError
-        if config['kind'] == 'ReplicaSet':
-            # ReplicaSet产生多个后缀
+        configs['pods'][config['name']] = config
+    if config['kind'] == 'service':
+        raise NotImplementedError
+    if config['kind'] == 'ReplicaSet':
+        if configs['ReplicaSets'].__contains__(config['name']):
+            config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
+            status['ReplicaSets'][config['name']] += config['spec']['replicas']
+        else:
             config['suffix'] = []
-            replica_num = config['spec']['replicas']
-            for i in range(0, replica_num):
-                config['suffix'].append(create_suffix())
-            # 更新内存configs
-            configs['ReplicaSets'][config['name']] = config
-            # 准备参数
+            status['ReplicaSets'][config['name']] = config['spec']['replicas']
+        status['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
+        status['cpu'] -= config['cpu'] * config['spec']['replicas']
+        mem += entities.parse_bytes(config['mem']) * config['spec']['replicas']
+        for i in range(0, config['spec']['replicas']):
+            suffix = create_suffix()
+            config['suffix'].append(suffix)
             re_config = copy.deepcopy(config)
-            ReplicaSets[re_config['name']] = {}
-            # 更新status
-            status['ReplicaSets'][config['name']] = replica_num
-            for i in range(0, replica_num):
+            re_config['suffix'] = suffix
+            set_cpu(re_config)
+            if not ReplicaSets.__contains__(re_config['name']):
+                ReplicaSets[re_config['name']] = {}
+            print('{} create ReplicaSet {}{}'.format(node_name, re_config['name'], re_config['suffix']))
+            ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
+        configs['ReplicaSets'][config['name']] = config
+    if config['kind'] == 'delete':
+        if config['target_kind'] == 'pod':
+            status['cpu'] += configs['pods'][config['target_name']]['cpu'] * config['num']
+            status['mem'] += entities.parse_bytes(configs['pods'][config['target_name']]['mem']) * config['num']
+            status['pods'][config['target_name']] -= config['num']
+            mem -= entities.parse_bytes(configs['pods'][config['target_name']]['mem']) * config['num']
+            for i in range(0, config['num']):
+                cpu_list = pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]].cpu()
+                for c in cpu_list:
+                    cpu[c] = 0
+                pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]].remove()
+                print('{} delete pod {}{}'.format(node_name, config['target_name'], configs['pods'][config['target_name']]['suffix'][0]))
+                del pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]]
+                del configs['pods'][config['target_name']]['suffix'][0]
+            if len(configs['pods'][config['target_name']]['suffix']) == 0:
+                del pods[config['target_name']]
+                del configs['pods'][config['target_name']]
+                del status['pods'][config['target_name']]
+        if config['target_kind'] == 'ReplicaSet':
+            status['cpu'] += configs['ReplicaSets'][config['target_name']]['cpu'] * config['num']
+            status['mem'] += entities.parse_bytes(configs['ReplicaSets'][config['target_name']]['mem']) * config['num']
+            status['ReplicaSets'][config['target_name']] -= config['num']
+            mem -= entities.parse_bytes(configs['ReplicaSets'][config['target_name']]['mem']) * config['num']
+            for i in range(0, config['num']):
+                print(ReplicaSets)
+                cpu_list = ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]].cpu()
+                for c in cpu_list:
+                    cpu[c] = 0
+                ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]].remove()
+                print('{} delete ReplicaSet {}{}'.format(node_name, config['target_name'], configs['ReplicaSets'][config['target_name']]['suffix'][0]))
+                del ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]]
+                del configs['ReplicaSets'][config['target_name']]['suffix'][0]
+            if len(configs['ReplicaSets'][config['target_name']]['suffix']) == 0:
+                del ReplicaSets[config['target_name']]
+                del configs['ReplicaSets'][config['target_name']]
+                del status['ReplicaSets'][config['target_name']]
+    if config['kind'] == 'HorizontalPodAutoscaler':
+        config = config['config']
+        num = config['num']
+        resource_status = {}
+        if config['kind'] == 'pod':
+            for pod in pods[config['name']]:
+                resource_status = pods[config['name']][pod].resource_status()
+                break
+        if config['kind'] == 'ReplicaSet':
+            for ReplicaSet in ReplicaSets[config['name']]:
+                resource_status = ReplicaSets[config['name']][ReplicaSet].resource_status()
+                break
+        auto_num = 0
+        while auto_num <= num:
+            if (auto_num+1)*resource_status['mem']<1 and (auto_num+1)*resource_status['cpu']<1:
+                auto_num += 1
+            else:
+                break
+        if config['kind'] == 'pod':
+            config['suffix'] = configs['pods'][config['name']]['suffix']
+            for i in range(0, auto_num):
+                suffix = create_suffix()
+                config['suffix'].append(suffix)
                 re_config = copy.deepcopy(config)
-                re_config['suffix'] = configs['ReplicaSets'][config['name']]['suffix'][i]
-                status['mem'] -= entities.parse_bytes(re_config['mem'])
-                status['cpu'] -= re_config['cpu']
-                mem += entities.parse_bytes(re_config['mem'])
-                set_cpu(re_config)
-                print("创建")
-                print("{} create ReplicaSet {}{}".format(node_name, re_config['name'], re_config['suffix']))
-                # 创建ReplicaSet并更新内存ReplicaSets
-                ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-                del re_config
-        if config['kind'] == 'HorizontalPodAutoscaler':
-            replica_num = config['config']['spec']['replicas']
-            if config['prekind'] == 'pod':
-                if not configs['pods'].__contains__(config['name']):
-                    configs['pods'][config['name']] = config['config']
-                    configs['pods'][config['name']]['suffix'] = []
-                    config = configs['pods'][config['name']]
-                    pods[config['name']] = {}
-                else:
-                    config = config['config']
-                    config_set(configs['pods'][config['name']], config)
-                for i in range(0, replica_num):
-                    suffix = create_suffix()
-                    configs['pods'][config['name']]['suffix'].append(suffix)
-                    re_config = copy.deepcopy(config)
-                    re_config['suffix'] = suffix
-                    status['pods'][re_config['name']] += 1
-                    status['mem'] -= entities.parse_bytes(re_config['mem'])
-                    status['cpu'] -= re_config['cpu']
-                    mem += entities.parse_bytes(re_config['mem'])
-                    set_cpu(re_config)
-                    print("扩容")
-                    print("{} create pod {}{}".format(node_name, re_config['name'], re_config['suffix']))
-                    pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-                    del re_config
-            elif config['prekind'] == 'ReplicaSet':
-                if not configs['ReplicaSets'].__contains__(config['name']):
-                    configs['ReplicaSets'][config['name']] = config['config']
-                    configs['ReplicaSets'][config['name']]['suffix'] = []
-                    config = configs['ReplicaSets'][config['name']]
-                    ReplicaSets[config['name']] = {}
-                else:
-                    config = config['config']
-                    config_set(configs['ReplicaSets'][config['name']], config)
-                for i in range(0, replica_num):
-                    suffix = create_suffix()
-                    configs['ReplicaSet'][config['name']]['suffix'].append(suffix)
-                    re_config = copy.deepcopy(config)
-                    re_config['suffix'] = suffix
-                    status['ReplicaSet'][re_config['name']] += 1
-                    status['mem'] -= entities.parse_bytes(re_config['mem'])
-                    status['cpu'] -= re_config['cpu']
-                    print("扩容")
-                    print("{} create ReplicaSet {}{}".format(node_name, re_config['name'], re_config['suffix']))
-                    mem += entities.parse_bytes(re_config['mem'])
-                    set_cpu(re_config)
-                    ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-                    del re_config
+                re_config['suffix'] = suffix
+                print('rescale pod {}{}'.format(re_config['name'], suffix))
+                pods[config['name']][suffix] = entities.Pod(re_config, False)
+                # 向api_server发送扩容消息
+                msg = {'node': node_name, 'kind': 'pod', 'name': re_config['name']}
+                url = "http://127.0.0.1:5050/rescale"
+                json_data = json.dumps(msg)
+                r = requests.post(url=url, json=json_data)
+                time.sleep(2)
+        if config['kind'] == 'ReplicaSet':
+            config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
+            for i in range(0, auto_num):
+                suffix = create_suffix()
+                config['suffix'].append(suffix)
+                re_config = copy.deepcopy(config)
+                re_config['suffix'] = suffix
+                print('rescale ReplicaSet {}{}'.format(re_config['name'], suffix))
+                ReplicaSets[config['name']][suffix] = entities.Pod(re_config, False)
+                # 向api_server发送扩容消息
+                msg = {'node': node_name, 'kind': 'ReplicaSet', 'name': re_config['name']}
+                url = "http://127.0.0.1:5050/rescale"
+                json_data = json.dumps(msg)
+                r = requests.post(url=url, json=json_data)
+                time.sleep(2)
 
 
     share.set('status', str(status))
