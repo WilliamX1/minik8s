@@ -9,6 +9,7 @@ import json
 import pika
 import uuid
 import re
+from serverless import Node, Edge, DAG
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
@@ -66,107 +67,28 @@ def post_pod(instance_name: str):
     broadcast_message('pods', config.__str__())
     return json.dumps(config), 200
 
-class Node(object):
-    def __init__(self, index, name, node_type, module_name=None, function_name=None):
-        self.index = index
-        self.name = name
-        self.node_type = node_type
-        self.module_name = module_name
-        self.function_name = function_name
-        self.out_edge = list()
-        print(self.__str__())
 
-    @staticmethod
-    def from_dict(init_dict: dict, node_name):
-        node_id = init_dict['id']
-        node_type = init_dict['type']
 
-        if node_type == 'input' or node_type == 'output':
-            return Node(node_id, node_name, node_type)
-        else:
-            match_ = re.fullmatch(r'(\w*)\.(\w*)', node_name.strip(), re.I)
-            if match_:
-                module_name = match_.group(1)
-                function_name = match_.group(2)
-                print("module_name = {}".format(module_name))
-                print("function_name = {}".format(function_name))
-                return Node(node_id, node_name, node_type, module_name, function_name)
-            else:
-                print("match error")
-                return None
-
-    def add_out_edge(self, edge):
-        self.out_edge.append(edge)
-
-    def __str__(self):
-        return {'index': self.index, 'name': self.name, 'node_type': self.node_type, 'module_name': self.module_name, 'function_name': self.function_name, 'out_edge': self.out_edge}.__str__()
-
-class Edge(object):
-    def __init__(self, index, source, target, condition="True"):
-        self.index = index
-        self.source = source
-        self.target = target
-        self.condition = condition
-
-    @staticmethod
-    def from_dict(init_dict: dict, nodes: dict):
-        edge_id = init_dict['id']
-        source_node_id = init_dict['source']
-        target_node_id = init_dict['target']
-        if nodes.__contains__(source_node_id) and nodes.__contains__(target_node_id):
-            return Edge(edge_id, nodes[source_node_id], nodes[source_node_id], "True")
-        else:
-            return None
-
-    def update_condition(self, condition:str):
-        self.condition = condition
-        print("Edge {} condition updated! {}".format(self.index, self.condition))
-
-    def __str__(self):
-        return {'index': self.index, 'source': self.source, 'target': self.target, 'condition': self.condition}.__str__()
-
-class DAG(object):
-    def __init__(self, start_node: Node, end_node: Node, node_list: List[Node], edge_list: List[Edge]):
-        self.start_node = start_node
-        self.end_node = end_node
-        self.node_list = node_list
-        self.edge_list = edge_list
-
-    @staticmethod
-    def from_node_list_and_edge_list(node_list: List[Node], edge_list: List[Edge]):
-        start_node = None
-        end_node = None
-        for node in node_list:
-            if node.node_type == 'input':
-                start_node = node
-            if node.node_type == 'output':
-                end_node = node
-        if start_node and end_node:
-            return DAG(start_node, end_node, node_list, edge_list)
-        else:
-            return None
-
-    def node_size(self):
-        return len(self.node_list)
-
-    def edge_size(self):
-        return len(self.edge_list)
-
-    def __str__(self):
-        return {'start_node': self.start_node, 'end_node': self.end_node, 'node_list': self.node_list, 'edge_list': self.edge_list}.__str__()
-
-@app.route('/DAG/<string:DAG_name>', methods=['GET'])
-def get_dag(DAG_name: str):
+@app.route('/DAG/<string:dag_name>', methods=['GET'])
+def get_dag(dag_name: str):
     if not use_etcd:
-        if etcd_supplant.__contains__(DAG_name):
-            return etcd_supplant[DAG_name].__str__(), 200
+        if etcd_supplant.__contains__(dag_name):
+            return etcd_supplant[dag_name].__str__(), 200
         else:
             return "DAG not found!", 404
     else:
         raise NotImplementedError
 
+@app.route('DAG/run/<string:dag_name>', methods=['GET'])
+def run_DAG(dag_name: str):
+    my_dag: DAG = etcd_supplant[dag_name]
+    current_node = start_node = my_dag.start_node
+    end_node: Node = my_dag.end_node
+    while current_node != end_node:
+        result = current_
+
 @app.route('/DAG/<string:DAG_name>', methods=['POST'])
-def upload(DAG_name: str):
+def upload(dag_name: str):
     elements = json.loads(request.form.get('elements'))
     branch_condition = json.loads(request.form.get('localStorage'))
     name_data = json.loads(request.form.get("flowData"))['value']
@@ -205,8 +127,8 @@ def upload(DAG_name: str):
     my_dag = DAG.from_node_list_and_edge_list(node_list, edge_list)
     if my_dag:
         if not use_etcd:
-            print("Save DAG {}".format(DAG_name))
-            etcd_supplant[DAG_name] = my_dag
+            print("Save DAG {}".format(dag_name))
+            etcd_supplant[dag_name] = my_dag
         else:
             raise NotImplementedError
         return "Successfully built a DAG with {} nodes and {} edges".format(my_dag.node_size(), my_dag.edge_size()), 200
