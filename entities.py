@@ -11,19 +11,25 @@ except ImportError:
     # Fall back to <= 0.3.1 location
     from docker.client import APIError
 
+per_cpu_size = 2.2 * 1024 * 1024 * 1024
+
 
 class Container:
-    def __init__(self, name, image, command, memory, cpu, port, network):
+    def __init__(self, name, suffix, image, command, memory, cpu, port, namespace):
         self._name = name
+        self._suffix = suffix
         self._image = image
         self._command = command
         self._memory = memory
         self._cpu = cpu
         self._port = port
-        self._network = network
+        self._namespace = namespace
 
     def name(self):
         return self._name
+
+    def suffix(self):
+        return self._suffix
 
     def image(self):
         return self._image
@@ -40,8 +46,14 @@ class Container:
     def port(self):
         return self._port
 
-    def network(self):
-        return self._network
+    def namespace(self):
+        return self._namespace
+
+    def set_cpu(self, cpu):
+        self._cpu = cpu
+
+    def set_memory(self, memory):
+        self._memory = memory
 
 
 class Status(Enum):
@@ -50,160 +62,104 @@ class Status(Enum):
     KILLED = 3
 
 
+def parse_bytes(s):
+    if not s or not isinstance(s, six.string_types):
+        return s
+    units = {'k': 1024,
+             'm': 1024 * 1024,
+             'g': 1024 * 1024 * 1024}
+    suffix = s[-1].lower()
+    if suffix not in units.keys():
+        if not s.isdigit():
+            sys.stdout.write('Unknown unit suffix {} in {}!'
+                             .format(suffix, s))
+            return 0
+        return int(s)
+    return int(float(s[:-1]) * units[suffix])
+
+
 class Pod:
-    def __init__(self, config):
+    def __init__(self, config, restart):
+        self._suffix = config.get('suffix')
         self._name = config.get('name')
         self._status = Status.RUNNING
         self._volumn = config.get('volumn')
         self._containers = []
+        self._namespace = None
+        self._pause = None
+        self._mem = config.get('mem')
+        self._cpu = {}
+        self._cpu_num = config.get('cpu')
+        #            containername:'0,1,2'
 
-        containercfgs = config.get('containers')
-        i = 0
-        # 创建容器配置参数
-        volumes = set()
-        volumes.add(self._volumn)
-        _PORT_SPEC_REGEX = re.compile(r'^(?P<p1>\d+)(?:-(?P<p2>\d+))?(?:/(?P<proto>(tcp|udp)))?$')  # noqa
-        _DEFAULT_PORT_PROTOCOL = 'tcp'
-        backend_url = '{:s}://{:s}:{:d}'.format(
-            "http", "localhost", 2375)
-        backend = docker.DockerClient(
-            base_url=backend_url,
-            version=str(1.21),
-            timeout=5)
-        networkname = "zookeeper-net"
-        backend.networks.create(networkname, driver="bridge")
-        self._backend = backend
+        # set network namespace
+        if config.get('metadata') is None or config.get('metadata').get('namespace') is None:
+            self._namespace = 'default' + self._suffix
+        else:
+            self._namespace = config.get('metadata').get('namespace') + self._suffix
 
-        def _parse_ports(ports):
-            """Parse port mapping specifications for this container."""
+        self._client = docker.from_env(version='1.25', timeout=5)
 
-            def parse_port_spec(spec):
-                if type(spec) == int:
-                    spec = str(spec)
-
-                m = _PORT_SPEC_REGEX.match(spec)
-                if not m:
-                    sys.stdout.write(('Invalid port specification {}! '
-                                      'Expected format is <port>, <p1>-<p2> '
-                                      'or <port>/{{tcp,udp}}.').format(spec))
-                    return {}
-                s = m.group('p1')
-                if m.group('p2'):
-                    s += '-' + m.group('p2')
-                proto = m.group('proto') or _DEFAULT_PORT_PROTOCOL
-                s += '/' + proto
-                return s
-
-            result = {}
+        if restart:
+            containercfgs = config.get('containers')
+            for containercfg in containercfgs:
+                container = Container(containercfg['name'], self._suffix, containercfg['image'],
+                                      containercfg['command'],
+                                      containercfg['resource']['memory'], containercfg['resource']['cpu'],
+                                      containercfg['port'], self._namespace)
+                self._containers.append(container)
+            if config.get('status') == 'Status.RUNNING':
+                self._status = Status.RUNNING
+            elif config.get('status') == 'Status.STOPPED':
+                self._status = Status.STOPPED
+            elif config.get('status') == 'Status.KILLED':
+                self._status = Status.KILLED
+            # print('\t==>INFO: pod {} reconnect'.format(self._name + self._suffix))
+        else:
             '''
-            BUG: Need Fix Transfer Function
-            '''
-            for name, spec in ports.items():
-                # Single number, interpreted as being a TCP port number and to be
-                # the same for the exposed port and external port bound on all
-                # interfaces.
-                '''
-                if type(spec) == int:
-                    result[name] = {
-                        'exposed': parse_port_spec(spec),
-                        'external': ('0.0.0.0', parse_port_spec(spec)),
-                    }
-                '''
-                if type(spec) == int:
-                    result[name] = spec
+                    Create a 'pause' container each pod which use a veth,
+                    Other containers attach to this container network, so
+                    they can communicate with each other using `localhost`
+                    '''
 
-                # Port spec is a string. This means either a protocol was specified
-                # with /tcp or /udp, that a port range was specified, or that a
-                # mapping was provided, with each side of the mapping optionally
-                # specifying the protocol.
-                # External port is assumed to be bound on all interfaces as well.
-                elif type(spec) == str:
-                    parts = list(map(parse_port_spec, spec.split(':')))
-                    if len(parts) == 1:
-                        # If only one port number is provided, assumed external =
-                        # exposed.
-                        parts.append(parts[0])
-                    elif len(parts) > 2:
-                        sys.stdout.write(('Invalid port spec {} for port {} of {}! ' +
-                                          'Format should be "name: external:exposed".').format(
-                            spec, name))
-                        return {}
+            # create network bridge
+            # print('\t==>INFO: Start launching `pause` container...')
+            self._client.networks.prune()  # delete unused networks
+            self._network = self._client.networks.create(name=self._namespace, driver="bridge")
+            self._client.containers.run(image='busybox', name=self._name + self._suffix,  # 这里原来是pause，防重名我改成了pod name
+                                        detach=True,  # auto_remove=True,
+                                        command=['sh', '-c', 'echo Hello World && sleep 3600'],
+                                        network=self._network.name)
+            # print('\t==>INFO: `Pause` container is running successfully...\n')
 
-                    if parts[0][-4:] != parts[1][-4:]:
-                        sys.stdout.write('Mismatched protocols between {} and {}!'.format(
-                            parts[0], parts[1]))
-                        return {}
+            containercfgs = config.get('containers')
 
-                    result[name] = {
-                        'exposed': parts[0],
-                        'external': ('0.0.0.0', parts[1]),
-                    }
-
-                # Port spec is fully specified.
-                elif type(spec) == dict and \
-                        'exposed' in spec and 'external' in spec:
-                    spec['exposed'] = parse_port_spec(spec['exposed'])
-
-                    if type(spec['external']) != list:
-                        spec['external'] = ('0.0.0.0', spec['external'])
-                    spec['external'] = (spec['external'][0],
-                                        parse_port_spec(spec['external'][1]))
-
-                    result[name] = spec
-
-                else:
-                    sys.stdout.write('Invalid port spec {} for port {} of {}!'.format(
-                        spec, name))
-                    return {}
-
-            # print result
-            '''
-            for key, value in result.items():
-                print(key)
-                print(value)
-            return result
-            '''
-
-        def _parse_bytes(s):
-            if not s or not isinstance(s, six.string_types):
-                return s
-            units = {'k': 1024,
-                     'm': 1024 * 1024,
-                     'g': 1024 * 1024 * 1024}
-            suffix = s[-1].lower()
-            if suffix not in units.keys():
-                if not s.isdigit():
-                    sys.stdout.write('Unknown unit suffix {} in {}!'
-                                     .format(suffix, s))
-                    return 0
-                return int(s)
-            return int(s[:-1]) * units[suffix]
-
-        for containercfg in containercfgs:
-            container = Container(self._name + '-{}'.format(i), containercfg['image'], containercfg['command'],
-                                  containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                  containercfg['port'], networkname)
-            self._containers.append(container)
-            i += 1
-
-            '''
-            host_config = backend.create_host_config(mem_limit=_parse_bytes(container.memory()))
-            backend.create_container(image=container.image(), name=container.name(), volumes=list(volumes),
-                                     cpu_shares=container.cpu(), host_config=host_config,
-                                     ports=_parse_ports(containercfg['port']), detach=True, command=container.command())
-            '''
-            backend.containers.run(image=container.image(), name=container.name(), volumes=list(volumes),
-                                   cpu_shares=container.cpu(), mem_limit=_parse_bytes(container.memory()),
-                                   ports=_parse_ports(containercfg['port']), detach=True, command=container.command(),
-                                   network=networkname)
-
-            '''
-            status = backend.inspect_container(container.name())
-            backend.start(status.get('ID', status.get('Id', None)))
-            '''
+            # 创建容器配置参数
+            volumes = set()
+            volumes.add(self._volumn)
+            for containercfg in containercfgs:
+                container = Container(containercfg['name'], self._suffix, containercfg['image'],
+                                      containercfg['command'],
+                                      containercfg['resource']['memory'], containercfg['resource']['cpu'],
+                                      containercfg['port'], self._namespace)
+                self._cpu[containercfg['name']] = containercfg['resource']['cpu']
+                self._containers.append(container)
+                # print("\t==>INFO: %s start launching...\n" % container.name() + container.suffix())
+                self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
+                                            volumes=list(volumes),
+                                            cpuset_cpus=container.cpu(),
+                                            mem_limit=parse_bytes(container.memory()),
+                                            detach=True,
+                                            # auto_remove=True,
+                                            command=container.command(),
+                                            network_mode='container:' + self._name + self._suffix)
+                # print("\t==>INFO: %s is running successfully...\n", container.name() + container.suffix())
 
     def name(self):
         return self._name
+
+    def suffix(self):
+        return self._suffix
 
     def status(self):
         return self._status
@@ -214,40 +170,95 @@ class Pod:
     def contains(self):
         return self._containers
 
-    def backend(self):
-        return self._backend
+    def client(self):
+        return self._client
 
     def append(self, container):
         self._containers.append(container)
 
     def start(self):
         for container in self._containers:
-            status = self._backend.api.inspect_container(container.name())
-            self._backend.api.start(status.get('ID', status.get('Id', None)))
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            self._client.api.start(status.get('ID', status.get('Id', None)))
         self._status = Status.RUNNING
 
     def stop(self):
         for container in self._containers:
-            status = self._backend.api.inspect_container(container.name())
-            self._backend.api.stop(status.get('ID', status.get('Id', None)))
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            self._client.api.stop(status.get('ID', status.get('Id', None)))
         self._status = Status.STOPPED
 
     def kill(self):
         for container in self._containers:
-            status = self._backend.api.inspect_container(container.name())
-            self._backend.api.kill(status.get('ID', status.get('Id', None)))
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            self._client.api.kill(status.get('ID', status.get('Id', None)))
         self._status = Status.KILLED
 
     def restart(self):
         for container in self._containers:
-            status = self._backend.api.inspect_container(container.name())
-            self._backend.api.restart(status.get('ID', status.get('Id', None)))
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            self._client.api.restart(status.get('ID', status.get('Id', None)))
         self._status = Status.RUNNING
 
     def remove(self):
+        if self._status == Status.RUNNING:
+            self.stop()
         for container in self._containers:
-            status = self._backend.api.inspect_container(container.name())
-            self._backend.api.remove_container(status.get('ID', status.get('Id', None)))
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            self._client.api.remove_container(status.get('ID', status.get('Id', None)))
+        name = self._name + self._suffix
+        status = self._client.api.inspect_container(name)
+        self._client.api.stop(status.get('ID', status.get('Id', None)))
+        self._client.api.remove_container(status.get('ID', status.get('Id', None)))
+
+    def resource_status(self):
+        s = {'total_mem': self._mem, 'mem': 0, 'cpu': 0,
+             'pre_cpu': {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}}
+
+        for container in self._containers:
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            s['mem'] += \
+            self._client.containers.get(status.get('ID', status.get('Id', None))).stats(stream=False)['memory_stats'][
+                'usage']
+            percpu_usage = \
+            self._client.containers.get(status.get('ID', status.get('Id', None))).stats(stream=False)['cpu_stats'][
+                'cpu_usage']['percpu_usage']
+            for i in range(0, 12):
+                s['pre_cpu'][str(i)] += percpu_usage[i] / per_cpu_size
+                s['cpu'] += percpu_usage[i]
+        s['mem'] = s['mem'] / parse_bytes(s['total_mem'])
+        s['cpu'] = s['cpu'] / (per_cpu_size * self._cpu_num)
+        return s
+
+    def cpu(self):
+        cpu_list = []
+        for container in self._containers:
+            l = container.cpu().split(',')
+            for cpu in l:
+                cpu_list.append(cpu)
+        return cpu_list
+
+
+
+
+    def scale(self, the_scale_config):
+        index = 0
+        for new_container_scale in the_scale_config['containers']:
+            while self._containers[index].name() != new_container_scale['name']:
+                index += 1
+            new_cpu = new_container_scale['resource'].get('cpu', 0)
+            if new_cpu != 0:
+                self._containers[index].set_cpu(new_container_scale['resource']['cpu'])
+            new_memory = new_container_scale['resource'].get('memory', '0g')
+            if new_memory != '0g':
+                self._containers[index].set_memory(new_container_scale['resource']['memory'])
+            # 修改实际容器
 
 
 class Service:

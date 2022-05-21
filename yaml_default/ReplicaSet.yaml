@@ -1,10 +1,13 @@
-kind: pod
+kind: ReplicaSet
 name: example-pod
 volumn: '/home/liuyixiang/docker_volumn'
 metadata:
   namespace: pod-network
 cpu: 2
 mem: 150m
+spec:
+  replicas: 3
+  selector:
 containers:
   - image: zookeeper:3.4.10
     name: zookeeper
