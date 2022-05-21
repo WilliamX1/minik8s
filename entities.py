@@ -244,21 +244,43 @@ class Pod:
                 cpu_list.append(cpu)
         return cpu_list
 
+    def container_cpu(self):
+        return self._cpu
+
+    def mem(self):
+        return self._mem
+
+    def rescale(self, config):
+        self._cpu_num = config['cpu']
+        self._mem = config['mem']
+        for container in self._containers:
+            name = container.name() + container.suffix()
+            status = self._client.api.inspect_container(name)
+            self._client.api.remove_container(status.get('ID', status.get('Id', None)))
+        self._cpu = {}
+        self._containers = []
+        containercfgs = config.get('containers')
+        # 创建容器配置参数
+        volumes = set()
+        volumes.add(self._volumn)
+        for containercfg in containercfgs:
+            container = Container(containercfg['name'], self._suffix, containercfg['image'],
+                                  containercfg['command'],
+                                  containercfg['resource']['memory'], containercfg['resource']['cpu'],
+                                  containercfg['port'], self._namespace)
+            self._cpu[containercfg['name']] = containercfg['resource']['cpu']
+            self._containers.append(container)
+            # print("\t==>INFO: %s start launching...\n" % container.name() + container.suffix())
+            self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
+                                        volumes=list(volumes),
+                                        cpuset_cpus=container.cpu(),
+                                        mem_limit=parse_bytes(container.memory()),
+                                        detach=True,
+                                        # auto_remove=True,
+                                        command=container.command(),
+                                        network_mode='container:' + self._name + self._suffix)
 
 
-
-    def scale(self, the_scale_config):
-        index = 0
-        for new_container_scale in the_scale_config['containers']:
-            while self._containers[index].name() != new_container_scale['name']:
-                index += 1
-            new_cpu = new_container_scale['resource'].get('cpu', 0)
-            if new_cpu != 0:
-                self._containers[index].set_cpu(new_container_scale['resource']['cpu'])
-            new_memory = new_container_scale['resource'].get('memory', '0g')
-            if new_memory != '0g':
-                self._containers[index].set_memory(new_container_scale['resource']['memory'])
-            # 修改实际容器
 
 
 class Service:

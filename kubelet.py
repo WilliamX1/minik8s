@@ -15,7 +15,6 @@ import six
 import copy
 import memcache
 
-
 node_name = 'node1'
 per_cpu_size = 2.2 * 1024 * 1024 * 1024
 cpu_sum = 12
@@ -79,6 +78,10 @@ def config_set(config1, config2):
                 if container['resource'].__contains__('mem'):
                     con['resource']['mem'] = container['resource']['mem']
                 break
+
+def cpu_set(config, container_cpu):
+    for container in config['containers']:
+        container['resource']['cpu'] = container_cpu[container['name']]
 
 
 # 回调函数
@@ -146,7 +149,8 @@ def callback(ch, method, properties, body):
                 for c in cpu_list:
                     cpu[c] = 0
                 pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]].remove()
-                print('{} delete pod {}{}'.format(node_name, config['target_name'], configs['pods'][config['target_name']]['suffix'][0]))
+                print('{} delete pod {}{}'.format(node_name, config['target_name'],
+                                                  configs['pods'][config['target_name']]['suffix'][0]))
                 del pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]]
                 del configs['pods'][config['target_name']]['suffix'][0]
             if len(configs['pods'][config['target_name']]['suffix']) == 0:
@@ -160,11 +164,13 @@ def callback(ch, method, properties, body):
             mem -= entities.parse_bytes(configs['ReplicaSets'][config['target_name']]['mem']) * config['num']
             for i in range(0, config['num']):
                 print(ReplicaSets)
-                cpu_list = ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]].cpu()
+                cpu_list = ReplicaSets[config['target_name']][
+                    configs['ReplicaSets'][config['target_name']]['suffix'][0]].cpu()
                 for c in cpu_list:
                     cpu[c] = 0
                 ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]].remove()
-                print('{} delete ReplicaSet {}{}'.format(node_name, config['target_name'], configs['ReplicaSets'][config['target_name']]['suffix'][0]))
+                print('{} delete ReplicaSet {}{}'.format(node_name, config['target_name'],
+                                                         configs['ReplicaSets'][config['target_name']]['suffix'][0]))
                 del ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]]
                 del configs['ReplicaSets'][config['target_name']]['suffix'][0]
             if len(configs['ReplicaSets'][config['target_name']]['suffix']) == 0:
@@ -174,55 +180,86 @@ def callback(ch, method, properties, body):
     if config['kind'] == 'HorizontalPodAutoscaler':
         config = config['config']
         num = config['num']
-        resource_status = {}
+        # 存储现存的该pod或replicaset的每个副本的资源使用情况
+        resource_status_list = {}
         if config['kind'] == 'pod':
             for pod in pods[config['name']]:
-                resource_status = pods[config['name']][pod].resource_status()
-                break
+                resource_status_list[pod] = pods[config['name']][pod].resource_status()
+                # 释放原cpu和mem，设定新的cpu和内存
+                cpu_list = pods[config['name']][pod].cpu()
+                pre_mem = entities.parse_bytes(pods[config['name']][pod].mem())
+                for c in cpu_list:
+                    cpu[c] = 0
+                re_config = copy.deepcopy(config)
+                set_cpu(re_config)
+                mem -= pre_mem - entities.parse_bytes(re_config['mem'])
+                status['cpu'] += len(cpu_list) - re_config['cpu']
+                status['mem'] += pre_mem - entities.parse_bytes(re_config['mem'])
+                # 修改原pod的容器资源使用情况
+                pods[config['name']][pod].rescale(re_config)
+            config['suffix'] = configs['pods'][config['name']]['suffix']
         if config['kind'] == 'ReplicaSet':
             for ReplicaSet in ReplicaSets[config['name']]:
-                resource_status = ReplicaSets[config['name']][ReplicaSet].resource_status()
-                break
-        auto_num = 0
-        while auto_num <= num:
-            if (auto_num+1)*resource_status['mem']<1 and (auto_num+1)*resource_status['cpu']<1:
+                resource_status_list[ReplicaSet] = ReplicaSets[config['name']][ReplicaSet].resource_status()
+                # 释放原cpu和mem，设定新的cpu和内存
+                cpu_list = ReplicaSets[config['name']][ReplicaSet].cpu()
+                pre_mem = entities.parse_bytes(ReplicaSets[config['name']][ReplicaSet].mem())
+                for c in cpu_list:
+                    cpu[c] = 0
+                re_config = copy.deepcopy(config)
+                set_cpu(re_config)
+                mem -= pre_mem - entities.parse_bytes(config['mem'])
+                status['cpu'] += len(cpu_list) - config['cpu']
+                status['mem'] += pre_mem - entities.parse_bytes(config['mem'])
+                # 修改原ReplicaSet的容器资源使用情况
+                ReplicaSets[config['name']][ReplicaSet].rescale(re_config)
+            config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
+        for resource_status in resource_status_list:
+            # auto_num是以该pod为基础能扩容多少个副本
+            # num是给该node分配的配额
+            auto_num = 0
+            while (auto_num + 1) * resource_status_list[resource_status]['mem'] < 1 and (auto_num + 1) * resource_status_list[resource_status]['cpu'] < 1:
                 auto_num += 1
-            else:
+                num -= 1
+                if num == 0:
+                    break
+            re_config = copy.deepcopy(config)
+            if config['kind'] == 'pod':
+                # 将re_config的containers的cpu情况改成和pods[re_config['name']][resource_status]一样
+                for i in range(0, auto_num):
+                    suffix = create_suffix()
+                    config['suffix'].append(suffix)
+                    re_config['suffix'] = suffix
+                    cpu_set(re_config, pods[re_config['name']][resource_status].container_cpu())
+                    print('rescale pod {}{}'.format(re_config['name'], suffix))
+                    pods[config['name']][suffix] = entities.Pod(re_config, False)
+                    # 向api_server发送扩容消息
+                    msg = {'node': node_name, 'kind': 'pod', 'name': re_config['name']}
+                    url = "http://127.0.0.1:5050/rescale"
+                    json_data = json.dumps(msg)
+                    r = requests.post(url=url, json=json_data)
+                    time.sleep(2)
+            if config['kind'] == 'ReplicaSet':
+                # 将re_config的containers的cpu情况改成和ReplicaSets[re_config['name']][resource_status]一样
+                for i in range(0, auto_num):
+                    suffix = create_suffix()
+                    config['suffix'].append(suffix)
+                    re_config['suffix'] = suffix
+                    cpu_set(re_config, ReplicaSets[re_config['name']][resource_status].container_cpu())
+                    print('rescale ReplicaSet {}{}'.format(re_config['name'], suffix))
+                    ReplicaSets[config['name']][suffix] = entities.Pod(re_config, False)
+                    # 向api_server发送扩容消息
+                    msg = {'node': node_name, 'kind': 'ReplicaSet', 'name': re_config['name']}
+                    url = "http://127.0.0.1:5050/rescale"
+                    json_data = json.dumps(msg)
+                    r = requests.post(url=url, json=json_data)
+                    time.sleep(2)
+            if num == 0:
                 break
         if config['kind'] == 'pod':
-            config['suffix'] = configs['pods'][config['name']]['suffix']
-            for i in range(0, auto_num):
-                suffix = create_suffix()
-                config['suffix'].append(suffix)
-                re_config = copy.deepcopy(config)
-                re_config['suffix'] = suffix
-                print('rescale pod {}{}'.format(re_config['name'], suffix))
-                pods[config['name']][suffix] = entities.Pod(re_config, False)
-                # 向api_server发送扩容消息
-                msg = {'node': node_name, 'kind': 'pod', 'name': re_config['name']}
-                url = "http://127.0.0.1:5050/rescale"
-                json_data = json.dumps(msg)
-                r = requests.post(url=url, json=json_data)
-                time.sleep(2)
             configs['pods'][config['name']] = config
         if config['kind'] == 'ReplicaSet':
-            config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
-            for i in range(0, auto_num):
-                suffix = create_suffix()
-                config['suffix'].append(suffix)
-                re_config = copy.deepcopy(config)
-                re_config['suffix'] = suffix
-                print('rescale ReplicaSet {}{}'.format(re_config['name'], suffix))
-                ReplicaSets[config['name']][suffix] = entities.Pod(re_config, False)
-                # 向api_server发送扩容消息
-                msg = {'node': node_name, 'kind': 'ReplicaSet', 'name': re_config['name']}
-                url = "http://127.0.0.1:5050/rescale"
-                json_data = json.dumps(msg)
-                r = requests.post(url=url, json=json_data)
-                time.sleep(2)
             configs['ReplicaSets'][config['name']] = config
-
-
     share.set('status', str(status))
 
 
