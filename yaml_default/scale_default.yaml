@@ -1,0 +1,16 @@
+kind: HorizontalPodAutoscaler
+name: example-pod
+prekind: pod
+minReplicas: 3
+maxReplicas: 7
+cpu: 2
+mem: 700m
+containers:
+  - name: zookeeper
+    resource:
+      memory: 500m
+      cpu: 1
+  - name: busybox
+    resource:
+      memory: 200m
+      cpu: 1
