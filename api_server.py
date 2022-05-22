@@ -138,6 +138,26 @@ def upload_replica_set():
     return "Successfully create replica set instance {}".format(replica_set_instance_name), 200
 
 
+@app.route('/Service', methods=['POST'])
+def upload_service():
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    assert config['kind'] == 'Service'
+    service_instance_name = config['name'] + uuid.uuid1().__str__()
+    config['instance_name'] = service_instance_name
+    config['pod_instances'] = list()
+    etcd_supplant['services_list'].append(service_instance_name)
+    etcd_supplant[service_instance_name] = config
+    return "Successfully create service instance {}".format(service_instance_name), 200
+
+@app.route('/Service/<string:instance_name>', methods=['POST'])
+def update_replica_set(instance_name: str):
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    etcd_supplant[instance_name] = config
+    return "Successfully update service instance {}".format(instance_name), 200
+
+
 @app.route('/ReplicaSet', methods=['GET'])
 def get_replica_set():
     result = dict()
