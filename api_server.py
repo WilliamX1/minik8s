@@ -1,5 +1,7 @@
 import ast
 import copy
+
+import time
 import datetime
 from typing import List
 
@@ -16,36 +18,17 @@ import entities
 import re
 from serverless import Node, Edge, DAG
 
-total_memory = 5 * 1024 * 1024 * 1024
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
+
+total_memory = 5 * 1024 * 1024 * 1024
+use_etcd = False
 etcd = etcd3.client()
-nodes = {'node1': {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory,
-                   'heartbeat_time': datetime.datetime.now().second},
-         'node2': {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory,
-                   'heartbeat_time': datetime.datetime.now().second}}
-#         nodename:{
-#         'pods':{podname:config},              //config中的['spec']['replicas']是该node中应该跑的数量，在心跳包发来时如果发现实际数量少于应该的数量，则向node发送重新启动相应数量的请求
-#         'ReplicaSets':{ReplicaSetname:config},//config中的['spec']['replicas']是该node中应该跑的数量，在心跳包发来时如果发现实际数量少于应该的数量，则向node发送重新启动相应数量的请求
-#         'cpu':,                               //这里的cpu和mem只由心跳包更新，是node的定义资源可用
-#         'mem':,
-#         'heartbeat_time':
-#         }
-rescale = {'node1': {'pods': {}, 'ReplicaSets': {}}, 'node2': {'pods': {}, 'ReplicaSets': {}}}
+etcd_supplant = {'nodes_list': list(), 'pods_list': list(), 'services_list': list(), 'replica_sets_list': list()}
+
+# rescale = {'node1': {'pods': {}, 'ReplicaSets': {}}, 'node2': {'pods': {}, 'ReplicaSets': {}}}
 pods = {}
-#       podname:config                          //config中的['spec']['replicas']是所有node中应该跑的总数
-ReplicaSets = {}
-
-
-#       ReplicaSetname:config                   //config中的['spec']['replicas']是所有node中应该跑的总数
-
-def upgrade_etcd():
-    etcd.put('nodes', str(nodes))
-    etcd.put('pods', str(pods))
-    etcd.put('ReplicaSets', str(ReplicaSets))
-
-
-upgrade_etcd()
+replica_sets = {}
 
 
 def broadcast_message(channel_name: str, message: str):
@@ -58,153 +41,131 @@ def broadcast_message(channel_name: str, message: str):
     connect.close()
 
 
-def nodes_check():
-    # 检查是否存在node crash和replicaset数量是否正确，目前没有整合进去,需要放进service
-    # 检查是否存在node crash
-    time_now = datetime.datetime.now().second
-    nodes_for_del = []
-    pods_for_restart = {}
-    ReplicaSets_for_restart = {}
-    for node in nodes:
-        last_check_time = nodes[node]['heartbeat_time']
-        if time_now - last_check_time > 10:
-            nodes_for_del.append(node)
-            pods_in_node = copy.deepcopy(nodes[node]['pods'])
-            ReplicaSets_in_node = copy.deepcopy(nodes[node]['ReplicaSets'])
-            for pod in pods_in_node:
-                if pods_for_restart.__contains__(pod):
-                    pods_for_restart[pod]['spec']['replicas'] += pods_in_node[pod]['spec']['replicas']
-                else:
-                    pods_for_restart[pod] = pods_in_node[pod]
-            for ReplicaSet in ReplicaSets_in_node:
-                if ReplicaSets_for_restart.__contains__(ReplicaSet):
-                    ReplicaSets_for_restart[ReplicaSet]['spec']['replicas'] += ReplicaSets_in_node[ReplicaSet]['spec'][
-                        'replicas']
-                else:
-                    ReplicaSets_for_restart[ReplicaSet] = ReplicaSets_in_node[ReplicaSet]
-    for node in nodes_for_del:
-        del nodes[node]
-    # 将pods和ReplicaSets分给剩下的nodes
-    msg = {'kind': 'reschedule', 'pods': pods_for_restart, 'ReplicaSets': ReplicaSets_for_restart, 'nodes': nodes}
-    broadcast_message('pods', msg.__str__())
+@app.route('/Node', methods=['GET'])
+def handle_nodes():
+    if use_etcd:
+        return "not implemented"
+    else:
+        result = dict()
+        result['nodes_list'] = etcd_supplant['nodes_list']
+        for node_instance_name in result['nodes_list']:
+            result[node_instance_name] = etcd_supplant[node_instance_name]
+        return json.dumps(result)
 
 
-def config_set(config1, config2):
-    # 用config2修正config1的cpu和mem以及containers的资源
-    config1['cpu'] = config2['cpu']
-    config1['mem'] = config2['mem']
-    for container in config2['containers']:
-        for con in config1['containers']:
-            if con['name'] == container['name']:
-                if container['resource'].__contains__('cpu'):
-                    con['resource']['cpu'] = container['resource']['cpu']
-                if container['resource'].__contains__('mem'):
-                    con['resource']['mem'] = container['resource']['mem']
-                break
+@app.route('/Node', methods=['POST'])
+def upload_nodes():
+    json_data = request.json
+    node_config: dict = json.loads(json_data)
+    node_instance_name = node_config['instance_name']
+    node_config['last_receive_time'] = time.time()
+    node_config['status'] = 'READY TO START'
+    print("node_config = ", node_config)
+    etcd_supplant['nodes_list'].append(node_instance_name)
+    etcd_supplant[node_instance_name] = node_config
+    return json.dumps(etcd_supplant['nodes_list']), 200
 
 
-# pods ReplicaSets均是在第一次收到时修改pods ReplicaSets，第二次收到时修改nodes
-# HorizontalPodAutoscaler在第二次收到时修改pods ReplicaSets nodes
-# reschedule不需要修改pods和ReplicaSets，只修改nodes
-@app.route('/pods', methods=['GET', 'POST'])
+@app.route('/Node/<string:instance_name>', methods=['DELETE'])
+def delete_node(instance_name: str):
+    for i in range(len(etcd_supplant['nodes_list'])):
+        if etcd_supplant['nodes_list'][i] == instance_name:
+            etcd_supplant['nodes_list'].pop(i)
+    etcd_supplant[instance_name]['status'] = 'NOT AVAILABLE'
+    for pod_instance_name in etcd_supplant['pods_list']:
+        etcd_supplant[pod_instance_name]['node'] = 'NOT AVAILABLE'
+    print("Remode node {}".format(instance_name))
+    return json.dumps(etcd_supplant['nodes_list']), 200
+
+
+@app.route('/', methods=['GET'])
+def get_all():
+    return json.dumps(etcd_supplant), 200
+
+
+@app.route('/Pod', methods=['GET'])
 def get_pods():
     if request.method == 'GET':
-        # 网页获取
-        return json.dumps(nodes), 200
+        return json.dumps(pods), 200
     elif request.method == 'POST':
-        # 通过yaml起pod或Replicaset
         json_data = request.json
         config: dict = json.loads(json_data)
+        assert config['kind'] == 'Pod'
+        object_name = config['name']
         instance_name = config['name'] + uuid.uuid1().__str__()
         config['instance_name'] = instance_name
         print("create {}".format(instance_name))
-        # 将nodes情况告诉scheduler以方便调度
-        config['nodes'] = nodes
-        if config['kind'] == 'pod':
-            config['spec'] = {'replicas': 1}
-            pods[config['name']] = config
-        if config['kind'] == 'ReplicaSet':
-            ReplicaSets[config['name']] = config
-        # 如果是扩容文件，则将原config文件也放进去方便kubelet依此扩容
-        if config['kind'] == 'HorizontalPodAutoscaler':
-            # config['config']中的['spec']['replicas']是所有node中应该跑的总数，即现有总数
-            if config['prekind'] == 'pod':
-                config_set(pods[config['name']], config)
-                config['config'] = pods[config['name']]
-            if config['prekind'] == 'ReplicaSet':
-                config_set(ReplicaSets[config['name']], config)
-                config['config'] = ReplicaSets[config['name']]
-        broadcast_message('pods', config.__str__())
-        # etcd更新
-        upgrade_etcd()
+
+        broadcast_message('Pod', config.__str__())
         return "Successfully create instance {}".format(instance_name), 200
 
 
-@app.route('/pods/<string:instance_name>', methods=['POST'])
+@app.route('/Pod', methods=['POST'])
+def post_pods():
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    result = create_pod(config)
+    print("result = ", result)
+    return json.dumps(result), 200
+
+
+
+def create_pod(config: dict):
+    assert config['kind'] == 'Pod'
+    object_name = config['name']
+    instance_name = config['name'] + uuid.uuid1().__str__()
+    config['instance_name'] = instance_name
+    config['status'] = 'Wait for Schedule'
+    print("create {}".format(instance_name))
+    etcd_supplant['pods_list'].append(instance_name)
+    etcd_supplant[instance_name] = config
+    broadcast_message('Pod', config.__str__())
+    return config
+
+
+@app.route('/ReplicaSet', methods=['POST'])
+def upload_replica_set():
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    assert config['kind'] == 'ReplicaSet'
+    assert config['spec']['replicas'] > 0
+    replica_set_instance_name = config['name'] + uuid.uuid1().__str__()
+    config['instance_name'] = replica_set_instance_name
+    config['pod_instances'] = list()
+    etcd_supplant['replica_sets_list'].append(replica_set_instance_name)
+    etcd_supplant[replica_set_instance_name] = config
+    # broadcast_message('ReplicaSet', config.__str__())
+    return "Successfully create replica set instance {}".format(replica_set_instance_name), 200
+
+
+@app.route('/ReplicaSet', methods=['GET'])
+def get_replica_set():
+    result = dict()
+    result['replica_sets_list'] = etcd_supplant['replica_sets_list']
+    for replica_set_instance in result['replica_sets_list']:
+        config = etcd_supplant[replica_set_instance]
+        result[replica_set_instance] = config
+        for pod_instance_name in config['pod_instances']:
+            result[pod_instance_name] = etcd_supplant[pod_instance_name]
+    print(result)
+    return json.dumps(result), 200
+
+
+@app.route('/ReplicaSet/<string:instance_name>', methods=['POST'])
+def update_replica_set(instance_name: str):
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    etcd_supplant[instance_name] = config
+    return "Successfully update replica set instance {}".format(instance_name), 200
+
+@app.route('/Pod/<string:instance_name>', methods=['POST'])
 def post_pod(instance_name: str):
     # 将调度结果发给所有nodes
     json_data = request.json
     config: dict = json.loads(json_data)
-    # 前两个若nodes的node中已经存在该config，则只会修改nodes里config的['spec']['replicas']值
-    if config['kind'] == 'pod':
-        print("send create pod msg to {}".format(config['node']))
-        if config.__contains__('nodes'):
-            del config['nodes']
-        if nodes[config['node']]['pods'].__contains__(config['name']):
-            # 说明是reschedule
-            nodes[config['node']]['pods'][config['name']]['spec']['replicas'] += config['spec']['replicas']
-        else:
-            nodes[config['node']]['pods'][config['name']] = config
-        nodes[config['node']]['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
-        nodes[config['node']]['cpu'] -= config['cpu'] * config['spec']['replicas']
-        # 发送
-        broadcast_message('pods', config.__str__())
-    if config['kind'] == 'ReplicaSet':
-        print("send create ReplicaSet msg to {}".format(config['node']))
-        if config.__contains__('nodes'):
-            del config['nodes']
-        if nodes[config['node']]['ReplicaSets'].__contains__(config['name']):
-            # 说明是reschedule
-            nodes[config['node']]['ReplicaSets'][config['name']]['spec']['replicas'] += config['spec']['replicas']
-        else:
-            nodes[config['node']]['ReplicaSets'][config['name']] = config
-        nodes[config['node']]['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
-        nodes[config['node']]['cpu'] -= config['cpu'] * config['spec']['replicas']
-        # 发送
-        broadcast_message('pods', config.__str__())
-    if config['kind'] == 'delete':
-        if config['target_kind'] == 'pod':
-            pods[config['target_name']]['spec']['replicas'] -= config['num']
-            nodes[config['node']]['cpu'] += config['num'] * nodes[config['node']]['pods'][config['target_name']]['cpu']
-            nodes[config['node']]['mem'] += config['num'] * entities.parse_bytes(
-                nodes[config['node']]['pods'][config['target_name']]['mem'])
-            if pods[config['target_name']]['spec']['replicas'] == 0:
-                del pods[config['target_name']]
-            nodes[config['node']]['pods'][config['target_name']]['spec']['replicas'] -= config['num']
-            if nodes[config['node']]['pods'][config['target_name']]['spec']['replicas'] == 0:
-                del nodes[config['node']]['pods'][config['target_name']]
-        if config['target_kind'] == 'ReplicaSet':
-            ReplicaSets[config['target_name']]['spec']['replicas'] -= config['num']
-            nodes[config['node']]['cpu'] += config['num'] * nodes[config['node']]['ReplicaSets'][config['target_name']][
-                'cpu']
-            nodes[config['node']]['mem'] += config['num'] * entities.parse_bytes(
-                nodes[config['node']]['ReplicaSets'][config['target_name']]['mem'])
-            if ReplicaSets[config['target_name']]['spec']['replicas'] == 0:
-                del ReplicaSets[config['target_name']]
-            nodes[config['node']]['ReplicaSets'][config['target_name']]['spec']['replicas'] -= config['num']
-            if nodes[config['node']]['ReplicaSets'][config['target_name']]['spec']['replicas'] == 0:
-                del nodes[config['node']]['pods'][config['target_name']]
-        # 发送
-        broadcast_message('pods', config.__str__())
-    if config['kind'] == 'HorizontalPodAutoscaler':
-        print("send HorizontalPodAutoscaler msg to {}".format(config['node']))
-        if config.__contains__('nodes'):
-            del config['nodes']
-        broadcast_message('pods', config.__str__())
-    # etcd更新
-    upgrade_etcd()
+    etcd_supplant[instance_name] = config
+    broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
-
 
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
@@ -217,13 +178,17 @@ def get_dag(dag_name: str):
     else:
         raise NotImplementedError
 
-@app.route('DAG/run/<string:dag_name>', methods=['GET'])
+
+@app.route('/DAG/run/<string:dag_name>', methods=['GET'])
 def run_DAG(dag_name: str):
     my_dag: DAG = etcd_supplant[dag_name]
     current_node = start_node = my_dag.start_node
     end_node: Node = my_dag.end_node
     while current_node != end_node:
-        result = current_
+        # result = current_
+        pass
+    return "not"
+
 
 @app.route('/DAG/<string:DAG_name>', methods=['POST'])
 def upload(dag_name: str):
@@ -244,14 +209,14 @@ def upload(dag_name: str):
     edge_dict = dict()
     for element in elements:
         element_id = element['id']
-        if element.__contains__('position'):    # node
+        if element.__contains__('position'):  # node
             node = Node.from_dict(element, node_name=name_dict[element_id])
             if node:
                 node_list.append(node)
                 node_dict[element_id] = node
             else:
                 return "Node match error", 404
-        elif element.__contains__('source'):   # edge
+        elif element.__contains__('source'):  # edge
             edge = Edge.from_dict(element, node_dict)
             if edge:
                 edge_list.append(edge)
@@ -274,60 +239,26 @@ def upload(dag_name: str):
         return "Built DAG failure", 404
 
 
-@app.route('/rescale', methods=['POST'])
-def rescale_update():
-    json_data = request.json
-    msg: dict = json.loads(json_data)
-    if msg['kind'] == 'pod':
-        print('{} add one pod replica {}'.format(msg['node'], msg['name']))
-        if rescale[msg['node']]['pods'].__contains__(msg['name']):
-            rescale[msg['node']]['pods'][msg['name']] += 1
-        else:
-            rescale[msg['node']]['pods'][msg['name']] = 1
-    if msg['kind'] == 'ReplicaSet':
-        print('{} add one ReplicaSet replica {}'.format(msg['node'], msg['name']))
-        if rescale[msg['node']]['ReplicaSets'].__contains__(msg['name']):
-            rescale[msg['node']]['ReplicaSets'][msg['name']] += 1
-        else:
-            rescale[msg['node']]['ReplicaSets'][msg['name']] = 1
-
-
 @app.route('/heartbeat', methods=['POST'])
 def receive_heartbeat():
     # 收到node发送的心跳包
     json_data = request.json
     heartbeat: dict = json.loads(json_data)
-    node_name = heartbeat['node']
-    # 更新内存检查资源和时间
-    nodes[node_name]['cpu'] = heartbeat['cpu']
-    nodes[node_name]['mem'] = heartbeat['mem']
-    nodes[node_name]['heartbeat_time'] = datetime.datetime.now().second
-    # 检查数量，发现数量少于应有数量，向node发送重新启动相应数量的请求
-    node_pods = heartbeat['pods']
-    node_ReplicaSets = heartbeat['ReplicaSets']
-    # 从内存里拿config
-    for pod in node_pods:
-        if node_pods[pod] < nodes[node_name]['pods'][pod]['spec']['replicas']:
-            num_for_recreate = nodes[node_name]['pods'][pod]['spec']['replicas'] - node_pods[pod]
-            config = copy.deepcopy(nodes[node_name]['pods'][pod])
-            config['spec']['replicas'] = num_for_recreate
-            config['node'] = node_name
-            broadcast_message('pods', config.__str__())
-    for ReplicaSet in node_ReplicaSets:
-        if node_ReplicaSets[ReplicaSet] < nodes[node_name]['ReplicaSets'][ReplicaSet]['spec']['replicas']:
-            num_for_recreate = nodes[node_name]['ReplicaSets'][ReplicaSet]['spec']['replicas'] - node_ReplicaSets[
-                ReplicaSet]
-            config = copy.deepcopy(nodes[node_name]['ReplicaSets'][ReplicaSet])
-            config['spec']['replicas'] = num_for_recreate
-            config['node'] = node_name
-            broadcast_message('pods', config.__str__())
-            del config
+    heartbeat['last_receive_time'] = time.time()
+    node_instance_name = heartbeat['instance_name']
+    for pod_instance_name in heartbeat['pod_instances']:
+        pod_heartbeat = heartbeat[pod_instance_name]
+        etcd_supplant[pod_instance_name]['status'] = pod_heartbeat['status']
+        etcd_supplant[pod_instance_name]['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
+        etcd_supplant[pod_instance_name]['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
+        heartbeat.pop(pod_instance_name)
+    etcd_supplant[node_instance_name] = heartbeat
     return json.dumps(heartbeat), 200
 
 
 if __name__ == '__main__':
-    if etcd.get('nodes')[0] is not None:
-        nodes = ast.literal_eval(str(etcd.get('nodes')[0], 'UTF-8'))
-        pods = ast.literal_eval(str(etcd.get('pods')[0], 'UTF-8'))
-        ReplicaSets = ast.literal_eval(str(etcd.get('ReplicaSets')[0], 'UTF-8'))
+    # if etcd.get('nodes')[0] is not None:
+    #     nodes = ast.literal_eval(str(etcd.get('nodes')[0], 'UTF-8'))
+    #     pods = ast.literal_eval(str(etcd.get('pods')[0], 'UTF-8'))
+    #     ReplicaSets = ast.literal_eval(str(etcd.get('ReplicaSets')[0], 'UTF-8'))
     app.run(port=5050, processes=True)

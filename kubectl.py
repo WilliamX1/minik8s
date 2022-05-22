@@ -23,7 +23,7 @@ def upload():
     except Exception as e:
         print(e.__str__())
         return
-    url = "http://127.0.0.1:5050/pods"
+    url = "http://127.0.0.1:5050/{}".format(config['kind'])
     try:
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
@@ -34,6 +34,13 @@ def upload():
         text1.insert(ttk.END, '\n')
         text1.update()
 
+def register_nodes():
+    yaml_path = entry1.get()
+    config: dict = {'instance_name': 'node1', 'kind': 'Node', 'cpu': 12, 'mem': 1234}
+    url = "http://127.0.0.1:5050/Node"
+    json_data = json.dumps(config)
+    r = requests.post(url=url, json=json_data)
+    print('result = ', r.content.decode())
 
 if __name__ == '__main__':
     root = ttk.Window(themename="journal")
@@ -43,6 +50,8 @@ if __name__ == '__main__':
     btn1.grid(row=0, column=0, ipadx='3', ipady='3', padx='10', pady='20')
     btn2 = ttk.Button(frm, text='upload', command=upload)
     btn2.grid(row=10, column=0, ipadx='3', ipady='3', padx='10', pady='20')
+    btn3 = ttk.Button(frm, text='register nodes', command=register_nodes)
+    btn3.grid(row=20, column=0, ipadx='3', ipady='3', padx='10', pady='20')
     entry1 = ttk.Entry(frm, width='40')
     entry1.grid(row=0, column=1)
     text1 = ttk.Text(frm, width='55', height='15')
