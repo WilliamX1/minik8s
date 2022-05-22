@@ -1,5 +1,5 @@
 kind: ReplicaSet
-name: example-pod
+name: example-replica-set
 volumn: '/home/liuyixiang/docker_volumn'
 metadata:
   namespace: pod-network

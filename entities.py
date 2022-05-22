@@ -15,9 +15,6 @@ except ImportError:
     # Fall back to <= 0.3.1 location
     from docker.client import APIError
 
-per_cpu_size = 2.2 * 1024 * 1024 * 1024
-
-
 class Container:
     def __init__(self, name, suffix, image, command, memory, cpu, port):
         self._name = name
@@ -79,8 +76,9 @@ def parse_bytes(s):
 
 
 class Pod:
-    def __init__(self, config, restart):
-        self._suffix = config.get('suffix')
+    def __init__(self, config):
+        self.config = config
+        self.instance_name = config.get('instance_name')
         self._name = config.get('name')
         self._status = Status.RUNNING
         self._volumn = config.get('volumn')
@@ -94,62 +92,43 @@ class Pod:
 
         self._client = docker.from_env(version='1.25', timeout=5)
 
-        if restart:
-            containercfgs = config.get('containers')
-            for containercfg in containercfgs:
-                container = Container(containercfg['name'], self._suffix, containercfg['image'],
-                                      containercfg['command'],
-                                      containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                      containercfg['port'])
-                self._containers.append(container)
-            if config.get('status') == 'Status.RUNNING':
-                self._status = Status.RUNNING
-            elif config.get('status') == 'Status.STOPPED':
-                self._status = Status.STOPPED
-            elif config.get('status') == 'Status.KILLED':
-                self._status = Status.KILLED
-            # print('\t==>INFO: pod {} reconnect'.format(self._name + self._suffix))
-        else:
-            '''
-                    Create a 'pause' container each pod which use a veth,
-                    Other containers attach to this container network, so
-                    they can communicate with each other using `localhost`
-                    '''
-            pause_container = self._client.containers.run(image='kubernetes/pause', name=self._name + self._suffix,
-                                                          detach=True, auto_remove=True,
-                                                          network_mode="bridge")
+        '''
+                Create a 'pause' container each pod which use a veth,
+                Other containers attach to this container network, so
+                they can communicate with each other using `localhost`
+        '''
+        pause_container = self._client.containers.run(image='kubernetes/pause', name=self.instance_name,
+                                                      detach=True, auto_remove=True,
+                                                      network_mode="bridge")
 
-            ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
-            self._ipv4addr = os.popen(ip_cmd).read()
-            print('\t==>INFO: Pod %s IP Address: %s ...' % (self._name, self._ipv4addr))
+        ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
+        self._ipv4addr = os.popen(ip_cmd).read()
+        print('\t==>INFO: Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
 
-            containercfgs = config.get('containers')
+        containercfgs = config.get('containers')
 
-            # 创建容器配置参数
-            volumes = set()
-            volumes.add(self._volumn)
-            for containercfg in containercfgs:
-                container = Container(containercfg['name'], self._suffix, containercfg['image'],
-                                      containercfg['command'],
-                                      containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                      containercfg['port'])
-                self._cpu[containercfg['name']] = containercfg['resource']['cpu']
-                self._containers.append(container)
-                print(pause_container.name)
-                self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
-                                            volumes=list(volumes),
-                                            cpuset_cpus=container.cpu(),
-                                            mem_limit=parse_bytes(container.memory()),
-                                            detach=True,
-                                            # auto_remove=True,
-                                            command=container.command(),
-                                            network_mode='container:' + pause_container.name)
+        # 创建容器配置参数
+        volumes = set()
+        volumes.add(self._volumn)
+        for containercfg in containercfgs:
+            container = Container(containercfg['name'], self.instance_name, containercfg['image'],
+                                  containercfg['command'],
+                                  containercfg['resource']['memory'], containercfg['resource']['cpu'],
+                                  containercfg['port'])
+            self._cpu[containercfg['name']] = containercfg['resource']['cpu']
+            self._containers.append(container)
+            print(pause_container.name)
+            self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
+                                        volumes=list(volumes),
+                                        # cpuset_cpus=container.cpu(),
+                                        mem_limit=parse_bytes(container.memory()),
+                                        detach=True,
+                                        # auto_remove=True,
+                                        command=container.command(),
+                                        network_mode='container:' + pause_container.name)
 
     def name(self):
         return self._name
-
-    def suffix(self):
-        return self._suffix
 
     def status(self):
         return self._status
@@ -201,54 +180,49 @@ class Pod:
             name = container.name() + container.suffix()
             status = self._client.api.inspect_container(name)
             self._client.api.remove_container(status.get('ID', status.get('Id', None)))
-        name = self._name + self._suffix
+        name = self.instance_name
         status = self._client.api.inspect_container(name)
         self._client.api.stop(status.get('ID', status.get('Id', None)))
         self._client.api.remove_container(status.get('ID', status.get('Id', None)))
 
-    def resource_status(self):
-        s = {'total_mem': self._mem, 'mem': 0, 'cpu': 0,
-             'pre_cpu': {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}}
-
+    def get_status(self):
+        pod_status = {'memory_usage_percent': 0, 'cpu_usage_percent': 0, 'status': 'Running'}
+        successfully_exit_number = 0
+        error_exit_number = 0
+        missing_container = 0
         for container in self._containers:
             name = container.name() + container.suffix()
-            status = self._client.api.inspect_container(name)
-            s['mem'] += \
-            self._client.containers.get(status.get('ID', status.get('Id', None))).stats(stream=False)['memory_stats'][
-                'usage']
-            percpu_usage = \
-            self._client.containers.get(status.get('ID', status.get('Id', None))).stats(stream=False)['cpu_stats'][
-                'cpu_usage']['percpu_usage']
-            for i in range(0, 12):
-                s['pre_cpu'][str(i)] += percpu_usage[i] / per_cpu_size
-                s['cpu'] += percpu_usage[i]
-        s['mem'] = s['mem'] / parse_bytes(s['total_mem'])
-        s['cpu'] = s['cpu'] / (per_cpu_size * self._cpu_num)
-        return s
-
-    def cpu(self):
-        cpu_list = []
-        for container in self._containers:
-            l = container.cpu().split(',')
-            for cpu in l:
-                cpu_list.append(cpu)
-        return cpu_list
-
-
-
-
-    def scale(self, the_scale_config):
-        index = 0
-        for new_container_scale in the_scale_config['containers']:
-            while self._containers[index].name() != new_container_scale['name']:
-                index += 1
-            new_cpu = new_container_scale['resource'].get('cpu', 0)
-            if new_cpu != 0:
-                self._containers[index].set_cpu(new_container_scale['resource']['cpu'])
-            new_memory = new_container_scale['resource'].get('memory', '0g')
-            if new_memory != '0g':
-                self._containers[index].set_memory(new_container_scale['resource']['memory'])
-            # 修改实际容器
+            tmp = os.popen('docker stats --no-stream | grep {}'.format(name)).readlines()
+            if not tmp or len(tmp) < 1:
+                print("container not found")
+                missing_container += 1
+                break
+            parameter = tmp[0].split()
+            # container ID | container Name | CPU USAGE | MEM USAGE | / | MEM LIMIT | MEM PERCENT | NET IO | BLOCK IO | PIDS
+            pod_status['cpu_usage_percent'] += float(parameter[2][:-1])
+            pod_status['memory_usage_percent'] += float(parameter[6][:-1])
+            a = self._client.api.inspect_container(name)
+            filter_dict = dict()
+            filter_dict['id'] = a.get('ID', a.get('Id', None))
+            container_stats = self._client.api.containers(filters=filter_dict)[0]
+            state = container_stats['State']
+            status = container_stats['Status'].split()
+            if status[0] == 'Up':
+                pass
+            elif status[0] == 'Exited':
+                exit_code = int(status[1][1:-1])
+                if exit_code == 0:
+                    successfully_exit_number += 1
+                else:
+                    error_exit_number += 1
+        # k8s Pod状态详解 https://blog.csdn.net/weixin_42516922/article/details/123007149
+        if missing_container != 0:
+            pod_status['status'] = 'Failed'
+        elif successfully_exit_number == len(self._containers):
+            pod_status['status'] = 'Succeeded'
+        elif (successfully_exit_number + error_exit_number) == len(self._containers) and error_exit_number > 0:
+            pod_status['status'] = 'Failed'
+        return pod_status
 
 
 class Service:
@@ -256,6 +230,3 @@ class Service:
         self._name = config.get("name")
         self._selector = config.get("selector")
         self._ports = config.get("ports")  # include port and targetPort
-
-
-

@@ -14,233 +14,105 @@ import json
 import six
 import copy
 import memcache
+import uuid
+import psutil
 
+node_instance_name = uuid.uuid1().__str__()
 
-node_name = 'node1'
-per_cpu_size = 2.2 * 1024 * 1024 * 1024
-cpu_sum = 12
-total_memory = 5 * 1024 * 1024 * 1024
-configs = {'pods': {}, 'ReplicaSets': {}}
-#         'pods':{podname:config},              //  config的'suffix'是所有后缀的数组
-#         'ReplicaSets':{ReplicaSetname:config} //  config的'suffix'是所有后缀的数组
-pods = {}
-#       podname:{suffix:pod}
-ReplicaSets = {}
-#       ReplicaSetname:{suffix:ReplicaSet}
-cpu = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '11': 0}  # 0代表未被占用
-mem = 0
-# status方便发送心跳包
-status = {'pods': {}, 'ReplicaSets': {}, 'cpu': cpu_sum, 'mem': total_memory}
-#         'pods':{podname:replicas},
-#         'ReplicaSets':{ReplicaSetname:replicas},
-#         'cpu',             //这里的mem和cpu都是定义可用数
-#         'mem'
-
-# 与发送心跳脚本共享node信息
-share = memcache.Client(["127.0.0.1:11211"], debug=True)
-share.set('status', str(status))
-
-
-# 指派cpu并更新cpu
-def set_cpu(re_config):
-    containers = re_config['containers']
-    for container in containers:
-        cpugroup = ''
-        cpu_num = container['resource']['cpu']
-        while cpu_num > 0:
-            for cpuid in cpu:
-                if cpu[cpuid] == 0:
-                    cpugroup += ',' + cpuid
-                    cpu[cpuid] = 1
-                    cpu_num -= 1
-                    if cpu_num == 0:
-                        break
-        cpugroup = re.sub(r'.', '', cpugroup, count=1)
-        container['resource']['cpu'] = cpugroup
-
-
-# 创建后缀
-def create_suffix():
-    res = ''.join(random.choices(string.ascii_letters +
-                                 string.digits, k=10))
-    res = '-' + res
-    return res
-
-
-def config_set(config1, config2):
-    # 用config2修正config1
-    config1['cpu'] = config2['cpu']
-    config1['mem'] = config2['mem']
-    for container in config2['containers']:
-        for con in config1['containers']:
-            if con['name'] == container['name']:
-                if container['resource'].__contains__('cpu'):
-                    con['resource']['cpu'] = container['resource']['cpu']
-                if container['resource'].__contains__('mem'):
-                    con['resource']['mem'] = container['resource']['mem']
-                break
+pods = list()
 
 
 # 回调函数
-def callback(ch, method, properties, body):
-    global mem
+def hand_pods(ch, method, properties, body):
     config: dict = ast.literal_eval(body.decode())
     # config中不含node或者node不是自己都丢弃
-    if not config.__contains__('node'):
+    if not config.__contains__('node') or config['node'] != node_instance_name:
         return
-    if config['node'] != node_name:
-        return
-    # 是自己的调度，进行操作
-    if config['kind'] == 'pod':
-        if configs['pods'].__contains__(config['name']):
-            config['suffix'] = configs['pods'][config['name']]['suffix']
-            status['pods'][config['name']] += config['spec']['replicas']
-        else:
-            config['suffix'] = []
-            status['pods'][config['name']] = config['spec']['replicas']
-        status['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
-        status['cpu'] -= config['cpu'] * config['spec']['replicas']
-        mem += entities.parse_bytes(config['mem']) * config['spec']['replicas']
-        for i in range(0, config['spec']['replicas']):
-            suffix = create_suffix()
-            config['suffix'].append(suffix)
-            re_config = copy.deepcopy(config)
-            re_config['suffix'] = suffix
-            set_cpu(re_config)
-            if not pods.__contains__(re_config['name']):
-                pods[re_config['name']] = {}
-            print('{} create pod {}{}'.format(node_name, re_config['name'], re_config['suffix']))
-            pods[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-        configs['pods'][config['name']] = config
-    if config['kind'] == 'service':
-        raise NotImplementedError
-    if config['kind'] == 'ReplicaSet':
-        if configs['ReplicaSets'].__contains__(config['name']):
-            config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
-            status['ReplicaSets'][config['name']] += config['spec']['replicas']
-        else:
-            config['suffix'] = []
-            status['ReplicaSets'][config['name']] = config['spec']['replicas']
-        status['mem'] -= entities.parse_bytes(config['mem']) * config['spec']['replicas']
-        status['cpu'] -= config['cpu'] * config['spec']['replicas']
-        mem += entities.parse_bytes(config['mem']) * config['spec']['replicas']
-        for i in range(0, config['spec']['replicas']):
-            suffix = create_suffix()
-            config['suffix'].append(suffix)
-            re_config = copy.deepcopy(config)
-            re_config['suffix'] = suffix
-            set_cpu(re_config)
-            if not ReplicaSets.__contains__(re_config['name']):
-                ReplicaSets[re_config['name']] = {}
-            print('{} create ReplicaSet {}{}'.format(node_name, re_config['name'], re_config['suffix']))
-            ReplicaSets[re_config['name']][re_config['suffix']] = entities.Pod(re_config, False)
-        configs['ReplicaSets'][config['name']] = config
-    if config['kind'] == 'delete':
-        if config['target_kind'] == 'pod':
-            status['cpu'] += configs['pods'][config['target_name']]['cpu'] * config['num']
-            status['mem'] += entities.parse_bytes(configs['pods'][config['target_name']]['mem']) * config['num']
-            status['pods'][config['target_name']] -= config['num']
-            mem -= entities.parse_bytes(configs['pods'][config['target_name']]['mem']) * config['num']
-            for i in range(0, config['num']):
-                cpu_list = pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]].cpu()
-                for c in cpu_list:
-                    cpu[c] = 0
-                pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]].remove()
-                print('{} delete pod {}{}'.format(node_name, config['target_name'], configs['pods'][config['target_name']]['suffix'][0]))
-                del pods[config['target_name']][configs['pods'][config['target_name']]['suffix'][0]]
-                del configs['pods'][config['target_name']]['suffix'][0]
-            if len(configs['pods'][config['target_name']]['suffix']) == 0:
-                del pods[config['target_name']]
-                del configs['pods'][config['target_name']]
-                del status['pods'][config['target_name']]
-        if config['target_kind'] == 'ReplicaSet':
-            status['cpu'] += configs['ReplicaSets'][config['target_name']]['cpu'] * config['num']
-            status['mem'] += entities.parse_bytes(configs['ReplicaSets'][config['target_name']]['mem']) * config['num']
-            status['ReplicaSets'][config['target_name']] -= config['num']
-            mem -= entities.parse_bytes(configs['ReplicaSets'][config['target_name']]['mem']) * config['num']
-            for i in range(0, config['num']):
-                print(ReplicaSets)
-                cpu_list = ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]].cpu()
-                for c in cpu_list:
-                    cpu[c] = 0
-                ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]].remove()
-                print('{} delete ReplicaSet {}{}'.format(node_name, config['target_name'], configs['ReplicaSets'][config['target_name']]['suffix'][0]))
-                del ReplicaSets[config['target_name']][configs['ReplicaSets'][config['target_name']]['suffix'][0]]
-                del configs['ReplicaSets'][config['target_name']]['suffix'][0]
-            if len(configs['ReplicaSets'][config['target_name']]['suffix']) == 0:
-                del ReplicaSets[config['target_name']]
-                del configs['ReplicaSets'][config['target_name']]
-                del status['ReplicaSets'][config['target_name']]
-    if config['kind'] == 'HorizontalPodAutoscaler':
-        config = config['config']
-        num = config['num']
-        resource_status = {}
-        if config['kind'] == 'pod':
-            for pod in pods[config['name']]:
-                resource_status = pods[config['name']][pod].resource_status()
-                break
-        if config['kind'] == 'ReplicaSet':
-            for ReplicaSet in ReplicaSets[config['name']]:
-                resource_status = ReplicaSets[config['name']][ReplicaSet].resource_status()
-                break
-        auto_num = 0
-        while auto_num <= num:
-            if (auto_num+1)*resource_status['mem']<1 and (auto_num+1)*resource_status['cpu']<1:
-                auto_num += 1
-            else:
-                break
-        if config['kind'] == 'pod':
-            config['suffix'] = configs['pods'][config['name']]['suffix']
-            for i in range(0, auto_num):
-                suffix = create_suffix()
-                config['suffix'].append(suffix)
-                re_config = copy.deepcopy(config)
-                re_config['suffix'] = suffix
-                print('rescale pod {}{}'.format(re_config['name'], suffix))
-                pods[config['name']][suffix] = entities.Pod(re_config, False)
-                # 向api_server发送扩容消息
-                msg = {'node': node_name, 'kind': 'pod', 'name': re_config['name']}
-                url = "http://127.0.0.1:5050/rescale"
-                json_data = json.dumps(msg)
-                r = requests.post(url=url, json=json_data)
-                time.sleep(2)
-            configs['pods'][config['name']] = config
-        if config['kind'] == 'ReplicaSet':
-            config['suffix'] = configs['ReplicaSets'][config['name']]['suffix']
-            for i in range(0, auto_num):
-                suffix = create_suffix()
-                config['suffix'].append(suffix)
-                re_config = copy.deepcopy(config)
-                re_config['suffix'] = suffix
-                print('rescale ReplicaSet {}{}'.format(re_config['name'], suffix))
-                ReplicaSets[config['name']][suffix] = entities.Pod(re_config, False)
-                # 向api_server发送扩容消息
-                msg = {'node': node_name, 'kind': 'ReplicaSet', 'name': re_config['name']}
-                url = "http://127.0.0.1:5050/rescale"
-                json_data = json.dumps(msg)
-                r = requests.post(url=url, json=json_data)
-                time.sleep(2)
-            configs['ReplicaSets'][config['name']] = config
+    if config['status'] == 'Ready to Create':
+        print("接收到调度请求 Pod")
+        # 是自己的调度，进行操作
+        pods.append(entities.Pod(config))
+        print('{} create pod {}'.format(node_instance_name, config['instance_name']))
+        # share.set('status', str(status))
 
 
-    share.set('status', str(status))
+def send_heart_beat():
+    data = psutil.virtual_memory()
+    total = data.total  # 总内存,单位为byte
+    free = data.available  # 可用内存
+    memory_use_percent = (int(round(data.percent)))
+    cpu_use_percent = psutil.cpu_percent(interval=None)
+    config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total, 'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
+                    'free_memory': free, 'status': 'RUNNING', 'pod_instances': list()}
+    for pod in pods:
+        pod_status_heartbeat = dict()
+        pod_status = pod.get_status()
+        pod_status_heartbeat['instance_name'] = pod.instance_name
+        pod_status_heartbeat['status'] = pod_status['status']
+        pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
+        pod_status_heartbeat['memory_usage_percent'] = pod_status['memory_usage_percent']
+        config['pod_instances'].append(pod.instance_name)
+        config[pod.instance_name] = pod_status_heartbeat
+
+    url = "http://127.0.0.1:5050/heartbeat"
+    json_data = json.dumps(config)
+    r = requests.post(url=url, json=json_data)
+    if r.status_code == 200:
+        print("发送心跳包成功")
+        pass
+    else:
+        print("发送心跳包失败")
+        exit()
 
 
 def main():
+    os.system('docker stop $(docker ps -a -q)')
+    os.system('docker rm $(docker ps -a -q)')
+
+    data = psutil.virtual_memory()
+    total = data.total  # 总内存,单位为byte
+    free = data.available  # 可用内存
+    memory_use_percent = (int(round(data.percent)))
+    cpu_use_percent = psutil.cpu_percent(interval=1)
+    # print(data, total, free, memory, cpu_use_percent)
+    config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total, 'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
+                    'free_memory': free}
+    url = "http://127.0.0.1:5050/Node"
+    json_data = json.dumps(config)
+    r = requests.post(url=url, json=json_data)
+    if r.status_code == 200:
+        print("kubelet节点注册成功")
+    else:
+        print("kubelet节点注册失败")
+        exit()
+
     # 创建socket链接,声明管道
     connect = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
     channel = connect.channel()
     # 声明exchange名字和类型
-    channel.exchange_declare(exchange="pods", exchange_type="fanout")
+    channel.exchange_declare(exchange="Pod", exchange_type="fanout")
     # rabbit会随机分配一个名字, exclusive=True会在使用此queue的消费者断开后,自动将queue删除，result是queue的对象实例
-    result = channel.queue_declare(queue="", exclusive=True)  # 参数 exclusive=True 独家唯一的
+    result = channel.queue_declare(queue="")  # 参数 exclusive=True 独家唯一的
     queue_name = result.method.queue
     # 绑定pods频道
-    channel.queue_bind(exchange="pods", queue=queue_name)
+    channel.queue_bind(exchange="Pod", queue=queue_name)
     # 消费信息
-    channel.basic_consume(on_message_callback=callback, queue=queue_name, auto_ack=True)
+    channel.basic_consume(on_message_callback=hand_pods, queue=queue_name, auto_ack=True)
+    # channel.basic_consume(on_message_callback=callback, queue=queue_name, auto_ack=True)
     # 开始消费
-    channel.start_consuming()
+    # channel.start_consuming()
+    # Check if called from the scope of an event dispatch callback
+    with channel.connection._acquire_event_dispatch() as dispatch_allowed:
+        if not dispatch_allowed:
+            raise Exception(
+                'start_consuming may not be called from the scope of '
+                'another BlockingConnection or BlockingChannel callback')
+    channel._impl._raise_if_not_open()
+    # Process events as long as consumers exist on this channel
+    while channel._consumer_infos:
+        send_heart_beat()
+        # This will raise ChannelClosed if channel is closed by broker
+        channel._process_data_events(time_limit=5)
 
 
 if __name__ == '__main__':
