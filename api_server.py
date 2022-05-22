@@ -17,9 +17,9 @@ app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 etcd = etcd3.client()
 nodes = {'node1': {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory,
-                   'heartbeat_time': datetime.datetime.now().second},
-         'node2': {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory,
                    'heartbeat_time': datetime.datetime.now().second}}
+         #'node2': {'pods': {}, 'ReplicaSets': {}, 'cpu': 12, 'mem': total_memory,
+         #          'heartbeat_time': datetime.datetime.now().second}}
 #         nodename:{
 #         'pods':{podname:config},              //config中的['spec']['replicas']是该node中应该跑的数量，在心跳包发来时如果发现实际数量少于应该的数量，则向node发送重新启动相应数量的请求
 #         'ReplicaSets':{ReplicaSetname:config},//config中的['spec']['replicas']是该node中应该跑的数量，在心跳包发来时如果发现实际数量少于应该的数量，则向node发送重新启动相应数量的请求

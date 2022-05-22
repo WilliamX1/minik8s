@@ -2,7 +2,7 @@
 kind: pod
 name: xhd-pod-1
 volumn: '/home/liuyixiang/docker_volumn'
-cpu: 2
+cpu: 1
 mem: 1500m
 metadata:
   labels:
