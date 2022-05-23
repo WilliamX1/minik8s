@@ -6,37 +6,7 @@ import logging
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-def util_create_chain_by_name(table, name):
-    """
-    create user-defined chain in specified table, if the chain already exists just return
-    :param table: target table to create user-defined train
-    :param name: the name of user-defined train
-    :return: the first is a flag indicating if the chain already exists, False means it exists before your creation
-            the second is the chain itself
-    """
-    for chain in table.chains:
-        if str(chain.name) == str(name):
-            return False, chain
-    chain = table.create_chain(name)
-    logging.info("Create [%s] Chain in NAT Table..."
-                 % name)
-    return True, chain
-
-
-def util_insert_rule_by_name(chain, target_rule):
-    """
-    insert user-defined rule into some chain
-    :param chain: target chain to insert your rule
-    :param target_rule: user-defined rule
-    :return: a flag indicating whether the rule already exists, False means it exists before your insertion
-    """
-    for rule in chain.rules:
-        if str(rule.target.name) == str(target_rule.target.name):
-            return False
-    chain.insert_rule(target_rule)
-    logging.info("Insert [%s] Rule in [%s] Chain..."
-                 % (target_rule.target.name, chain.name))
-    return True
+backup = list()
 
 
 def init_iptables():
@@ -194,9 +164,112 @@ def init_iptables():
                       ))
 
 
-def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, pod_ip_list, strategy='random', ip_prefix_len=32):
+def create_service(config):
     """
-    used for set service clusterIP
+    used for create a new service using original config file
+    :param config: user-defined config file like:
+
+        kind: Service
+        metadata:
+            name: my-service
+        spec:
+            type: ClusterIP
+            selector:
+                app: xhd
+            ports:
+            - name: name-of-service-port
+              protocol: TCP
+              port: 801
+              targetPort: 80
+
+    :return: None
+    """
+
+    name = config['metadata']['name']
+    type = config['spec']['type']
+    selector = config['spec']['selector']
+    ports = config['spec']['ports']
+    clusterIP = config['spec']['clusterIP']
+    state = 'Created'
+
+    # find if the service already exists
+    for x in backup:
+        if name == x['name']:
+            logging.warning('Service %s already exists' % name)
+            return
+
+    # TODO: allocate a cluster ip to the service if not defined
+    if clusterIP is None:
+        clusterIP = alloc_service_clusterIP()
+    else:
+        # TODO: check out the cluster ip defined in yml is legal
+        pass
+
+    config_map = {'name': name, 'type': type, 'selector': selector, 'ports': ports,
+                  'state': state, 'pods': list()}
+    backup.append(config_map)
+
+    update_service(config_map)
+
+
+def update_service(config_map):
+    """
+    evaluate service's pods and flush iptables
+    :param config_map: config stored in etcd
+    :return:
+    """
+    # TODO: find pod config in etcd and match service selector with pod labels
+
+    # TODO: delete original pod iptables chain and rules
+
+    # TODO: set current pod iptables chain and rules
+    pass
+
+
+def stop_service(name):
+    # TODO: delete original pod iptables chain and rules
+
+    # TODO: set service state to `Stopped`
+    pass
+
+
+def restart_service(name):
+    # TODO: update_service
+
+    # TODO: set service state to 'Running`
+    pass
+
+
+def get_service(name):
+    """
+    get service running state by service name
+    :param name: target service name
+    :return: a list of service running state
+    """
+    pass
+
+
+def rm_service(name):
+    """
+    stop service and remove service from etcd forever
+    :param name:
+    :return:
+    """
+    pass
+
+
+def alloc_service_clusterIP():
+    """
+    use etcd to record all used ip and try to allocate an ip begin with
+        `20.xx.xx.xx`, which is easy for the security group settings
+    :return:
+    """
+    return '10.2.3.4'
+
+
+def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol, pod_ip_list, strategy='random', ip_prefix_len=32):
+    """
+    used for set service clusterIP, only for the first create
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
     :param cluster_ip: service clusterIP, which should be like xx.xx.xx.xx,
                         don't forget to set security group for that ip address
@@ -204,6 +277,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, pod_ip_l
     :param port: exposed service port, which can be visited by other pods by cluster_ip:port
     :param target_port: container runs on target_port actually, must be matched with `pod port`
                         if not matched, we can reject this request or just let it go depending on me
+    :param protocol: http
     :param pod_ip_list: a list of pod ip address, which belongs to the service target pod
     :param strategy: service load balance strategy, which should be random/roundrobin
     :param ip_prefix_len: must be 32 here, so use default value please
@@ -222,7 +296,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, pod_ip_l
                       utils.make_rulespec(
                           jump=kubesvc,
                           destination='/'.join([cluster_ip, str(ip_prefix_len)]),
-                          protocol='tcp',
+                          protocol=protocol,
                           comment=service_name + ': cluster IP',
                           dport=port
                       ),
@@ -281,17 +355,17 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, pod_ip_l
         utils.append_rule('nat', kubesep,
                           utils.make_rulespec(
                               jump='DNAT',
-                              protocol='tcp',
+                              protocol=protocol,
                           ),
                           utils.make_target_extensions(
-                              match='tcp',
+                              match=protocol,
                               to_destination=':'.join([pod_ip_list[i], str(target_port)])
                           ))
     logging.info("Service [%s] Cluster IP: [%s] Port: [%s] Strategy: [%s]"
                  % (service_name, cluster_ip, port, strategy))
 
 
-default_iptables_path = "./iptables-script"
+default_iptables_path = "./sources/iptables-script"
 
 
 def save_iptables(path=default_iptables_path):

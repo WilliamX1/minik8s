@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import re
@@ -9,11 +10,14 @@ import iptc
 import six
 import kubeproxy
 
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
 try:
     from docker.errors import APIError
 except ImportError:
     # Fall back to <= 0.3.1 location
     from docker.client import APIError
+
 
 class Container:
     def __init__(self, name, suffix, image, command, memory, cpu, port):
@@ -103,7 +107,7 @@ class Pod:
 
         ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
         self._ipv4addr = os.popen(ip_cmd).read()
-        print('\t==>INFO: Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
+        logging.info('Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
 
         containercfgs = config.get('containers')
 
@@ -117,15 +121,19 @@ class Pod:
                                   containercfg['port'])
             self._cpu[containercfg['name']] = containercfg['resource']['cpu']
             self._containers.append(container)
-            print(pause_container.name)
-            self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
-                                        volumes=list(volumes),
-                                        # cpuset_cpus=container.cpu(),
-                                        mem_limit=parse_bytes(container.memory()),
-                                        detach=True,
-                                        # auto_remove=True,
-                                        command=container.command(),
-                                        network_mode='container:' + pause_container.name)
+            container = self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
+                                                    volumes=list(volumes),
+                                                    # cpuset_cpus=container.cpu(),
+                                                    mem_limit=parse_bytes(container.memory()),
+                                                    detach=True,
+                                                    # auto_remove=True,
+                                                    command=container.command(),
+                                                    network_mode='container:' + pause_container.name)
+            logging.info("\tcontainer %s run successfully" % container.name)
+        logging.info('Pod %s run successfully: %s ...' % self.instance_name)
+
+    def ipv4addr(self):
+        return self._ipv4addr
 
     def name(self):
         return self._name

@@ -36,6 +36,7 @@ def exec_command(command):
         logging.info("output: %s" % str(output))
     if err is not None:
         logging.info("err: %s" % str(err))
+    return output, err
 
 
 def dump_iptables():
@@ -50,10 +51,22 @@ def append_rule(table, chain, rulespec, target_extension):
     exec_command(command)
 
 
-def delete_rule(table, chain, rulespec, target_extension):
-    """ sudo iptables -t <table> -D <chain> <rule-specification>"""
-    command = ["sudo", "iptables", "-t", table, "-D", chain] + rulespec + target_extension
+def delete_rule_by_rulenum(table, chain, rulenum):
+    """ sudo iptables -t <table> -D <chain> <rulenum>"""
+    command = ["sudo", "iptables", "-t", table, "-D", chain, str(rulenum)]
     exec_command(command)
+
+
+def delete_rule_by_spec(table, chain, rulespec):
+    """ sudo iptables -t <table> -D <chain> <rule-specification>"""
+    command = ["sudo", "iptables", "-t", table, "-D", chain] + rulespec
+    exec_command(command)
+
+
+def list_rules(table, chain=""):
+    """ sudo iptables -t <table> -L <chain> """
+    command = ["sudo", "iptables", "-t", table, "-L", chain]
+    return exec_command(command)
 
 
 def insert_rule(table, chain, rulenum, rulespec, target_extension):
