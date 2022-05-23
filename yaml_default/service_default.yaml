@@ -1,4 +1,4 @@
-kind: service
+kind: Service
 name: service_name
 selector:
   - app: xhd
