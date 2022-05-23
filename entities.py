@@ -231,10 +231,3 @@ class Pod:
         elif (successfully_exit_number + error_exit_number) == len(self._containers) and error_exit_number > 0:
             pod_status['status'] = 'Failed'
         return pod_status
-
-
-class Service:
-    def __init__(self, config):
-        self._name = config.get("name")
-        self._selector = config.get("selector")
-        self._ports = config.get("ports")  # include port and targetPort
