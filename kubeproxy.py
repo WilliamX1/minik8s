@@ -1,6 +1,7 @@
 import subprocess
 import utils
 import logging
+import random
 
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
@@ -9,7 +10,36 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 backup = list()
 
 
-def init_iptables():
+def alloc_service_clusterIP(service_dict: dict):
+    """
+    use etcd to record all used ip and try to allocate an ip begin with
+        `10.xx.xx.xx`, which is easy for the security group settings
+    :return:
+    """
+    max_alloc_num = 1000  # if exceed this num, that might be not enough service ip
+    ip_allocated = set()
+    ip = ''
+    for service_name in service_dict['services_list']:
+        ip = service_dict[service_name].get('clusterIP')
+        if ip is not None and ip != '':
+            ip_allocated.add(ip)
+
+    while max_alloc_num > 0:
+        max_alloc_num -= 1
+        num0 = 10 # service ip should be like '10.xx.xx.xx'
+        num1 = random.randint(0, 255)
+        num2 = random.randint(0, 255)
+        num3 = random.randint(0, 255)
+        ip = '.'.join([str(num0), str(num1), str(num2), str(num3)])
+        if ip not in ip_allocated:
+            break
+    if max_alloc_num <= 0:
+        logging.error('No available service cluster ip address')
+        return ip, False
+    return ip, True
+
+
+def init_iptables(iptables: dict):
     """
     init iptables for minik8s, create some necessary chains and insert some necessary rules
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
@@ -22,62 +52,76 @@ def init_iptables():
     utils.policy_chain('nat', 'POSTROUTING', ['ACCEPT'])
 
     """ In table `nat`, create some new chains """
-    utils.create_chain('nat', 'KUBE-SERVICES')
-    utils.create_chain('nat', 'KUBE-NODEPORTS')
-    utils.create_chain('nat', 'KUBE-POSTROUTING')
-    utils.create_chain('nat', 'KUBE-MARK-MASQ')
-    utils.create_chain('nat', 'KUBE-MARK-DROP')
+    iptables['chains'].append(utils.create_chain('nat', 'KUBE-SERVICES'))
+    iptables['chains'].append(utils.create_chain('nat', 'KUBE-NODEPORTS'))
+    iptables['chains'].append(utils.create_chain('nat', 'KUBE-POSTROUTING'))
+    iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-MASQ'))
+    iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-DROP'))
 
     """ In table `nat`, add some rule into chains """
-    utils.insert_rule('nat', 'PREROUTING', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-SERVICES',
-                          comment='kubernetes service portals'
-                      ),
-                      utils.make_target_extensions())
-    utils.insert_rule('nat', 'OUTPUT', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-SERVICES',
-                          comment='kubernetes service portals'
-                      ),
-                      utils.make_target_extensions())
-    utils.insert_rule('nat', 'POSTROUTING', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-POSTROUTING',
-                          comment='kubernetes postrouting rules'
-                      ),
-                      utils.make_target_extensions())
-    utils.insert_rule('nat', 'KUBE-MARK-DROP', 1,
-                      utils.make_rulespec(
-                          jump='MARK'
-                      ),
-                      utils.make_target_extensions(
-                          ormark='0x8000'
-                      ))
-    utils.insert_rule('nat', 'KUBE-MARK-MASQ', 1,
-                      utils.make_rulespec(
-                          jump='MARK'
-                      ),
-                      utils.make_target_extensions(
-                          ormark='0x4000'
-                      ))
-    utils.insert_rule('nat', 'KUBE-POSTROUTING', 1,
-                      utils.make_rulespec(
-                          jump='MASQUERADE',
-                          comment='kubernetes service traffic requiring SNAT'
-                      ),
-                      utils.make_target_extensions(
-                          mark='0x4000/0x4000'
-                      ))
-    utils.insert_rule('nat', 'KUBE-SERVICES', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-NODEPORTS',
-                          comment='kubernetes service nodeports; NOTE: this must be the last rule in this chain'
-                      ),
-                      utils.make_target_extensions(
-                          addrtype='ADDRTYPE',
-                          dst_type="LOCAL"
-                      ))
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'PREROUTING', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-SERVICES',
+                              comment='kubernetes service portals'
+                          ),
+                          utils.make_target_extensions())
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'OUTPUT', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-SERVICES',
+                              comment='kubernetes service portals'
+                          ),
+                          utils.make_target_extensions())
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'POSTROUTING', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-POSTROUTING',
+                              comment='kubernetes postrouting rules'
+                          ),
+                          utils.make_target_extensions())
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-MARK-DROP', 1,
+                          utils.make_rulespec(
+                              jump='MARK'
+                          ),
+                          utils.make_target_extensions(
+                              ormark='0x8000'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-MARK-MASQ', 1,
+                          utils.make_rulespec(
+                              jump='MARK'
+                          ),
+                          utils.make_target_extensions(
+                              ormark='0x4000'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-POSTROUTING', 1,
+                          utils.make_rulespec(
+                              jump='MASQUERADE',
+                              comment='kubernetes service traffic requiring SNAT'
+                          ),
+                          utils.make_target_extensions(
+                              mark='0x4000/0x4000'
+                        ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-NODEPORTS',
+                              comment='kubernetes service nodeports; NOTE: this must be the last rule in this chain'
+                          ),
+                          utils.make_target_extensions(
+                              addrtype='ADDRTYPE',
+                              dst_type="LOCAL"
+                          ))
+    )
 
     """ In table `filter`, set policy for some chains """
     utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
@@ -85,131 +129,148 @@ def init_iptables():
     utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
 
     """ In table `filter`, create some chains """
-    utils.create_chain('filter', 'KUBE-EXTERNAL-SERVICES')
-    utils.create_chain('filter', 'KUBE-FIREWALL')
-    utils.create_chain('filter', 'KUBE-FORWARD')
-    utils.create_chain('filter', 'KUBE-SERVICES')
+    iptables['chains'].append(
+        utils.create_chain('filter', 'KUBE-EXTERNAL-SERVICES')
+    )
+    iptables['chains'].append(
+        utils.create_chain('filter', 'KUBE-FIREWALL')
+    )
+    iptables['chains'].append(
+        utils.create_chain('filter', 'KUBE-FORWARD')
+    )
+    iptables['chains'].append(
+        utils.create_chain('filter', 'KUBE-SERVICES')
+    )
 
     """ In table `filter`, add some rule into chains """
-    utils.insert_rule('filter', 'INPUT', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-SERVICES',
-                          comment='kubernetes service portals'
-                      ),
-                      utils.make_target_extensions(
-                          ctstate='NEW'
-                      ))
-    utils.insert_rule('filter', 'INPUT', 2,
-                      utils.make_rulespec(
-                          jump='KUBE-EXTERNAL-SERVICES',
-                          comment='kubernetes externally-visible servie portals'
-                      ),
-                      utils.make_target_extensions(
-                          ctstate='NEW'
-                      ))
-    utils.insert_rule('filter', 'INPUT', 3,
-                      utils.make_rulespec(
-                          jump='KUBE-FIREWALL'
-                      ),
-                      utils.make_target_extensions())
-    utils.insert_rule('filter', 'FORWARD', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-FORWARD',
-                          comment='kubernetes forwarding rules'
-                      ),
-                      utils.make_target_extensions())
-    utils.insert_rule('filter', 'FORWARD', 2,
-                      utils.make_rulespec(
-                          jump='KUBE-SERVICES',
-                          comment='kubernetes service portals'
-                      ),
-                      utils.make_target_extensions(
-                          ctstate='NEW'
-                      ))
-    utils.insert_rule('filter', 'OUTPUT', 1,
-                      utils.make_rulespec(
-                          jump='KUBE-SERVICES',
-                          comment='kubernetes service portals'
-                      ),
-                      utils.make_target_extensions(
-                          ctstate='NEW'
-                      ))
-    utils.insert_rule('filter', 'OUTPUT', 2,
-                      utils.make_rulespec(
-                          jump='KUBE-FIREWALL'
-                      ),
-                      utils.make_target_extensions())
-    utils.insert_rule('filter', 'KUBE-FIREWALL', 1,
-                      utils.make_rulespec(
-                          jump='DROP',
-                          comment='kubernetes firewall for dropping marked packets'
-                      ),
-                      utils.make_target_extensions(
-                          mark='0x8000/0x8000'
-                      ))
-    utils.insert_rule('filter', 'KUBE-FORWARD', 1,
-                      utils.make_rulespec(
-                          jump='DROP',
-                      ),
-                      utils.make_target_extensions(
-                          ctstate='INVALID'
-                      ))
-    utils.insert_rule('filter', 'KUBE-FORWARD', 2,
-                      utils.make_rulespec(
-                          jump='ACCEPT',
-                          comment='kubernetes forwarding rules'
-                      ),
-                      utils.make_target_extensions(
-                          mark='0x4000/0x4000'
-                      ))
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'INPUT', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-SERVICES',
+                              comment='kubernetes service portals'
+                          ),
+                          utils.make_target_extensions(
+                              ctstate='NEW'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'INPUT', 2,
+                          utils.make_rulespec(
+                              jump='KUBE-EXTERNAL-SERVICES',
+                              comment='kubernetes externally-visible servie portals'
+                          ),
+                          utils.make_target_extensions(
+                              ctstate='NEW'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'INPUT', 3,
+                          utils.make_rulespec(
+                              jump='KUBE-FIREWALL'
+                          ),
+                          utils.make_target_extensions())
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'FORWARD', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-FORWARD',
+                              comment='kubernetes forwarding rules'
+                          ),
+                          utils.make_target_extensions())
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'FORWARD', 2,
+                          utils.make_rulespec(
+                              jump='KUBE-SERVICES',
+                              comment='kubernetes service portals'
+                          ),
+                          utils.make_target_extensions(
+                              ctstate='NEW'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'OUTPUT', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-SERVICES',
+                              comment='kubernetes service portals'
+                          ),
+                          utils.make_target_extensions(
+                              ctstate='NEW'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'OUTPUT', 2,
+                          utils.make_rulespec(
+                              jump='KUBE-FIREWALL'
+                          ),
+                          utils.make_target_extensions())
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'KUBE-FIREWALL', 1,
+                          utils.make_rulespec(
+                              jump='DROP',
+                              comment='kubernetes firewall for dropping marked packets'
+                          ),
+                          utils.make_target_extensions(
+                              mark='0x8000/0x8000'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'KUBE-FORWARD', 1,
+                          utils.make_rulespec(
+                              jump='DROP',
+                          ),
+                          utils.make_target_extensions(
+                              ctstate='INVALID'
+                          ))
+    )
+    iptables['rules'].append(
+        utils.insert_rule('filter', 'KUBE-FORWARD', 2,
+                          utils.make_rulespec(
+                              jump='ACCEPT',
+                              comment='kubernetes forwarding rules'
+                          ),
+                          utils.make_target_extensions(
+                              mark='0x4000/0x4000'
+                          ))
+    )
 
 
-def create_service(config):
+def create_service(service_config: dict, pods_dict: dict):
     """
     used for create a new service using original config file
-    :param config: user-defined config file like:
-
-        kind: Service
-        metadata:
-            name: my-service
-        spec:
-            type: ClusterIP
-            selector:
-                app: xhd
-            ports:
-            - name: name-of-service-port
-              protocol: TCP
-              port: 801
-              targetPort: 80
-
+    :param service_config: dict {'kind': str, 'name': str, 'type': str,
+        'selector': dict, 'ports': list, 'instance_name': str,
+        'pod_instances': list, 'clusterIP': str}
+    :param pods_dict: dict {'chain': list, 'rule': list}
     :return: None
     """
 
-    name = config['metadata']['name']
-    type = config['spec']['type']
-    selector = config['spec']['selector']
-    ports = config['spec']['ports']
-    clusterIP = config['spec']['clusterIP']
-    state = 'Created'
+    iptables = dict()
+    iptables['chains'] = list()
+    iptables['rules'] = list()
+    init_iptables(iptables=iptables)
 
-    # find if the service already exists
-    for x in backup:
-        if name == x['name']:
-            logging.warning('Service %s already exists' % name)
-            return
+    cluster_ip = service_config['clusterIP']
+    service_name = service_config['name']
+    ports = service_config['ports']
+    pod_ip_list = list()
+    for pod_instance in service_config['pod_instances']:
+        pod_ip_list.append(pods_dict[pod_instance]['ip'])
+    strategy = 'random'  # 'random' or 'roundrobin'
 
-    # TODO: allocate a cluster ip to the service if not defined
-    if clusterIP is None:
-        clusterIP = alloc_service_clusterIP()
-    else:
-        # TODO: check out the cluster ip defined in yml is legal
-        pass
-
-    config_map = {'name': name, 'type': type, 'selector': selector, 'ports': ports,
-                  'state': state, 'pods': list()}
-    backup.append(config_map)
-
-    update_service(config_map)
+    for eachports in ports:
+        port = eachports['port']
+        targetPort = eachports['targetPort']
+        protocol = eachports['protocol']
+        set_iptables_clusterIP(cluster_ip=cluster_ip, service_name=service_name,
+                               port=port, target_port=targetPort, protocol=protocol,
+                               pod_ip_list=pod_ip_list, strategy=strategy, iptables=iptables)
+    service_config['iptables'] = iptables
+    service_config['status'] = 'Running'
+    service_config['iphash'] = hash('.'.join(pod_ip_list))  # used for restart service
+    logging.info('Service [%s] ClusterIP [%s] Running Successfully!'
+                 % (service_name, cluster_ip))
 
 
 def update_service(config_map):
@@ -233,11 +294,42 @@ def stop_service(name):
     pass
 
 
-def restart_service(name):
-    # TODO: update_service
+def restart_service(service_config: dict, pods_dict: dict, force=False):
+    """
+    used for restart an exist service, simply
+    delete all of the original iptable chains and rules
+    then use create_service..
+    :param force:
+    :param service_config: dict {'kind': str, 'name': str, 'type': str,
+        'selector': dict, 'ports': list, 'instance_name': str,
+        'pod_instances': list, 'clusterIP': str}
+    :param pods_dict: dict {'chain': list, 'rule': list}
+    :return: None
+    """
+    # compare iplist hash with current ip list
+    pod_ip_list = list()
+    for pod_instance in service_config['pod_instances']:
+        pod_ip_list.append(pods_dict[pod_instance]['ip'])
 
-    # TODO: set service state to 'Running`
-    pass
+    print(service_config['iphash'])
+    print(hash('.'.join(pod_ip_list)))
+    if force is False and service_config['iphash'] == hash('.'.join(pod_ip_list)):
+        print('here')
+        return
+    # delete original chains and rules
+    iptables = service_config['iptables']
+    rules = iptables['rules']
+    for rule in rules:
+        utils.delete_rule_by_spec(table=rule['table'],
+                                  chain=rule['chain'],
+                                  rulespec=rule['rule-specification'])
+    chains = iptables['chains']
+    for chain in chains:
+        utils.delete_chain(chain['table'], chain['chain'])
+    service_config.pop('iptables')
+    # restart this service using create_service
+    create_service(service_config, pods_dict)
+    return
 
 
 def get_service(name):
@@ -258,16 +350,8 @@ def rm_service(name):
     pass
 
 
-def alloc_service_clusterIP():
-    """
-    use etcd to record all used ip and try to allocate an ip begin with
-        `20.xx.xx.xx`, which is easy for the security group settings
-    :return:
-    """
-    return '10.2.3.4'
-
-
-def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol, pod_ip_list, strategy='random', ip_prefix_len=32):
+def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol,
+                           pod_ip_list, strategy='random', ip_prefix_len=32, iptables: dict = None):
     """
     used for set service clusterIP, only for the first create
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
@@ -281,6 +365,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     :param pod_ip_list: a list of pod ip address, which belongs to the service target pod
     :param strategy: service load balance strategy, which should be random/roundrobin
     :param ip_prefix_len: must be 32 here, so use default value please
+    :param iptables: a dict to record each iptable chain and rules create by user
     :return:
     """
     """
@@ -288,81 +373,98 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     init_iptables is an idempotent function, which means the effect of
     execute several times equals to the effect of execute one time
     """
-    init_iptables()
-
     kubesvc = 'KUBE-SVC-' + utils.generate_random_str(12, 1)
-    utils.create_chain('nat', kubesvc)
-    utils.insert_rule('nat', 'KUBE-SERVICES', 1,
-                      utils.make_rulespec(
-                          jump=kubesvc,
-                          destination='/'.join([cluster_ip, str(ip_prefix_len)]),
-                          protocol=protocol,
-                          comment=service_name + ': cluster IP',
-                          dport=port
-                      ),
-                      utils.make_target_extensions())
+
+    iptables['chains'].append(
+        utils.create_chain('nat', kubesvc)
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+                          utils.make_rulespec(
+                              jump=kubesvc,
+                              destination='/'.join([cluster_ip, str(ip_prefix_len)]),
+                              protocol=protocol,
+                              comment=service_name + ': cluster IP',
+                              dport=port
+                          ),
+                          utils.make_target_extensions())
+    )
 
     pod_num = len(pod_ip_list)
     for i in range(0, pod_num):
         kubesep = 'KUBE-SEP-' + utils.generate_random_str(12, 1)
-        utils.create_chain('nat', kubesep)
+        iptables['chains'].append(
+            utils.create_chain('nat', kubesep)
+        )
 
         if strategy == 'random':
             prob = 1 / (pod_num - i)
             if i == pod_num - 1:
-                utils.append_rule('nat', kubesvc,
-                                  utils.make_rulespec(
-                                      jump=kubesep
-                                  ),
-                                  utils.make_target_extensions())
+                iptables['rules'].append(
+                    utils.append_rule('nat', kubesvc,
+                                      utils.make_rulespec(
+                                          jump=kubesep
+                                      ),
+                                      utils.make_target_extensions())
+                )
             else:
-                utils.append_rule('nat', kubesvc,
-                                  utils.make_rulespec(
-                                      jump=kubesep,
-                                  ),
-                                  utils.make_target_extensions(
-                                      statistic=True,
-                                      mode='random',
-                                      probability=prob
-                                  ))
+                iptables['rules'].append(
+                    utils.append_rule('nat', kubesvc,
+                                      utils.make_rulespec(
+                                          jump=kubesep,
+                                      ),
+                                      utils.make_target_extensions(
+                                          statistic=True,
+                                          mode='random',
+                                          probability=prob
+                                      ))
+                )
         elif strategy == 'roundrobin':
             if i == pod_num - 1:
-                utils.append_rule('nat', kubesvc,
-                                  utils.make_rulespec(
-                                      jump=kubesep
-                                  ),
-                                  utils.make_target_extensions())
+                iptables['rules'].append(
+                    utils.append_rule('nat', kubesvc,
+                                      utils.make_rulespec(
+                                          jump=kubesep
+                                      ),
+                                      utils.make_target_extensions())
+                )
             else:
-                utils.append_rule('nat', kubesvc,
-                                  utils.make_rulespec(
-                                      jump=kubesep
-                                  ),
-                                  utils.make_target_extensions(
-                                      statistic=True,
-                                      mode='nth',
-                                      every=pod_num - i,
-                                      packet=0
-                                  ))
+                iptables['rules'].append(
+                    utils.append_rule('nat', kubesvc,
+                                      utils.make_rulespec(
+                                          jump=kubesep
+                                      ),
+                                      utils.make_target_extensions(
+                                          statistic=True,
+                                          mode='nth',
+                                          every=pod_num - i,
+                                          packet=0
+                                      ))
+                )
         else:
             logging.error("Strategy Not Found! Use `random` or `roundrobin` Please")
 
-        utils.append_rule('nat', kubesep,
-                          utils.make_rulespec(
-                              jump='KUBE-MARK-MASQ',
-                              source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
-                          ),
-                          utils.make_target_extensions())
-        utils.append_rule('nat', kubesep,
-                          utils.make_rulespec(
-                              jump='DNAT',
-                              protocol=protocol,
-                          ),
-                          utils.make_target_extensions(
-                              match=protocol,
-                              to_destination=':'.join([pod_ip_list[i], str(target_port)])
-                          ))
-    logging.info("Service [%s] Cluster IP: [%s] Port: [%s] Strategy: [%s]"
-                 % (service_name, cluster_ip, port, strategy))
+        iptables['rules'].append(
+            utils.append_rule('nat', kubesep,
+                              utils.make_rulespec(
+                                  jump='KUBE-MARK-MASQ',
+                                  source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
+                              ),
+                              utils.make_target_extensions())
+        )
+        iptables['rules'].append(
+            utils.append_rule('nat', kubesep,
+                              utils.make_rulespec(
+                                  jump='DNAT',
+                                  protocol=protocol,
+                              ),
+                              utils.make_target_extensions(
+                                  match=protocol,
+                                  to_destination=':'.join([pod_ip_list[i], str(target_port)])
+                              ))
+        )
+    logging.info("Service [%s] Cluster IP: [%s] Port: [%s] TargetPort: [%s] Strategy: [%s]"
+                 % (service_name, cluster_ip, port, target_port, strategy))
 
 
 default_iptables_path = "./sources/iptables-script"

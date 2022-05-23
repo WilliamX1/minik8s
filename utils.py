@@ -49,6 +49,7 @@ def append_rule(table, chain, rulespec, target_extension):
     """ sudo iptables -t <table> -A <chain> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-A", chain] + rulespec + target_extension
     exec_command(command)
+    return {'table': table, 'chain': chain, 'rule-specification': rulespec + target_extension}
 
 
 def delete_rule_by_rulenum(table, chain, rulenum):
@@ -73,6 +74,7 @@ def insert_rule(table, chain, rulenum, rulespec, target_extension):
     """ sudo iptables -t <table> -I <chain> <rulenum> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-I", chain, str(rulenum)] + rulespec + target_extension
     exec_command(command)
+    return {'table': table, 'chain': chain, 'rule-specification': rulespec + target_extension}
 
 
 def replace_rule(table, chain, rulenum, rulespec, target_extension):
@@ -102,6 +104,7 @@ def create_chain(table, chain):
     """ sudo iptables -t <table> -N <chain> """
     command = ["sudo", "iptables", "-t", table, "-N", chain]
     exec_command(command)
+    return {'table': table, 'chain': chain}
 
 
 def delete_chain(table, chain):

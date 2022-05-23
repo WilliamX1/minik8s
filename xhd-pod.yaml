@@ -6,8 +6,8 @@ cpu: 1
 mem: 1500m
 metadata:
   labels:
-    - app: xhd
-      version: major
+    app: xhd
+    version: major
 containers:
   - name: nginx
     image: nginx

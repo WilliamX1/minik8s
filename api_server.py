@@ -267,6 +267,7 @@ def receive_heartbeat():
         etcd_supplant[pod_instance_name]['status'] = pod_heartbeat['status']
         etcd_supplant[pod_instance_name]['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
         etcd_supplant[pod_instance_name]['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
+        etcd_supplant[pod_instance_name]['ip'] = pod_heartbeat['ip']
         heartbeat.pop(pod_instance_name)
     etcd_supplant[node_instance_name] = heartbeat
     return json.dumps(heartbeat), 200

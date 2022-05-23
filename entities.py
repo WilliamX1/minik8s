@@ -106,7 +106,7 @@ class Pod:
                                                       network_mode="bridge")
 
         ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
-        self._ipv4addr = os.popen(ip_cmd).read()
+        self._ipv4addr = os.popen(ip_cmd).read().strip()
         logging.info('Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
 
         containercfgs = config.get('containers')
@@ -130,7 +130,7 @@ class Pod:
                                                     command=container.command(),
                                                     network_mode='container:' + pause_container.name)
             logging.info("\tcontainer %s run successfully" % container.name)
-        logging.info('Pod %s run successfully: %s ...' % self.instance_name)
+        logging.info('Pod %s run successfully ...' % self.instance_name)
 
     def ipv4addr(self):
         return self._ipv4addr
@@ -230,4 +230,6 @@ class Pod:
             pod_status['status'] = 'Succeeded'
         elif (successfully_exit_number + error_exit_number) == len(self._containers) and error_exit_number > 0:
             pod_status['status'] = 'Failed'
+        # Get Ipv4 Address
+        pod_status['ip'] = self.ipv4addr()
         return pod_status
