@@ -27,15 +27,15 @@ if __name__ == '__main__':
             # todo: where to implement the service forward logic ?
             # todo: where to add DNS logic ?
             service_config = service_dict[service_name]
-            selector: dict = service_config['selector']
+            selector: dict = service_config['selector'][0]
             pod_instances = list()
             for pod_instance_name in pods_dict['pods_list']:
                 pod_config = pods_dict[pod_instance_name]
-                pod_labels = pod_config['metadata']['labels']
-                matched = True
                 # only add running pod into service
-                if not pod_config.__contains__('status') or pod_config['status'] != 'Running':
+                if not pod_config.__contains__('status') or pod_config['status'] != 'Running' or not pod_config['metadata'].__contains__('labels'):
                     continue
+                pod_labels = pod_config['metadata']['labels'][0]
+                matched = True
                 for key in selector.keys():
                     # todo: handle complex selector here
                     if pod_labels.__contains__(key) and pod_labels[key] == selector[key]:
@@ -47,6 +47,7 @@ if __name__ == '__main__':
                 if matched:
                     pod_instances.append(pod_instance_name)
             service_config['pod_instances'] = pod_instances
+            print("matched pod = ", pod_instances)
             url = "http://127.0.0.1:5050/Service/{}".format(service_config['instance_name'])
             json_data = json.dumps(service_config)
             r = requests.post(url=url, json=json_data)

@@ -85,32 +85,39 @@ def get_all():
 
 @app.route('/Pod', methods=['GET'])
 def get_pods():
-    if request.method == 'GET':
-        return json.dumps(pods), 200
-    elif request.method == 'POST':
-        json_data = request.json
-        config: dict = json.loads(json_data)
-        assert config['kind'] == 'Pod'
-        object_name = config['name']
-        instance_name = config['name'] + uuid.uuid1().__str__()
-        config['instance_name'] = instance_name
-        print("create {}".format(instance_name))
+    result = dict()
+    result['pods_list'] = etcd_supplant['pods_list']
+    for pod_instance_name in result['pods_list']:
+        if etcd_supplant.__contains__(pod_instance_name):
+            result[pod_instance_name] = etcd_supplant[pod_instance_name]
+    return json.dumps(result), 200
 
-        broadcast_message('Pod', config.__str__())
-        return "Successfully create instance {}".format(instance_name), 200
+@app.route('/Service', methods=['GET'])
+def get_services():
+    result = dict()
+    result['services_list'] = etcd_supplant['services_list']
+    for service_instance_name in result['services_list']:
+        if etcd_supplant.__contains__(service_instance_name):
+            result[service_instance_name] = etcd_supplant[service_instance_name]
+    return json.dumps(result), 200
 
+@app.route('/ReplicaSet', methods=['GET'])
+def get_replica_set():
+    result = dict()
+    result['replica_sets_list'] = etcd_supplant['replica_sets_list']
+    for replica_set_instance in result['replica_sets_list']:
+        config = etcd_supplant[replica_set_instance]
+        result[replica_set_instance] = config
+        for pod_instance_name in config['pod_instances']:
+            if etcd_supplant.__contains__(pod_instance_name):
+                result[pod_instance_name] = etcd_supplant[pod_instance_name]
+    print(result)
+    return json.dumps(result), 200
 
 @app.route('/Pod', methods=['POST'])
 def post_pods():
     json_data = request.json
     config: dict = json.loads(json_data)
-    result = create_pod(config)
-    print("result = ", result)
-    return json.dumps(result), 200
-
-
-
-def create_pod(config: dict):
     assert config['kind'] == 'Pod'
     object_name = config['name']
     instance_name = config['name'] + uuid.uuid1().__str__()
@@ -120,8 +127,7 @@ def create_pod(config: dict):
     etcd_supplant['pods_list'].append(instance_name)
     etcd_supplant[instance_name] = config
     broadcast_message('Pod', config.__str__())
-    return config
-
+    return json.dumps(config), 200
 
 @app.route('/ReplicaSet', methods=['POST'])
 def upload_replica_set():
@@ -151,24 +157,14 @@ def upload_service():
     return "Successfully create service instance {}".format(service_instance_name), 200
 
 @app.route('/Service/<string:instance_name>', methods=['POST'])
-def update_replica_set(instance_name: str):
+def update_service(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)
     etcd_supplant[instance_name] = config
     return "Successfully update service instance {}".format(instance_name), 200
 
 
-@app.route('/ReplicaSet', methods=['GET'])
-def get_replica_set():
-    result = dict()
-    result['replica_sets_list'] = etcd_supplant['replica_sets_list']
-    for replica_set_instance in result['replica_sets_list']:
-        config = etcd_supplant[replica_set_instance]
-        result[replica_set_instance] = config
-        for pod_instance_name in config['pod_instances']:
-            result[pod_instance_name] = etcd_supplant[pod_instance_name]
-    print(result)
-    return json.dumps(result), 200
+
 
 
 @app.route('/ReplicaSet/<string:instance_name>', methods=['POST'])
