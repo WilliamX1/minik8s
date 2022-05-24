@@ -23,7 +23,7 @@ def alloc_service_clusterIP(service_dict: dict):
 
     while max_alloc_num > 0:
         max_alloc_num -= 1
-        num0 = 10  # service ip should be like '10.xx.xx.xx'
+        num0 = 18  # service ip should be like '18.xx.xx.xx'
         num1 = random.randint(0, 255)
         num2 = random.randint(0, 255)
         num3 = random.randint(0, 255)

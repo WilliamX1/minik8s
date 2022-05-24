@@ -1,11 +1,11 @@
 kind: Pod
 name: dns-nginx-server-pod
-volumn: '$PWD/dns/conf'
+volume: '$/dns/conf'
 cpu: 1
 mem: 1500m
 metadata:
   labels:
-    app: dns-nginx-server-pod
+    app: dns-nginx-server
 containers:
   - name: nginx
     image: nginx

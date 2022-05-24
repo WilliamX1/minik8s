@@ -84,7 +84,8 @@ class Pod:
         self.instance_name = config.get('instance_name')
         self._name = config.get('name')
         self._status = Status.RUNNING
-        self._volume = config.get('volume')
+        self._volume = config.get('volume').replace("$/", os.getcwd())
+        # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
         self._containers = []
         self._pause = None
         self._mem = config.get('mem')

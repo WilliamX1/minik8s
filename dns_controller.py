@@ -75,7 +75,7 @@ def main():
             # create dns conf file
             kubedns.create_dns(dns_config=dns_dict[dns_name], service_dict=service_dict)
             # format /etc/hosts file string
-            etc_hosts_str += '%s %s\n' % (dns_config['nginx_service_ip'], dns_config['host'])
+            etc_hosts_str += '%s %s\n' % (dns_config_dict['dns-server-ip'], dns_config['host'])
 
             url = "http://127.0.0.1:5050/Dns/{}".format(dns_config['instance_name'])
             json_data = json.dumps(dns_config)
