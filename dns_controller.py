@@ -46,7 +46,7 @@ def update_etc_hosts(dns_config_dict: dict, hosts=True):
     return
 
 
-if __name__ == '__main__':
+def main():
     while True:
         try:
             r = requests.get(url=api_server_url + 'Dns')
@@ -87,3 +87,6 @@ if __name__ == '__main__':
         url = "http://127.0.0.1:5050/DnsConfig"
         json_data = json.dumps(dns_config_dict)
         r = requests.post(url=url, json=json_data)
+
+if __name__ == '__main__':
+    main()

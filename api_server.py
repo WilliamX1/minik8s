@@ -1,27 +1,14 @@
-import ast
-import copy
-
 import time
-import datetime
-from typing import List
-
-import yaml.parser
 from flask import Flask, redirect, url_for, request, jsonify, Response
-from flask_cors import CORS
-import base64
-import os
 import json
 import pika
 import uuid
 import etcd3
-import entities
-import re
 from serverless import Node, Edge, DAG
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-total_memory = 5 * 1024 * 1024 * 1024
 use_etcd = False
 etcd = etcd3.client()
 etcd_supplant = {'nodes_list': list(), 'pods_list': list(),
@@ -29,10 +16,6 @@ etcd_supplant = {'nodes_list': list(), 'pods_list': list(),
                  'dns_list': list(),
                  'dns_config': dict()  # used for dns
                  }
-
-# rescale = {'node1': {'pods': {}, 'ReplicaSets': {}}, 'node2': {'pods': {}, 'ReplicaSets': {}}}
-pods = {}
-replica_sets = {}
 
 
 def broadcast_message(channel_name: str, message: str):
@@ -64,6 +47,7 @@ def upload_nodes():
     node_instance_name = node_config['instance_name']
     node_config['last_receive_time'] = time.time()
     node_config['status'] = 'READY TO START'
+
     print("node_config = ", node_config)
     etcd_supplant['nodes_list'].append(node_instance_name)
     etcd_supplant[node_instance_name] = node_config
@@ -75,9 +59,11 @@ def delete_node(instance_name: str):
     for i in range(len(etcd_supplant['nodes_list'])):
         if etcd_supplant['nodes_list'][i] == instance_name:
             etcd_supplant['nodes_list'].pop(i)
-    etcd_supplant[instance_name]['status'] = 'NOT AVAILABLE'
+    etcd_supplant[instance_name]['status'] = 'Not Available'
     for pod_instance_name in etcd_supplant['pods_list']:
-        etcd_supplant[pod_instance_name]['node'] = 'NOT AVAILABLE'
+        if etcd_supplant[pod_instance_name].__contains__('node') and etcd_supplant[pod_instance_name][
+            'node'] == instance_name:
+            etcd_supplant[pod_instance_name]['status'] = 'Lost Connect'
     print("Remode node {}".format(instance_name))
     return json.dumps(etcd_supplant['nodes_list']), 200
 
@@ -123,7 +109,7 @@ def get_dns_config():
     return json.dumps(result), 200
 
 
-@app.route('DnsConfig', methods=['POST'])
+@app.route('/DnsConfig', methods=['POST'])
 def post_dns_config():
     json_data = request.json
     config: dict = json.loads(json_data)
@@ -153,6 +139,7 @@ def post_pods():
     instance_name = config['name'] + uuid.uuid1().__str__()
     config['instance_name'] = instance_name
     config['status'] = 'Wait for Schedule'
+    config['created_time'] = time.time()
     print("create {}".format(instance_name))
     etcd_supplant['pods_list'].append(instance_name)
     etcd_supplant[instance_name] = config
@@ -169,6 +156,7 @@ def upload_replica_set():
     replica_set_instance_name = config['name'] + uuid.uuid1().__str__()
     config['instance_name'] = replica_set_instance_name
     config['pod_instances'] = list()
+    config['created_time'] = time.time()
     etcd_supplant['replica_sets_list'].append(replica_set_instance_name)
     etcd_supplant[replica_set_instance_name] = config
     # broadcast_message('ReplicaSet', config.__str__())
@@ -183,6 +171,7 @@ def upload_service():
     service_instance_name = config['name'] + uuid.uuid1().__str__()
     config['instance_name'] = service_instance_name
     config['pod_instances'] = list()
+    config['created_time'] = time.time()
     etcd_supplant['services_list'].append(service_instance_name)
     etcd_supplant[service_instance_name] = config
     return "Successfully create service instance {}".format(service_instance_name), 200
@@ -204,6 +193,7 @@ def upload_dns():
     dns_instance_name = config['name'] + uuid.uuid1().__str__()
     config['instance_name'] = dns_instance_name
     config['service_instances'] = list()
+    config['created_time'] = time.time()
     etcd_supplant['dns_list'].append(dns_instance_name)
     etcd_supplant[dns_instance_name] = config
     return "Successfully create dns instance {}".format(dns_instance_name), 200
@@ -225,12 +215,26 @@ def update_replica_set(instance_name: str):
     return "Successfully update replica set instance {}".format(instance_name), 200
 
 
-@app.route('/Pod/<string:instance_name>', methods=['POST'])
-def post_pod(instance_name: str):
-    # 将调度结果发给所有nodes
-    json_data = request.json
-    config: dict = json.loads(json_data)
-    etcd_supplant[instance_name] = config
+@app.route('/Pod/<string:instance_name>/<string:behavior>', methods=['POST'])
+def post_pod(instance_name: str, behavior: str):
+    if behavior == 'create':
+        json_data = request.json
+        config: dict = json.loads(json_data)
+        config['behavior'] = 'create'
+        etcd_supplant[instance_name] = config
+    elif behavior == 'remove':
+        etcd_supplant[instance_name]['behavior'] = 'remove'
+        etcd_supplant[instance_name]['status'] = 'Removed'
+        config = etcd_supplant[instance_name]
+    elif behavior == 'execute':
+        config = etcd_supplant[instance_name]
+        json_data = request.json
+        upload_cmd: dict = json.loads(json_data)
+        config['behavior'] = 'execute'
+        config['cmd'] = upload_cmd['cmd']
+        etcd_supplant[instance_name] = config
+    else:
+        return 404
     broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
@@ -313,31 +317,27 @@ def receive_heartbeat():
     heartbeat: dict = json.loads(json_data)
     heartbeat['last_receive_time'] = time.time()
     node_instance_name = heartbeat['instance_name']
+    if etcd_supplant[node_instance_name]['status'] == 'Not Available':
+        # we get the heartbeat of a lost node again
+        etcd_supplant['nodes_list'].append(node_instance_name)
+        etcd_supplant[node_instance_name]['status'] = 'Running'
+
     for pod_instance_name in heartbeat['pod_instances']:
         pod_heartbeat = heartbeat[pod_instance_name]
-        etcd_supplant[pod_instance_name]['status'] = pod_heartbeat['status']
+        if etcd_supplant[pod_instance_name]['status'] != 'Removed':
+            # if removed before a heartbeat, we do not change the status
+            etcd_supplant[pod_instance_name]['status'] = pod_heartbeat['status']
         etcd_supplant[pod_instance_name]['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
         etcd_supplant[pod_instance_name]['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
         etcd_supplant[pod_instance_name]['ip'] = pod_heartbeat['ip']
+        etcd_supplant[pod_instance_name]['node'] = node_instance_name
         heartbeat.pop(pod_instance_name)
     etcd_supplant[node_instance_name] = heartbeat
     return json.dumps(heartbeat), 200
 
 
-@app.route("/service", methods=["POST"])
-def launch_service():
-    """
-    Set Service through Yaml File
-    :return:
-    """
-    # json_data = request.json
-    # config: dict = json.loads(json_data)
-    pass
-
+def main():
+    app.run(port=5050, processes=True)
 
 if __name__ == '__main__':
-    # if etcd.get('nodes')[0] is not None:
-    #     nodes = ast.literal_eval(str(etcd.get('nodes')[0], 'UTF-8'))
-    #     pods = ast.literal_eval(str(etcd.get('pods')[0], 'UTF-8'))
-    #     ReplicaSets = ast.literal_eval(str(etcd.get('ReplicaSets')[0], 'UTF-8'))
-    app.run(port=5050, processes=True)
+    main()

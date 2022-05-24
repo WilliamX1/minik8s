@@ -1,7 +1,7 @@
 # apiVersion: v1
 kind: Pod
 name: xhd-pod
-volumn: '/home/liuyixiang/docker_volumn'
+volume: '/home/liuyixiang/docker_volume'
 cpu: 2
 mem: 1500m
 metadata:

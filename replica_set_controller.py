@@ -34,9 +34,7 @@ api_server_url = 'http://localhost:5050/'
 #     json_data = json.dumps(replica_set_config)
 #     # 向api_server发送调度结果
 #     r = requests.post(url=url, json=json_data)
-
-
-if __name__ == '__main__':
+def main():
     while True:
         try:
             r = requests.get(url=api_server_url + 'ReplicaSet')
@@ -80,4 +78,7 @@ if __name__ == '__main__':
             r = requests.post(url=url, json=json_data)
 
         time.sleep(1)
+
+if __name__ == '__main__':
+    main()
 

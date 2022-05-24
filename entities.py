@@ -6,7 +6,6 @@ import sys
 from enum import Enum
 
 import docker
-import iptc
 import six
 import kubeproxy
 
@@ -85,7 +84,7 @@ class Pod:
         self.instance_name = config.get('instance_name')
         self._name = config.get('name')
         self._status = Status.RUNNING
-        self._volumn = config.get('volumn')
+        self._volume = config.get('volume')
         self._containers = []
         self._pause = None
         self._mem = config.get('mem')
@@ -113,7 +112,7 @@ class Pod:
 
         # 创建容器配置参数
         volumes = set()
-        volumes.add(self._volumn)
+        volumes.add(self._volume)
         for containercfg in containercfgs:
             container = Container(containercfg['name'], self.instance_name, containercfg['image'],
                                   containercfg['command'],
@@ -141,8 +140,8 @@ class Pod:
     def status(self):
         return self._status
 
-    def volumn(self):
-        return self._volumn
+    def volume(self):
+        return self._volume
 
     def contains(self):
         return self._containers
@@ -165,6 +164,10 @@ class Pod:
             name = container.name() + container.suffix()
             status = self._client.api.inspect_container(name)
             self._client.api.stop(status.get('ID', status.get('Id', None)))
+        # stop pause container
+        name = self.instance_name
+        status = self._client.api.inspect_container(name)
+        self._client.api.stop(status.get('ID', status.get('Id', None)))
         self._status = Status.STOPPED
 
     def kill(self):
@@ -188,10 +191,13 @@ class Pod:
             name = container.name() + container.suffix()
             status = self._client.api.inspect_container(name)
             self._client.api.remove_container(status.get('ID', status.get('Id', None)))
-        name = self.instance_name
-        status = self._client.api.inspect_container(name)
-        self._client.api.stop(status.get('ID', status.get('Id', None)))
-        self._client.api.remove_container(status.get('ID', status.get('Id', None)))
+        # remove pause container
+        try:
+            name = self.instance_name
+            status = self._client.api.inspect_container(name)
+            self._client.api.remove_container(status.get('ID', status.get('Id', None)))
+        except Exception as e:
+            print(e.__str__())
 
     def get_status(self):
         pod_status = {'memory_usage_percent': 0, 'cpu_usage_percent': 0, 'status': 'Running'}
