@@ -1,0 +1,6 @@
+example.org {
+	file example.org
+	prometheus	# enable metrics
+	errors		# show errors
+	log 		# enable query logs
+}

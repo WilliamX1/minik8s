@@ -47,10 +47,12 @@ def send_heart_beat():
     for pod in pods:
         pod_status_heartbeat = dict()
         pod_status = pod.get_status()
+        print("POD_STATUS")
         pod_status_heartbeat['instance_name'] = pod.instance_name
         pod_status_heartbeat['status'] = pod_status['status']
         pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
         pod_status_heartbeat['memory_usage_percent'] = pod_status['memory_usage_percent']
+        pod_status_heartbeat['ip'] = pod_status['ip']
         config['pod_instances'].append(pod.instance_name)
         config[pod.instance_name] = pod_status_heartbeat
 

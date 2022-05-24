@@ -24,7 +24,11 @@ app = Flask(__name__)
 total_memory = 5 * 1024 * 1024 * 1024
 use_etcd = False
 etcd = etcd3.client()
-etcd_supplant = {'nodes_list': list(), 'pods_list': list(), 'services_list': list(), 'replica_sets_list': list()}
+etcd_supplant = {'nodes_list': list(), 'pods_list': list(),
+                 'services_list': list(), 'replica_sets_list': list(),
+                 'dns_list': list(),
+                 'dns_config': dict()  # used for dns
+                 }
 
 # rescale = {'node1': {'pods': {}, 'ReplicaSets': {}}, 'node2': {'pods': {}, 'ReplicaSets': {}}}
 pods = {}
@@ -92,6 +96,7 @@ def get_pods():
             result[pod_instance_name] = etcd_supplant[pod_instance_name]
     return json.dumps(result), 200
 
+
 @app.route('/Service', methods=['GET'])
 def get_services():
     result = dict()
@@ -100,6 +105,30 @@ def get_services():
         if etcd_supplant.__contains__(service_instance_name):
             result[service_instance_name] = etcd_supplant[service_instance_name]
     return json.dumps(result), 200
+
+
+@app.route('/Dns', methods=['GET'])
+def get_dns():
+    result = dict()
+    result['dns_list'] = etcd_supplant['dns_list']
+    for dns_instance_name in result['dns_list']:
+        if etcd_supplant.__contains__(dns_instance_name):
+            result[dns_instance_name] = etcd_supplant[dns_instance_name]
+    return json.dumps(result), 200
+
+
+@app.route('/DnsConfig', methods=['GET'])
+def get_dns_config():
+    result = etcd_supplant['dns_config']
+    return json.dumps(result), 200
+
+
+@app.route('DnsConfig', methods=['POST'])
+def post_dns_config():
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    etcd_supplant['dns_config'] = config
+
 
 @app.route('/ReplicaSet', methods=['GET'])
 def get_replica_set():
@@ -113,6 +142,7 @@ def get_replica_set():
                 result[pod_instance_name] = etcd_supplant[pod_instance_name]
     print(result)
     return json.dumps(result), 200
+
 
 @app.route('/Pod', methods=['POST'])
 def post_pods():
@@ -128,6 +158,7 @@ def post_pods():
     etcd_supplant[instance_name] = config
     broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
+
 
 @app.route('/ReplicaSet', methods=['POST'])
 def upload_replica_set():
@@ -156,6 +187,7 @@ def upload_service():
     etcd_supplant[service_instance_name] = config
     return "Successfully create service instance {}".format(service_instance_name), 200
 
+
 @app.route('/Service/<string:instance_name>', methods=['POST'])
 def update_service(instance_name: str):
     json_data = request.json
@@ -164,7 +196,25 @@ def update_service(instance_name: str):
     return "Successfully update service instance {}".format(instance_name), 200
 
 
+@app.route('/Dns', methods=['POST'])
+def upload_dns():
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    assert config['kind'] == 'Dns'
+    dns_instance_name = config['name'] + uuid.uuid1().__str__()
+    config['instance_name'] = dns_instance_name
+    config['service_instances'] = list()
+    etcd_supplant['dns_list'].append(dns_instance_name)
+    etcd_supplant[dns_instance_name] = config
+    return "Successfully create dns instance {}".format(dns_instance_name), 200
 
+
+@app.route('/Dns/<string:instance_name>', methods=['POST'])
+def update_dns(instance_name: str):
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    etcd_supplant[instance_name] = config
+    return "Successfully update dns instance {}".format(instance_name)
 
 
 @app.route('/ReplicaSet/<string:instance_name>', methods=['POST'])
@@ -173,6 +223,7 @@ def update_replica_set(instance_name: str):
     config: dict = json.loads(json_data)
     etcd_supplant[instance_name] = config
     return "Successfully update replica set instance {}".format(instance_name), 200
+
 
 @app.route('/Pod/<string:instance_name>', methods=['POST'])
 def post_pod(instance_name: str):
@@ -267,9 +318,21 @@ def receive_heartbeat():
         etcd_supplant[pod_instance_name]['status'] = pod_heartbeat['status']
         etcd_supplant[pod_instance_name]['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
         etcd_supplant[pod_instance_name]['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
+        etcd_supplant[pod_instance_name]['ip'] = pod_heartbeat['ip']
         heartbeat.pop(pod_instance_name)
     etcd_supplant[node_instance_name] = heartbeat
     return json.dumps(heartbeat), 200
+
+
+@app.route("/service", methods=["POST"])
+def launch_service():
+    """
+    Set Service through Yaml File
+    :return:
+    """
+    # json_data = request.json
+    # config: dict = json.loads(json_data)
+    pass
 
 
 if __name__ == '__main__':

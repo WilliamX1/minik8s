@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import re
@@ -5,14 +6,18 @@ import sys
 from enum import Enum
 
 import docker
+import iptc
 import six
 import kubeproxy
+
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 try:
     from docker.errors import APIError
 except ImportError:
     # Fall back to <= 0.3.1 location
     from docker.client import APIError
+
 
 class Container:
     def __init__(self, name, suffix, image, command, memory, cpu, port):
@@ -101,8 +106,8 @@ class Pod:
                                                       network_mode="bridge")
 
         ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
-        self._ipv4addr = os.popen(ip_cmd).read()
-        print('\t==>INFO: Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
+        self._ipv4addr = os.popen(ip_cmd).read().strip()
+        logging.info('Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
 
         containercfgs = config.get('containers')
 
@@ -116,15 +121,19 @@ class Pod:
                                   containercfg['port'])
             self._cpu[containercfg['name']] = containercfg['resource']['cpu']
             self._containers.append(container)
-            print(pause_container.name)
-            self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
-                                        volumes=list(volumes),
-                                        # cpuset_cpus=container.cpu(),
-                                        mem_limit=parse_bytes(container.memory()),
-                                        detach=True,
-                                        # auto_remove=True,
-                                        command=container.command(),
-                                        network_mode='container:' + pause_container.name)
+            container = self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
+                                                    volumes=list(volumes),
+                                                    # cpuset_cpus=container.cpu(),
+                                                    mem_limit=parse_bytes(container.memory()),
+                                                    detach=True,
+                                                    # auto_remove=True,
+                                                    command=container.command(),
+                                                    network_mode='container:' + pause_container.name)
+            logging.info("\tcontainer %s run successfully" % container.name)
+        logging.info('Pod %s run successfully ...' % self.instance_name)
+
+    def ipv4addr(self):
+        return self._ipv4addr
 
     def name(self):
         return self._name
@@ -221,4 +230,21 @@ class Pod:
             pod_status['status'] = 'Succeeded'
         elif (successfully_exit_number + error_exit_number) == len(self._containers) and error_exit_number > 0:
             pod_status['status'] = 'Failed'
+        # Get Ipv4 Address
+        pod_status['ip'] = self.ipv4addr()
         return pod_status
+
+    def exec_run(self, cmd, container_name=None):
+        """
+        run a command inside a container. Similar to `docker exec`
+        :param cmd: command
+        :param container_name: None means all
+        :return:
+        """
+        for container in self._containers:
+            name = container.name() + container.suffix()
+            if container_name is None or container_name == name:
+                status = self._client.api.inspect_container(name)
+                exec_id_dict = self._client.api.exec_create(container=status.get('ID', status.get('Id', None)),
+                                                            cmd=cmd)
+                self._client.api.exec_start(exec_id_dict['Id'])

@@ -1,0 +1,9 @@
+kind: Service
+name: dns-nginx-server-service
+type: ClusterIP
+selector:
+  app: dns-nginx-server-pod
+ports:
+  - protocol: tcp
+    port: 80
+    targetPort: 80

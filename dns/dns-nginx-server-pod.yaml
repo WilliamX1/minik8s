@@ -1,0 +1,16 @@
+kind: Pod
+name: dns-nginx-server-pod
+volumn: '$PWD/dns/conf'
+cpu: 1
+mem: 1500m
+metadata:
+  labels:
+    app: dns-nginx-server-pod
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 80
