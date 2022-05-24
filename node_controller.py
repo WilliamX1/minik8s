@@ -11,8 +11,7 @@ from entities import parse_bytes
 
 api_server_url = 'http://localhost:5050/'
 
-
-if __name__ == '__main__':
+def main():
     while True:
         time.sleep(1)
         nodes_dict = None
@@ -33,3 +32,6 @@ if __name__ == '__main__':
                     r = requests.delete(url=api_server_url + 'Node/{}'.format(node_instance_name))
                 except Exception as e:
                     print('Connect API Server Failure!')
+
+if __name__ == '__main__':
+    main()

@@ -11,8 +11,7 @@ import kubeproxy
 
 api_server_url = 'http://localhost:5050/'
 
-
-if __name__ == '__main__':
+def main():
     while True:
         try:
             r = requests.get(url=api_server_url + 'Service')
@@ -73,3 +72,7 @@ if __name__ == '__main__':
 
         time.sleep(1)
 
+
+
+if __name__ == '__main__':
+    main()

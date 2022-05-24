@@ -32,13 +32,13 @@ def callback(ch, method, properties, body):
             print('把 pod {} 调度到节点 {} 上'.format(instance_name, config['node']))
         else:
             print("Schedule failure")
-        url = "http://127.0.0.1:5050/Pod/{}".format(instance_name)
+        url = api_server_url + "Pod/{}/create".format(instance_name)
         json_data = json.dumps(config)
         # 向api_server发送调度结果
         r = requests.post(url=url, json=json_data)
 
 
-if __name__ == '__main__':
+def main():
     # 创建socket链接,声明管道
     connect = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
     channel = connect.channel()
@@ -54,3 +54,6 @@ if __name__ == '__main__':
     channel.basic_consume(on_message_callback=callback, queue=queue_name, auto_ack=True)
     # 开始消费
     channel.start_consuming()
+
+if __name__ == '__main__':
+    main()

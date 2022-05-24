@@ -1,59 +1,113 @@
-from tkinter import filedialog
-import requests
-import warnings
-import ttkbootstrap as ttk
-from tkinter.filedialog import askopenfilename
-from ttkbootstrap.constants import *
-import yaml_loader
 import json
+import re
+import sys
+import os
+import time
+
+import requests
+
+import yaml_loader
+import entities
+
+api_server_url = 'http://localhost:5050/'
 
 
-def choose_file():
-    print("please choose a file upload to api server")
-    yaml_path = askopenfilename(filetypes=[('YAML', '*.yaml')])
-    entry1.insert(0, yaml_path)
+def print_info():
+    print("version                       show minik8s version")
+    print("show pods                      display extant pods")
+    print("show services              display extant services")
+    print("start -f filepath                  start container")
+    print("start pod/service name   start stopped pod/service")
+    print("stop pod/service name             stop pod/service")
+    print("kill pod/service name             kill pod/service")
+    print("restart pod/service name       restart pod/service")
+    print("remove pod/service name         remove pod/service")
 
 
-def upload():
-    yaml_path = entry1.get()
-    print('the yaml path is：', yaml_path)
-    try:
-        config: dict = yaml_loader.load(yaml_path)
-        object_name = config['name']
-    except Exception as e:
-        print(e.__str__())
-        return
-    url = "http://127.0.0.1:5050/{}".format(config['kind'])
-    try:
-        json_data = json.dumps(config)
-        r = requests.post(url=url, json=json_data)
-        text1.insert(ttk.END, r.content.decode('utf-8'))
-    except requests.exceptions.ConnectionError:
-        text1.insert(ttk.END, "can not post to " + url + ", please check API Server")
-    finally:
-        text1.insert(ttk.END, '\n')
-        text1.update()
+def main():
+    version = '1.0.0'
+    while True:
+        cmd = input(">>")
 
-def register_nodes():
-    yaml_path = entry1.get()
-    config: dict = {'instance_name': 'node1', 'kind': 'Node', 'cpu': 12, 'mem': 1234}
-    url = "http://127.0.0.1:5050/Node"
-    json_data = json.dumps(config)
-    r = requests.post(url=url, json=json_data)
-    print('result = ', r.content.decode())
+        exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
+        help_match = re.fullmatch(r'help', cmd.strip(), re.I)
+        version_match = re.fullmatch(r'version', cmd.strip(), re.I)
+        show_match = re.fullmatch(r'show *(pods|services)', cmd.strip(), re.I)
+        start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
+        normal_command_match = re.fullmatch(r'(start|remove) *(pod|service) *([\w-]*)', cmd.strip(), re.I)
+
+        if exit_match:
+            break
+        elif help_match:
+            print_info()
+        elif version_match:
+            print("{} v{}".format('minik8s'.title(), version))
+        elif show_match:
+            object_type = show_match.group(1)
+            if object_type == "pods":
+                r = requests.get(url=api_server_url + 'Pod')
+                pods_dict = json.loads(r.content.decode('UTF-8'))
+                print("{0:50}{1:30}{2:30}".format('name', 'status', 'created time'))
+                for pod_instance_name in pods_dict['pods_list']:
+                    pod_config = pods_dict[pod_instance_name]
+                    created_time = int(time.time() - pod_config['created_time'])
+                    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+                    print(f"{pod_instance_name:50}{pod_config['status']:30}{created_time.strip():30}")
+            elif object_type == "services":
+                r = requests.get(url=api_server_url + 'Service')
+                service_dict = json.loads(r.content.decode('UTF-8'))
+                print("{0:50}{1:30}{2:30}".format('name', 'status', 'created time'))
+                for service_instance_name in service_dict['services_list']:
+                    service_config = service_dict[service_instance_name]
+                    service_status = 'TO DO'  # todo
+                    created_time = int(time.time() - service_config['created_time'])
+                    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+                    print(f"{service_instance_name:50}{service_status:30}{created_time.strip():30}")
+            else:
+                # todo : handle other types
+                pass
+        elif normal_command_match:
+            pass
+            cmd_type = normal_command_match.group(1)        # start or remove
+            object_type = normal_command_match.group(2)     # pod or service
+            instance_name = normal_command_match.group(3)     # instance_name
+            if object_type == 'pod':
+                json_data = json.dumps(dict())
+                r = requests.post(url=api_server_url + 'Pod/{}/{}'.format(instance_name, cmd_type), json=json_data)
+
+            # if object_type == 'service':
+            #     raise NotImplementedError
+            # elif object_type == 'pod':
+            #     pod = pods[object_name]
+            #     getattr(pod, cmd_type)()
+        elif start_file_match:
+            pass
+            # file_path = start_file_match.group(1)
+            # if not os.path.isfile(file_path):
+            #     print("file not exist")
+            #     continue
+            # config = yaml_loader.load(file_path)
+            # if 'name' not in config:
+            #     sys.stdout.write('yaml name is missing')
+            # if config.get('kind') == 'pod':
+            #     name = config.get('name')
+            #     检查pod是否已存在
+            # if name in pods:
+            #     print("pod:{} already exist".format(name))
+            #     continue
+            # 创建pod并创建开启容器
+            # pod = entities.Pod(config)
+            # pods[name] = pod
+            # print('pod:{} created successfully'.format(name))
+            # elif config.get('kind') == 'service':
+            # 创建service（检查重名）
+            # print('test')
+            # else:
+            #     print("file content error")
+
+        else:
+            print("Command does not match any valid command. Try 'help' for more information. ")
+
 
 if __name__ == '__main__':
-    root = ttk.Window(themename="journal")
-    frm = ttk.Frame(root)
-    frm.grid(padx='20', pady='30')
-    btn1 = ttk.Button(frm, text='choose file', command=choose_file)
-    btn1.grid(row=0, column=0, ipadx='3', ipady='3', padx='10', pady='20')
-    btn2 = ttk.Button(frm, text='upload', command=upload)
-    btn2.grid(row=10, column=0, ipadx='3', ipady='3', padx='10', pady='20')
-    btn3 = ttk.Button(frm, text='register nodes', command=register_nodes)
-    btn3.grid(row=20, column=0, ipadx='3', ipady='3', padx='10', pady='20')
-    entry1 = ttk.Entry(frm, width='40')
-    entry1.grid(row=0, column=1)
-    text1 = ttk.Text(frm, width='55', height='15')
-    text1.grid(row=1, column=1)
-    root.mainloop()
+    main()

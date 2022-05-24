@@ -22,18 +22,45 @@ node_instance_name = uuid.uuid1().__str__()
 pods = list()
 
 
+def get_pod_by_name(instance_name: str):
+    index = -1
+    pod: entities.Pod = None
+    for i in range(len(pods)):
+        if pods[i].instance_name == instance_name:
+            index = i
+            pod = pods[i]
+            break
+    return index, pod
+
 # 回调函数
 def hand_pods(ch, method, properties, body):
     config: dict = ast.literal_eval(body.decode())
     # config中不含node或者node不是自己都丢弃
     if not config.__contains__('node') or config['node'] != node_instance_name:
         return
-    if config['status'] == 'Ready to Create':
+    instance_name = config['instance_name']
+    if config['behavior'] == 'create':
         print("接收到调度请求 Pod")
         # 是自己的调度，进行操作
         pods.append(entities.Pod(config))
-        print('{} create pod {}'.format(node_instance_name, config['instance_name']))
+        print('{} create pod {}'.format(node_instance_name, instance_name))
         # share.set('status', str(status))
+    elif config['behavior'] == 'remove':
+        print('try to delete Pod {}'.format(instance_name))
+        index, pod = get_pod_by_name(instance_name)
+        if index == -1:  # pod not found
+            return
+        pods.pop(index)
+        pod.remove()
+    elif config['behavior'] == 'execute':
+        # todo: check the logic here
+        print('try to execute Pod {}'.format(instance_name))
+        index, pod = get_pod_by_name(instance_name)
+        cmd = config['cmd']
+        pod.exec_run(cmd)
+
+
+
 
 
 def send_heart_beat():
@@ -47,7 +74,6 @@ def send_heart_beat():
     for pod in pods:
         pod_status_heartbeat = dict()
         pod_status = pod.get_status()
-        print("POD_STATUS")
         pod_status_heartbeat['instance_name'] = pod.instance_name
         pod_status_heartbeat['status'] = pod_status['status']
         pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
@@ -67,10 +93,10 @@ def send_heart_beat():
         exit()
 
 
-def main():
+def init_node():
+    # todo: add other logic here
     os.system('docker stop $(docker ps -a -q)')
     os.system('docker rm $(docker ps -a -q)')
-
     data = psutil.virtual_memory()
     total = data.total  # 总内存,单位为byte
     free = data.available  # 可用内存
@@ -88,6 +114,8 @@ def main():
         print("kubelet节点注册失败")
         exit()
 
+def main():
+    init_node()
     # 创建socket链接,声明管道
     connect = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
     channel = connect.channel()
