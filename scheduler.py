@@ -21,6 +21,8 @@ def callback(ch, method, properties, body):
         instance_name = config['instance_name']
         mem_need = parse_bytes(config['mem'])
         config['status'] = 'Schedule Failed'
+        if len(nodes_dict['nodes_list']) == 0:
+            print("no node registered !")
         for node_instance_name in nodes_dict['nodes_list']:
             current_node = nodes_dict[node_instance_name]
             print("free_memory = {}, need_memory = {}".format(current_node['free_memory'], mem_need))
