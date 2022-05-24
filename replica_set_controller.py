@@ -49,20 +49,17 @@ def main():
 
             # print("config = ", replica_config['pod_instances'])
             expected_replica_number = replica_config['spec']['replicas']
-            current_replica_number = 0
-            remove_index = list()
+            alive_pod_instances = list()
             for index, pod_instance_name in enumerate(replica_config['pod_instances']):
-                pod_instance_config = replica_set_dict[pod_instance_name]
-                # todo : check the status of the pod
-                if pod_instance_config.__contains__('node') and pod_instance_config['node'] != 'NOT AVAILABLE':
-                    current_replica_number += 1
-                else:
-                    remove_index.append(index)
-            remove_index.reverse()
-            for index in remove_index:
-                replica_config['pod_instances'].pop(index)
-            print("Replica Set need create {} new instances".format(str(expected_replica_number - current_replica_number)))
-            while current_replica_number < expected_replica_number:
+                if replica_set_dict.__contains__(pod_instance_name):
+                    pod_instance_config = replica_set_dict[pod_instance_name]
+                    # todo : check the status of the pod
+                    pod_status = pod_instance_config['status']
+                    if pod_status == 'Wait for Schedule' or pod_status == 'Ready to Create' or pod_status == 'Running':
+                        alive_pod_instances.append(pod_instance_name)
+            replica_config['pod_instances'] = alive_pod_instances
+            print("Replica Set need create {} new instances".format(str(expected_replica_number - len(alive_pod_instances))))
+            while len(replica_config['pod_instances']) < expected_replica_number:
                 pod_config = copy.deepcopy(replica_config)
                 pod_config['kind'] = 'Pod'
                 pod_config.pop('spec')
@@ -72,7 +69,6 @@ def main():
                 pod_instance_name = json.loads(r.content.decode('UTF-8'))['instance_name']
                 print("pod_instance_name = {}".format(pod_instance_name))
                 replica_config['pod_instances'].append(pod_instance_name)
-                current_replica_number += 1
             url = "http://127.0.0.1:5050/ReplicaSet/{}".format(replica_config['instance_name'])
             json_data = json.dumps(replica_config)
             r = requests.post(url=url, json=json_data)

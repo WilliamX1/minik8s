@@ -113,7 +113,8 @@ class Pod:
 
         # 创建容器配置参数
         volumes = set()
-        volumes.add(self._volume)
+        if self._volume:
+            volumes.add(self._volume)
         for containercfg in containercfgs:
             container = Container(containercfg['name'], self.instance_name, containercfg['image'],
                                   containercfg['command'],

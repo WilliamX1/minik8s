@@ -1,0 +1,17 @@
+kind: ReplicaSet
+name: dns-nginx-server-pod
+cpu: 1
+mem: 1500m
+metadata:
+  labels:
+    app: dns-nginx-server-pod
+spec:
+  replicas: 1
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 80

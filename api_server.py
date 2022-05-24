@@ -77,7 +77,7 @@ def get_all():
 def get_pods():
     result = dict()
     result['pods_list'] = etcd_supplant['pods_list']
-    for pod_instance_name in result['pods_list']:
+    for pod_instance_name in etcd_supplant['pods_list']:
         if etcd_supplant.__contains__(pod_instance_name):
             result[pod_instance_name] = etcd_supplant[pod_instance_name]
     return json.dumps(result), 200
@@ -233,8 +233,19 @@ def post_pod(instance_name: str, behavior: str):
         config['behavior'] = 'execute'
         config['cmd'] = upload_cmd['cmd']
         etcd_supplant[instance_name] = config
+    elif behavior == 'delete':
+        # delete the config
+        index = -1
+        for i in range(len(etcd_supplant['pods_list'])):
+            if instance_name == etcd_supplant['pods_list'][i]:
+                index = i
+                break
+        if index != -1:
+            etcd_supplant['pods_list'].pop(index)
+        etcd_supplant.pop(instance_name)
+        return json.dumps(dict()), 200
     else:
-        return 404
+        return json.dumps(dict()), 404
     broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 

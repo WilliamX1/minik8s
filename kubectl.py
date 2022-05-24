@@ -32,7 +32,7 @@ def main():
         exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
         help_match = re.fullmatch(r'help', cmd.strip(), re.I)
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
-        show_match = re.fullmatch(r'show *(pods|services)', cmd.strip(), re.I)
+        show_match = re.fullmatch(r'show *(pods|services|replicasets)', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         normal_command_match = re.fullmatch(r'(start|remove) *(pod|service) *([\w-]*)', cmd.strip(), re.I)
 
@@ -47,22 +47,33 @@ def main():
             if object_type == "pods":
                 r = requests.get(url=api_server_url + 'Pod')
                 pods_dict = json.loads(r.content.decode('UTF-8'))
-                print("{0:50}{1:30}{2:30}".format('name', 'status', 'created time'))
+                print("{0:100}{1:30}{2:30}".format('name', 'status', 'created time'))
                 for pod_instance_name in pods_dict['pods_list']:
                     pod_config = pods_dict[pod_instance_name]
                     created_time = int(time.time() - pod_config['created_time'])
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                    print(f"{pod_instance_name:50}{pod_config['status']:30}{created_time.strip():30}")
+                    print(f"{pod_instance_name:100}{pod_config['status']:30}{created_time.strip():30}")
             elif object_type == "services":
                 r = requests.get(url=api_server_url + 'Service')
                 service_dict = json.loads(r.content.decode('UTF-8'))
-                print("{0:50}{1:30}{2:30}".format('name', 'status', 'created time'))
+                print("{0:100}{1:30}{2:30}".format('name', 'status', 'created time'))
                 for service_instance_name in service_dict['services_list']:
                     service_config = service_dict[service_instance_name]
                     service_status = 'TO DO'  # todo
                     created_time = int(time.time() - service_config['created_time'])
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                    print(f"{service_instance_name:50}{service_status:30}{created_time.strip():30}")
+                    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}")
+            elif object_type == 'replicasets':
+                r = requests.get(url=api_server_url + 'ReplicaSet')
+                rc_dict = json.loads(r.content.decode('UTF-8'))
+                print("{0:100}{1:30}{2:30}{3:15}".format('name', 'status', 'created time', 'replicas'))
+                for rc_instance_name in rc_dict['replica_sets_list']:
+                    rc_config = rc_dict[rc_instance_name]
+                    rc_status = 'TO DO'  # todo
+                    created_time = int(time.time() - rc_config['created_time'])
+                    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+                    replicas = str(rc_config['spec']['replicas']).strip()
+                    print(f"{rc_instance_name:100}{rc_status:30}{created_time.strip():30}{replicas:15}")
             else:
                 # todo : handle other types
                 pass
