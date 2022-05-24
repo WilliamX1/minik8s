@@ -7,9 +7,6 @@ import random
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-backup = list()
-
-
 def alloc_service_clusterIP(service_dict: dict):
     """
     use etcd to record all used ip and try to allocate an ip begin with
@@ -26,7 +23,7 @@ def alloc_service_clusterIP(service_dict: dict):
 
     while max_alloc_num > 0:
         max_alloc_num -= 1
-        num0 = 10 # service ip should be like '10.xx.xx.xx'
+        num0 = 10  # service ip should be like '10.xx.xx.xx'
         num1 = random.randint(0, 255)
         num2 = random.randint(0, 255)
         num3 = random.randint(0, 255)
@@ -273,49 +270,15 @@ def create_service(service_config: dict, pods_dict: dict):
                  % (service_name, cluster_ip))
 
 
-def update_service(config_map):
+def rm_service(service_config: dict, pods_dict: dict):
     """
-    evaluate service's pods and flush iptables
-    :param config_map: config stored in etcd
-    :return:
-    """
-    # TODO: find pod config in etcd and match service selector with pod labels
-
-    # TODO: delete original pod iptables chain and rules
-
-    # TODO: set current pod iptables chain and rules
-    pass
-
-
-def stop_service(name):
-    # TODO: delete original pod iptables chain and rules
-
-    # TODO: set service state to `Stopped`
-    pass
-
-
-def restart_service(service_config: dict, pods_dict: dict, force=False):
-    """
-    used for restart an exist service, simply
-    delete all of the original iptable chains and rules
-    then use create_service..
-    :param force:
+    delete original iptables chains and rules
     :param service_config: dict {'kind': str, 'name': str, 'type': str,
         'selector': dict, 'ports': list, 'instance_name': str,
         'pod_instances': list, 'clusterIP': str}
     :param pods_dict: dict {'chain': list, 'rule': list}
     :return: None
     """
-    # compare iplist hash with current ip list
-    pod_ip_list = list()
-    for pod_instance in service_config['pod_instances']:
-        pod_ip_list.append(pods_dict[pod_instance]['ip'])
-
-    print(service_config['iphash'])
-    print(hash('.'.join(pod_ip_list)))
-    if force is False and service_config['iphash'] == hash('.'.join(pod_ip_list)):
-        print('here')
-        return
     # delete original chains and rules
     iptables = service_config['iptables']
     rules = iptables['rules']
@@ -326,7 +289,29 @@ def restart_service(service_config: dict, pods_dict: dict, force=False):
     chains = iptables['chains']
     for chain in chains:
         utils.delete_chain(chain['table'], chain['chain'])
-    service_config.pop('iptables')
+    return
+
+
+def restart_service(service_config: dict, pods_dict: dict, force=False):
+    """
+    used for restart an exist service, simply
+    delete all of the original iptable chains and rules
+    then use create_service..
+    :param force: flush service immediately regardless of pod scale
+    :param service_config: dict {'kind': str, 'name': str, 'type': str,
+        'selector': dict, 'ports': list, 'instance_name': str,
+        'pod_instances': list, 'clusterIP': str}
+    :param pods_dict: dict {'chain': list, 'rule': list}
+    :return: None
+    """
+    # compare iplist hash with current ip list
+    pod_ip_list = list()
+    for pod_instance in service_config['pod_instances']:
+        pod_ip_list.append(pods_dict[pod_instance]['ip'])
+    if force is False and service_config['iphash'] == hash('.'.join(pod_ip_list)):
+        return
+    # delete original chains and rules
+    rm_service(service_config, pods_dict)
     # restart this service using create_service
     create_service(service_config, pods_dict)
     return
@@ -337,15 +322,6 @@ def get_service(name):
     get service running state by service name
     :param name: target service name
     :return: a list of service running state
-    """
-    pass
-
-
-def rm_service(name):
-    """
-    stop service and remove service from etcd forever
-    :param name:
-    :return:
     """
     pass
 

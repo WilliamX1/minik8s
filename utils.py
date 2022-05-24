@@ -28,7 +28,7 @@ def generate_random_str(randomlength=16, opts=0):
     return random_str
 
 
-def exec_command(command):
+def exec_command(command: list):
     logging.info("Execute Command > " + ' '.join(command))
     p = subprocess.Popen(command, stdout=subprocess.PIPE)
     output, err = p.communicate()
