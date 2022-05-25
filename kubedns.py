@@ -28,7 +28,7 @@ def format_conf(listen_port: int, host_name: str, paths: list):
     format_str  = "server {\n" \
                   "\tlisten %s;\n" \
                   "\tserver_name %s;\n" \
-                  "\tindex index.php index.html index.htm\n\n" % (str(listen_port), host_name)
+                  "\tindex index.php index.html index.htm;\n\n" % (str(listen_port), host_name)
     format_str = comment_str + format_str
     location_str = "\tlocation %s/ {\n" \
                    "\t\tproxy_pass http://%s:%s/;\n" \

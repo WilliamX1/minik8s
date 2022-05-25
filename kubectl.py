@@ -5,9 +5,11 @@ import os
 import time
 
 import requests
+import utils
 
 import yaml_loader
 import entities
+
 
 api_server_url = 'http://localhost:5050/'
 
@@ -54,15 +56,27 @@ def main():
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
                     print(f"{pod_instance_name:100}{pod_config['status']:30}{created_time.strip():30}")
             elif object_type == "services":
-                r = requests.get(url=api_server_url + 'Service')
-                service_dict = json.loads(r.content.decode('UTF-8'))
-                print("{0:100}{1:30}{2:30}".format('name', 'status', 'created time'))
+                service_dict = utils.get_service_dict(api_server_url=api_server_url)
+                print("{0:10}{1:10}{2:16}{3:8}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
+                                                                          'type', 'cluster IP', "external IP",
+                                                                          'port(s)'))
                 for service_instance_name in service_dict['services_list']:
                     service_config = service_dict[service_instance_name]
-                    service_status = 'TO DO'  # todo
+                    service_status = service_config['status']  # todo
                     created_time = int(time.time() - service_config['created_time'])
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}")
+                    type = '<none>' if service_config.get('type') is None else service_config['type']
+                    clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
+                    externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
+                    ports: dict = service_config.get('ports')
+                    show_ports = list()
+                    if ports is not None:
+                        for p in ports:
+                            format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
+                            show_ports.append(format)
+                    show_ports = ','.join(show_ports)
+                    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}"
+                          f"{type:12}{clusterIP:15}{externalIP:15}{show_ports:20}")
             elif object_type == 'replicasets':
                 r = requests.get(url=api_server_url + 'ReplicaSet')
                 rc_dict = json.loads(r.content.decode('UTF-8'))
@@ -79,14 +93,22 @@ def main():
                 pass
         elif normal_command_match:
             pass
-            cmd_type = normal_command_match.group(1)        # start or remove
-            object_type = normal_command_match.group(2)     # pod or service
-            instance_name = normal_command_match.group(3)     # instance_name
+            cmd_type = normal_command_match.group(1)  # start or remove
+            object_type = normal_command_match.group(2)  # pod or service
+            instance_name = normal_command_match.group(3)  # instance_name
             if object_type == 'pod':
                 json_data = json.dumps(dict())
                 r = requests.post(url=api_server_url + 'Pod/{}/{}'.format(instance_name, cmd_type), json=json_data)
 
-            # if object_type == 'service':
+            if object_type == 'service':
+                if cmd_type == 'remove':
+                    service_dict = utils.get_service_dict(api_server_url=api_server_url)
+                    if instance_name not in service_dict['services_list']:
+                        print("Service {} Not Found".format(instance_name))
+                    else:
+                        url = "{}/Service/{}/{}".format(api_server_url, instance_name, 'remove')
+                        config = service_dict[instance_name]
+                        utils.post(url=url, config=config)
             #     raise NotImplementedError
             # elif object_type == 'pod':
             #     pod = pods[object_name]

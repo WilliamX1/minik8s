@@ -173,15 +173,22 @@ def upload_service():
     config['instance_name'] = service_instance_name
     config['pod_instances'] = list()
     config['created_time'] = time.time()
+    config['status'] = 'Created'
     etcd_supplant['services_list'].append(service_instance_name)
     etcd_supplant[service_instance_name] = config
     return "Successfully create service instance {}".format(service_instance_name), 200
 
 
-@app.route('/Service/<string:instance_name>', methods=['POST'])
-def update_service(instance_name: str):
+@app.route('/Service/<string:instance_name>/<string:behavior>', methods=['POST'])
+def update_service(instance_name: str, behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
+    if behavior == 'create' or behavior == 'running':
+        config['status'] = 'Running'
+    elif behavior == 'remove':
+        config['status'] = 'Removed'
+    elif behavior == 'none':
+        config['status'] = 'None'
     etcd_supplant[instance_name] = config
     return "Successfully update service instance {}".format(instance_name), 200
 
