@@ -1,7 +1,12 @@
+import os
+
 from flask import Flask, redirect, url_for, request, jsonify, Response
 import json
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+
 # CORS(app, supports_credentials=True)
 
 
@@ -13,13 +18,21 @@ def execute_cmd():
     # todo : run the cmd
     return json.dumps(dict()), 200
 
-@app.route('/upload/serverless_script', methods=['POST'])
-def upload_script():
+
+@app.route('/ServerlessFunction/<string:instance_name>/upload', methods=['POST'])
+def upload_script(instance_name: str):
     # todo : add serverless logic here
-    pass
+    f = request.files['file']
+    print(request.files)
+    f.save('./tmp/' + secure_filename('{}.py'.format(instance_name)))
+    os.system("cd tmp && docker build . -t {}".format(instance_name))
+    # we will build a docker image with tag: <instance_name>:latest here
+    return 'file uploaded successfully'
+
 
 def main():
-    app.run(port=5050, processes=True)
+    app.run(port=5051, processes=True)
+
 
 if __name__ == '__main__':
     main()
