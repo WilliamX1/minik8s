@@ -1,0 +1,7 @@
+kind: Dns
+name: xhd-dns
+host: nginx-service.com
+paths:
+  - path: /dd
+    service_name: dns-nginx-server-service
+    service_port: 80

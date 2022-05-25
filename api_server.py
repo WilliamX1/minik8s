@@ -103,17 +103,18 @@ def get_dns():
     return json.dumps(result), 200
 
 
-@app.route('/DnsConfig', methods=['GET'])
+@app.route('/Dns/Config', methods=['GET'])
 def get_dns_config():
     result = etcd_supplant['dns_config']
     return json.dumps(result), 200
 
 
-@app.route('/DnsConfig', methods=['POST'])
+@app.route('/Dns/Config', methods=['POST'])
 def post_dns_config():
     json_data = request.json
     config: dict = json.loads(json_data)
-    etcd_supplant['dns_config'] = config
+    for key, item in config.items():
+        etcd_supplant['dns_config'][key] = item
 
 
 @app.route('/ReplicaSet', methods=['GET'])

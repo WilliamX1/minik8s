@@ -2,12 +2,15 @@ import os
 
 from flask import Flask, redirect, url_for, request, jsonify, Response
 import json
+import utils
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
 
 # CORS(app, supports_credentials=True)
+
+worker_url = "http://127.0.0.1:5051"
 
 
 @app.route('/cmd', methods=['POST'])
@@ -16,6 +19,7 @@ def execute_cmd():
     config: dict = json.loads(json_data)
     cmd = config['cmd']
     # todo : run the cmd
+    utils.exec_command(cmd)
     return json.dumps(dict()), 200
 
 
@@ -28,6 +32,7 @@ def upload_script(instance_name: str):
     os.system("cd tmp && docker build . -t {}".format(instance_name))
     # we will build a docker image with tag: <instance_name>:latest here
     return 'file uploaded successfully'
+
 
 
 def main():

@@ -1,12 +1,14 @@
 kind: ReplicaSet
 name: dns-nginx-server-pod
+volume:
+  - $/dns/conf/:/etc/nginx/conf.d/
 cpu: 1
 mem: 1500m
 metadata:
   labels:
-    app: dns-nginx-server-pod
+    app: dns-nginx-server
 spec:
-  replicas: 1
+  replicas: 2
 containers:
   - name: nginx
     image: nginx
