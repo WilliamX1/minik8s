@@ -25,13 +25,14 @@ def format_conf(listen_port: int, host_name: str, paths: list):
     :return: format string which can be written into a file directly
     """
     comment_str = "# %s.conf\n" % host_name
-    format_str = "server {\n" \
-                 "\tlisten %s;\n" \
-                 "\tserver_name %s;\n\n" % (str(listen_port), host_name)
+    format_str  = "server {\n" \
+                  "\tlisten %s;\n" \
+                  "\tserver_name %s;\n" \
+                  "\tindex index.php index.html index.htm\n\n" % (str(listen_port), host_name)
     format_str = comment_str + format_str
-    location_str = "\tlocation %s {\n" \
-                   "\t\tproxy_pass %s:%s;\n" \
-                   "}\n"
+    location_str = "\tlocation %s/ {\n" \
+                   "\t\tproxy_pass http://%s:%s/;\n" \
+                   "\t}\n"
     for p in paths:
         path = p['path']
         if path[0] != '/':  # path must be start with '/'
@@ -39,6 +40,7 @@ def format_conf(listen_port: int, host_name: str, paths: list):
         service_ip = p['service_ip']
         service_port = p['service_port']
         format_str += location_str % (path, service_ip, service_port)
+    format_str += "}"
     return format_str
 
 

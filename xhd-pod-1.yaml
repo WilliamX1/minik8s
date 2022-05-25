@@ -1,27 +1,25 @@
 # apiVersion: v1
-kind: ReplicaSet
+kind: Pod
 name: xhd-pod-1
-volume: '/home/xhd/docker_volumn'
+volume:
 cpu: 1
-mem: 15m
+mem: 600m
 metadata:
   labels:
     app: xhd
     version: major
-spec:
-  replicas: 1
 containers:
   - name: nginx
     image: nginx
     command:
     resource:
-      memory: 5m
+      memory: 20m
       cpu: 1
     port: 80
   - name: jetty
     image: jetty
     command:
     resource:
-      memory: 5m
-      cpu: 1
+      memory:
+      cpu:
     port: 8080

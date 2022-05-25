@@ -5,6 +5,3 @@ paths:
   - path: /dd
     service_name: dns-nginx-server-service
     service_port: 80
-  - path: /yy
-    service_name: xhd-service
-    service_port: 801

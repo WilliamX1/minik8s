@@ -84,10 +84,11 @@ class Pod:
         self.instance_name = config.get('instance_name')
         self._name = config.get('name')
         self._status = Status.RUNNING
-        self._volume: list = config.get('volume')
+        self._volume = config.get('volume')
         # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
+        if self._volume is None:
+            self._volume = list()
         self._volume = [v.replace("$", os.getcwd()) for v in self._volume]
-        print(self._volume)
         self._containers = []
         self._pause = None
         self._mem = config.get('mem')
@@ -124,7 +125,7 @@ class Pod:
             container = self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
                                                     volumes=self._volume,
                                                     # cpuset_cpus=container.cpu(),
-                                                    mem_limit=parse_bytes(container.memory()),
+                                                    # mem_limit=parse_bytes(container.memory()),
                                                     detach=True,
                                                     # auto_remove=True,
                                                     command=container.command(),

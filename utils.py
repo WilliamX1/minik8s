@@ -67,7 +67,8 @@ def generate_random_str(randomlength=16, opts=0):
 
 def exec_command(command: list):
     logging.info("Execute Command > " + ' '.join(command))
-    p = subprocess.Popen(command, stdout=subprocess.PIPE)
+    print(command)
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     output, err = p.communicate()
     if str(output, 'utf-8') != "":
         logging.info("output: %s" % str(output))
