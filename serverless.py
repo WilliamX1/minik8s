@@ -2,7 +2,7 @@ import re
 from typing import List
 
 
-class Node(object):
+class ServerlessFunction(object):
     def __init__(self, index, name, node_type, module_name=None, function_name=None):
         self.index = index
         self.name = name
@@ -18,7 +18,7 @@ class Node(object):
         node_type = init_dict['type']
 
         if node_type == 'input' or node_type == 'output':
-            return Node(node_id, node_name, node_type)
+            return ServerlessFunction(node_id, node_name, node_type)
         else:
             match_ = re.fullmatch(r'(\w*)\.(\w*)', node_name.strip(), re.I)
             if match_:
@@ -26,7 +26,7 @@ class Node(object):
                 function_name = match_.group(2)
                 print("module_name = {}".format(module_name))
                 print("function_name = {}".format(function_name))
-                return Node(node_id, node_name, node_type, module_name, function_name)
+                return ServerlessFunction(node_id, node_name, node_type, module_name, function_name)
             else:
                 print("match error")
                 return None
@@ -62,14 +62,14 @@ class Edge(object):
         return {'index': self.index, 'source': self.source, 'target': self.target, 'condition': self.condition}.__str__()
 
 class DAG(object):
-    def __init__(self, start_node: Node, end_node: Node, node_list: List[Node], edge_list: List[Edge]):
+    def __init__(self, start_node: ServerlessFunction, end_node: ServerlessFunction, node_list: List[ServerlessFunction], edge_list: List[Edge]):
         self.start_node = start_node
         self.end_node = end_node
         self.node_list = node_list
         self.edge_list = edge_list
 
     @staticmethod
-    def from_node_list_and_edge_list(node_list: List[Node], edge_list: List[Edge]):
+    def from_node_list_and_edge_list(node_list: List[ServerlessFunction], edge_list: List[Edge]):
         start_node = None
         end_node = None
         for node in node_list:

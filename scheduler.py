@@ -14,7 +14,6 @@ api_server_url = 'http://localhost:5050/'
 # 回调函数
 def callback(ch, method, properties, body):
     config: dict = ast.literal_eval(body.decode())
-
     if config['kind'] == 'Pod' and config['status'] == 'Wait for Schedule':
         r = requests.get(url=api_server_url + 'Node')
         nodes_dict = json.loads(r.content.decode('UTF-8'))
