@@ -1,7 +1,10 @@
 kind: Dns
 name: xhd-dns
-host: 'minik8s.com'
+host: nginx-service.com
 paths:
-  - path: '/dd'
-    service_name: 'xhd-service'
-    service_port: 801
+  - path: /dd
+    service_name: dns-nginx-server-service
+    service_port: 80
+  - path: /yy
+    service_name: xhd-service
+    service_port:8080

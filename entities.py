@@ -84,8 +84,10 @@ class Pod:
         self.instance_name = config.get('instance_name')
         self._name = config.get('name')
         self._status = Status.RUNNING
-        self._volume = config.get('volume').replace("$/", os.getcwd())
+        self._volume: list = config.get('volume')
         # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
+        self._volume = [v.replace("$", os.getcwd()) for v in self._volume]
+        print(self._volume)
         self._containers = []
         self._pause = None
         self._mem = config.get('mem')
@@ -112,9 +114,6 @@ class Pod:
         containercfgs = config.get('containers')
 
         # 创建容器配置参数
-        volumes = set()
-        if self._volume:
-            volumes.add(self._volume)
         for containercfg in containercfgs:
             container = Container(containercfg['name'], self.instance_name, containercfg['image'],
                                   containercfg['command'],
@@ -123,7 +122,7 @@ class Pod:
             self._cpu[containercfg['name']] = containercfg['resource']['cpu']
             self._containers.append(container)
             container = self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
-                                                    volumes=list(volumes),
+                                                    volumes=self._volume,
                                                     # cpuset_cpus=container.cpu(),
                                                     mem_limit=parse_bytes(container.memory()),
                                                     detach=True,
@@ -142,7 +141,7 @@ class Pod:
     def status(self):
         return self._status
 
-    def volume(self):
+    def volume(self) -> list:
         return self._volume
 
     def contains(self):

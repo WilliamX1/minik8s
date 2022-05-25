@@ -1,6 +1,43 @@
 import logging
 import random
 import subprocess
+import requests
+import json
+
+
+def get(url: str):
+    try:
+        r = requests.get(url=url)
+        config_dict = json.loads(r.content.decode('UTF-8'))
+    except Exception as e:
+        print('Connect to %s Failure' % url)
+        return None
+    return config_dict
+
+
+def get_pod_dict(api_server_url):
+    url = api_server_url + 'Pod'
+    return get(url)
+
+
+def get_service_dict(api_server_url):
+    url = api_server_url + 'Service'
+    return get(url)
+
+
+def get_dns_dict(api_server_url):
+    url = api_server_url + 'Dns'
+    return get(url)
+
+
+def get_dns_config_dict(api_server_url):
+    url = api_server_url + 'Dns/Config'
+    return get(url)
+
+
+def post(url: str, config: dict):
+    json_data = json.dumps(config)
+    r = requests.post(url=url, json=json_data)
 
 
 def generate_random_str(randomlength=16, opts=0):

@@ -289,7 +289,7 @@ def rm_service(service_config: dict, pods_dict: dict):
     chains = iptables['chains']
     for chain in chains:
         utils.delete_chain(chain['table'], chain['chain'])
-    return
+    return True
 
 
 def restart_service(service_config: dict, pods_dict: dict, force=False):
@@ -302,19 +302,19 @@ def restart_service(service_config: dict, pods_dict: dict, force=False):
         'selector': dict, 'ports': list, 'instance_name': str,
         'pod_instances': list, 'clusterIP': str}
     :param pods_dict: dict {'chain': list, 'rule': list}
-    :return: None
+    :return: a flag indicating whether change the service
     """
     # compare iplist hash with current ip list
     pod_ip_list = list()
     for pod_instance in service_config['pod_instances']:
         pod_ip_list.append(pods_dict[pod_instance]['ip'])
     if force is False and service_config['iphash'] == hash('.'.join(pod_ip_list)):
-        return
+        return False
     # delete original chains and rules
     rm_service(service_config, pods_dict)
     # restart this service using create_service
     create_service(service_config, pods_dict)
-    return
+    return True
 
 
 def get_service(name):

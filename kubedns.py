@@ -1,10 +1,11 @@
 import logging
+import os
 
 import utils
 
 
 dns_port = 80
-conf_path = '$PWD/dns/conf'
+conf_path = '/'.join([os.getcwd(), 'dns', 'conf'])
 
 
 def format_conf(listen_port: int, host_name: str, paths: list):
@@ -28,8 +29,8 @@ def format_conf(listen_port: int, host_name: str, paths: list):
                  "\tlisten %s;\n" \
                  "\tserver_name %s;\n\n" % (str(listen_port), host_name)
     format_str = comment_str + format_str
-    location_str = "location %s {\n" \
-                   "\tproxy_pass %s:%s;\n" \
+    location_str = "\tlocation %s {\n" \
+                   "\t\tproxy_pass %s:%s;\n" \
                    "}\n"
     for p in paths:
         path = p['path']
@@ -68,14 +69,15 @@ def create_dns(dns_config: dict, service_dict: dict):
     host = dns_config['host']
     paths = dns_config['paths']
     for p in paths:
-        service_name = paths['service_name']
-        for svc_name in service_dict['service_list']:
-            if svc_name == service_name:
-                p['service_ip'] = service_dict[svc_name]['ClusterIP']
+        service_name = p['service_name']
+        for svc_name in service_dict['services_list']:
+            if service_dict[svc_name]['name'] == service_name:
+                print(service_dict[svc_name])
+                p['service_ip'] = service_dict[svc_name]['clusterIP']
                 break
         if p.get('service_ip') is None:
             logging.warning('No Available Service %s Found for DNS' % service_name)
-            return
+            return False
     create_conf(listen_port=dns_port, host_name=host, paths=paths)
-
+    return True
 
