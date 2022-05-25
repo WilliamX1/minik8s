@@ -4,7 +4,7 @@ import json
 import pika
 import uuid
 import etcd3
-from serverless import Node, Edge, DAG
+from serverless import ServerlessFunction, Edge, DAG
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
@@ -204,6 +204,8 @@ def update_dns(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)
     etcd_supplant[instance_name] = config
+
+    broadcast_message('Dns', config.__str__())
     return "Successfully update dns instance {}".format(instance_name)
 
 
@@ -260,12 +262,14 @@ def get_dag(dag_name: str):
     else:
         raise NotImplementedError
 
+def run_serverless_function(serverless_function: ServerlessFunction):
+    pass
 
 @app.route('/DAG/run/<string:dag_name>', methods=['GET'])
 def run_DAG(dag_name: str):
     my_dag: DAG = etcd_supplant[dag_name]
     current_node = start_node = my_dag.start_node
-    end_node: Node = my_dag.end_node
+    end_node: ServerlessFunction = my_dag.end_node
     while current_node != end_node:
         # result = current_
         pass
@@ -292,10 +296,10 @@ def upload(dag_name: str):
     for element in elements:
         element_id = element['id']
         if element.__contains__('position'):  # node
-            node = Node.from_dict(element, node_name=name_dict[element_id])
-            if node:
-                node_list.append(node)
-                node_dict[element_id] = node
+            serverless_function = ServerlessFunction.from_dict(element, node_name=name_dict[element_id])
+            if serverless_function:
+                node_list.append(serverless_function)
+                node_dict[element_id] = serverless_function
             else:
                 return "Node match error", 404
         elif element.__contains__('source'):  # edge

@@ -35,6 +35,8 @@ def get_pod_by_name(instance_name: str):
 # 回调函数
 def hand_pods(ch, method, properties, body):
     config: dict = ast.literal_eval(body.decode())
+
+    print("get broadcast ", config)
     # config中不含node或者node不是自己都丢弃
     if not config.__contains__('node') or config['node'] != node_instance_name:
         return
@@ -123,8 +125,8 @@ def main():
     channel.exchange_declare(exchange="Pod", exchange_type="fanout")
     # rabbit会随机分配一个名字, exclusive=True会在使用此queue的消费者断开后,自动将queue删除，result是queue的对象实例
     result = channel.queue_declare(queue="")  # 参数 exclusive=True 独家唯一的
-    queue_name = result.method.queue
-    # 绑定pods频道
+    queue_name = result.method.queue    # 绑定pods频道
+
     channel.queue_bind(exchange="Pod", queue=queue_name)
     # 消费信息
     channel.basic_consume(on_message_callback=hand_pods, queue=queue_name, auto_ack=True)
