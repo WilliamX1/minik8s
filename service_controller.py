@@ -23,8 +23,7 @@ def _create(service_dict: dict, service_config: dict, pods_dict: dict):
         logging.warning('Service cluster IP not starts with {}, trying to reallocate...'
                         .format(kubeproxy.service_clusterIP_prefix))
         service_config['clusterIP'], _ = kubeproxy.alloc_service_clusterIP(service_dict)
-    # add service status
-    service_config['status'] = 'Created'
+    # service status
     selector: dict = service_config['selector']
     pod_instances = list()
     for pod_instance_name in pods_dict['pods_list']:
@@ -50,11 +49,13 @@ def _create(service_dict: dict, service_config: dict, pods_dict: dict):
             pod_instances.append(pod_instance_name)
     service_config['pod_instances'] = pod_instances
     print("matched pod = ", pod_instances)
-    # implement the service forward logic
-    if service_config.get('iptables') is None:
-        kubeproxy.create_service(service_config, pods_dict)
-    else:
-        kubeproxy.restart_service(service_config, pods_dict)
+
+    for worker_url in const.worker_url_list:
+        url = "{}/update_iptables".format(worker_url)
+        config = dict()
+        config['service_config'] = service_config
+        config['pods_dict'] = pods_dict
+        utils.post(url=url, config=config)
     url = "{}/Service/{}/{}".format(api_server_url, service_config['instance_name'], 'running')
     utils.post(url=url, config=service_config)
 

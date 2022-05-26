@@ -12,7 +12,6 @@ import yaml_loader
 import worker_server
 import const
 
-
 api_server_url = const.api_server_url
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
@@ -27,10 +26,6 @@ def init_dns_server():
     - start a dns for this service, default is 1`ns-nginx-server-service`
     :return: None
     """
-    config: dict = yaml_loader.load("./dns/dns-nginx-server-replica-set.yaml")
-    url = "{}/ReplicaSet".format(api_server_url)
-    utils.post(url=url, config=config)
-
     config: dict = yaml_loader.load("./dns/dns-nginx-server-service.yaml")
     url = "{}/Service".format(api_server_url)
     utils.post(url=url, config=config)
@@ -44,6 +39,17 @@ def init_dns_server():
     config: dict = yaml_loader.load('./dns/dns-nginx-server-dns.yaml')
     url = "{}/Dns".format(api_server_url)
     utils.post(url=url, config=config)
+
+    # config: dict = yaml_loader.load("./dns/dns-nginx-server-replica-set.yaml")
+    # url = "{}/ReplicaSet".format(api_server_url)
+    config: dict = yaml_loader.load("./dns/dns-nginx-server-pod.yaml")
+    url = "{}/Pod".format(api_server_url)
+    utils.post(url=url, config=config)
+
+    while utils.get_dns_config_dict(api_server_url=api_server_url).get('dns-server-ip') is None:
+        print("waiting")
+        time.sleep(2)
+        continue
 
 
 def update_etc_hosts(hosts=True):
@@ -100,6 +106,27 @@ def update_nginx_service():
                 utils.post(url=url, config=upload_cmd)
 
 
+def _create(dns_config: dict, dns_config_dict: dict, service_dict: dict, etc_hosts_list: list):
+    # create dns conf file
+    kubedns.create_dns(dns_config=dns_config, service_dict=service_dict)
+    # format /etc/hosts file string
+    etc_hosts_list.append('{} {}'.format(dns_config_dict['dns-server-ip'], dns_config['host']))
+    # post requests to api_server
+    url = "{}/Dns/{}/{}".format(api_server_url, dns_config['instance_name'], 'running')
+    utils.post(url=url, config=dns_config)
+
+
+def _remove(dns_config: dict):
+    kubedns.rm_dns(dns_config=dns_config)
+    url = "{}/Dns/{}/{}".format(api_server_url, dns_config['instance_name'], 'none')
+    utils.post(url=url, config=dns_config)
+
+
+def _none():
+    # do nothing
+    pass
+
+
 def main():
     last_time = 0.0
     while True:
@@ -123,16 +150,16 @@ def main():
         etc_hosts_list = list()
         for dns_instance in dns_dict['dns_list']:
             dns_config: dict = dns_dict[dns_instance]
-            # add dns status
-            dns_config['status'] = 'Created'
-            # create dns conf file
-            kubedns.create_dns(dns_config=dns_dict[dns_instance], service_dict=service_dict)
-            # format /etc/hosts file string
-            etc_hosts_list.append('{} {}'.format(dns_config_dict['dns-server-ip'], dns_config['host']))
-            # post requests to api_server
-            url = "{}/Dns/{}".format(api_server_url, dns_config['instance_name'])
-            utils.post(url=url, config=dns_config)
-        # Update dns_config_dict, focues on 'dns-hash' please
+            # dns status
+            status = dns_config['status']
+            if status == 'Created' or status == 'Running':
+                _create(dns_config=dns_config, dns_config_dict=dns_config_dict,
+                        service_dict=service_dict, etc_hosts_list=etc_hosts_list)
+            elif status == 'Removed':
+                _remove(dns_config=dns_config)
+            elif status == 'None':
+                _none()
+        # Update dns_config_dict, focus on 'dns-hash' please
         dns_config_dict['etc-hosts-path'] = '/etc/hosts'
         dns_config_dict['etc-hosts-list'] = etc_hosts_list
         dns_config_dict['dns-hash'] = hash('.'.join(dns_dict['dns_list']))
@@ -140,7 +167,7 @@ def main():
         utils.post(url=url, config=dns_config_dict)
 
         # update nginx service to exec `nginx -s reload`
-        update_nginx_service()
+        # update_nginx_service()
         # update every container to exec `echo ... > /etc/hosts`
         update_etc_hosts(hosts=False)
         # update every node to exec `echo ... > /etc/hosts`

@@ -145,6 +145,7 @@ def post_pods():
     print("create {}".format(instance_name))
     etcd_supplant['pods_list'].append(instance_name)
     etcd_supplant[instance_name] = config
+    print("BroadCast_Message Pod")
     broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
@@ -203,22 +204,28 @@ def upload_dns():
     config['instance_name'] = dns_instance_name
     config['service_instances'] = list()
     config['created_time'] = time.time()
+    config['status'] = 'Created'
     etcd_supplant['dns_list'].append(dns_instance_name)
     etcd_supplant[dns_instance_name] = config
     return "Successfully create dns instance {}".format(dns_instance_name), 200
 
 
-@app.route('/Dns/<string:instance_name>', methods=['POST'])
-def update_dns(instance_name: str):
+@app.route('/Dns/<string:instance_name>/<string:behavior>', methods=['POST'])
+def update_dns(instance_name: str, behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
+    if behavior == 'create' or 'behavior' == 'running':
+        config['status'] = 'Running'
+    elif behavior == 'remove':
+        config['status'] = 'Removed'
+    elif behavior == 'none':
+        config['status'] = 'None'
     etcd_supplant[instance_name] = config
-
-    broadcast_message('Dns', config.__str__())
+    # broadcast_message('Dns', config.__str__())
     return "Successfully update dns instance {}".format(instance_name)
 
 
-@app.route('/ReplicaSet/<string:instance_name>', methods=['POST'])
+@app.route('/ReplicaSet/<string:instance_name>/', methods=['POST'])
 def update_replica_set(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)

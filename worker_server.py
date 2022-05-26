@@ -6,13 +6,14 @@ import json
 import const
 import utils
 from werkzeug.utils import secure_filename
+import kubeproxy
 
 app = Flask(__name__)
 
 
 # CORS(app, supports_credentials=True)
 
-worker_url = const.worker0_url
+worker_url = const.worker_url_list[0]
 
 
 @app.route('/cmd', methods=['POST'])
@@ -20,9 +21,21 @@ def execute_cmd():
     json_data = request.json
     config: dict = json.loads(json_data)
     cmd = config['cmd']
-    # todo : run the cmd
     utils.exec_command(cmd, True)
     return json.dumps(dict()), 200
+
+
+@app.route('/update_iptables', methods=['POST'])
+def update_iptables():
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    service_config = config['service_config']
+    pods_dict = config['pods_dict']
+    # implement the service forward logic
+    if service_config.get('iptables') is None:
+        kubeproxy.create_service(service_config, pods_dict)
+    else:
+        kubeproxy.restart_service(service_config, pods_dict)
 
 
 @app.route('/ServerlessFunction/<string:instance_name>/upload', methods=['POST'])

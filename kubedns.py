@@ -58,6 +58,7 @@ def create_conf(listen_port: int, host_name: str, paths: list):
     f = open(file_path, 'w')
     f.write(format_str)
     f.close()
+    return file_path
 
 
 def create_dns(dns_config: dict, service_dict: dict):
@@ -86,9 +87,13 @@ def create_dns(dns_config: dict, service_dict: dict):
         if p.get('service_ip') is None:
             logging.warning('Currently No Available Service {} Found for DNS'.format(service_name))
             return False
-    create_conf(listen_port=dns_port, host_name=host, paths=paths)
+    dns_config['conf-path'] = create_conf(listen_port=dns_port, host_name=host, paths=paths)
     return True
 
 
 def get_dns(dns_dict: dict):
     pass
+
+
+def rm_dns(dns_config: dict):
+    os.remove(dns_config['conf-path'])
