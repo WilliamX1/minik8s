@@ -7,15 +7,18 @@ import requests
 import json
 import six
 import sys
+
+import const
 from entities import parse_bytes
 
-api_server_url = 'http://localhost:5050/'
+api_server_url = const.api_server_url
+
 
 # 回调函数
 def callback(ch, method, properties, body):
     config: dict = ast.literal_eval(body.decode())
     if config['kind'] == 'Pod' and config['status'] == 'Wait for Schedule':
-        r = requests.get(url=api_server_url + 'Node')
+        r = requests.get(url='{}/Node'.format(api_server_url))
         nodes_dict = json.loads(r.content.decode('UTF-8'))
         instance_name = config['instance_name']
         mem_need = parse_bytes(config['mem'])
@@ -33,7 +36,7 @@ def callback(ch, method, properties, body):
             print('把 pod {} 调度到节点 {} 上'.format(instance_name, config['node']))
         else:
             print("Schedule failure")
-        url = api_server_url + "Pod/{}/create".format(instance_name)
+        url = "{}/Pod/{}/create".format(api_server_url, instance_name)
         json_data = json.dumps(config)
         # 向api_server发送调度结果
         r = requests.post(url=url, json=json_data)
@@ -55,6 +58,7 @@ def main():
     channel.basic_consume(on_message_callback=callback, queue=queue_name, auto_ack=True)
     # 开始消费
     channel.start_consuming()
+
 
 if __name__ == '__main__':
     main()

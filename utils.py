@@ -16,22 +16,22 @@ def get(url: str):
 
 
 def get_pod_dict(api_server_url):
-    url = api_server_url + 'Pod'
+    url = '{}/Pod'.format(api_server_url)
     return get(url)
 
 
 def get_service_dict(api_server_url):
-    url = api_server_url + 'Service'
+    url = '{}/Service'.format(api_server_url)
     return get(url)
 
 
 def get_dns_dict(api_server_url):
-    url = api_server_url + 'Dns'
+    url = '{}/Dns'.format(api_server_url)
     return get(url)
 
 
 def get_dns_config_dict(api_server_url):
-    url = api_server_url + 'Dns/Config'
+    url = '{}/Dns/Config'.format(api_server_url)
     return get(url)
 
 
@@ -65,10 +65,10 @@ def generate_random_str(randomlength=16, opts=0):
     return random_str
 
 
-def exec_command(command: list):
+def exec_command(command: list, shell=False):
     logging.info("Execute Command > " + ' '.join(command))
     print(command)
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE)
     output, err = p.communicate()
     if str(output, 'utf-8') != "":
         logging.info("output: %s" % str(output))

@@ -4,6 +4,7 @@ import time
 
 import requests
 
+import const
 import scheduler
 import replica_set_controller
 import api_server
@@ -15,24 +16,7 @@ import garbage_collector
 import os
 
 
-def init_api_server():
-    # todo: upload the api service here
-    time.sleep(4)   # wait for api server to start
-    config: dict = yaml_loader.load("./dns/dns-nginx-server-service.yaml")
-    url = "http://127.0.0.1:5050/Service"
-    json_data = json.dumps(config)
-    r = requests.post(url=url, json=json_data)
-
-    config: dict = yaml_loader.load("./dns/dns-nginx-server-replica-set.yaml")
-    url = "http://127.0.0.1:5050/ReplicaSet"
-    json_data = json.dumps(config)
-    r = requests.post(url=url, json=json_data)
-
-    dns_config_dict = dict()
-    dns_config_dict['dns-server-ip'] = config['clusterIP']
-    url = "http://127.0.0.1:5050/DnsConfig"
-    json_data = json.dumps(dns_config_dict)
-    r = requests.post(url=url, json=json_data)
+api_server_url = const.api_server_url
 
 
 if __name__ == '__main__':
@@ -54,7 +38,5 @@ if __name__ == '__main__':
     pool.apply_async(func=dns_controller.main)
     pool.apply_async(func=node_controller.main)
     pool.apply_async(func=replica_set_controller.main)
-
-    init_api_server()
     pool.close()
     pool.join()

@@ -1,5 +1,5 @@
 kind: Dns
-name: xhd-dns
+name: dns-nginx-server-dns
 host: nginx-service.com
 paths:
   - path: /dd

@@ -2,15 +2,20 @@ import subprocess
 import utils
 import logging
 import random
+import const
+import time
 
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
+service_clusterIP_prefix = const.service_clusterIP_prefix
+default_iptables_path = const.service_iptables_save_path
 
 
 def alloc_service_clusterIP(service_dict: dict):
     """
     use etcd to record all used ip and try to allocate an ip begin with
-        `10.xx.xx.xx`, which is easy for the security group settings
+        `18.xx.xx.xx`, which is easy for the security group settings
     :return:
     """
     max_alloc_num = 1000  # if exceed this num, that might be not enough service ip
@@ -23,7 +28,7 @@ def alloc_service_clusterIP(service_dict: dict):
 
     while max_alloc_num > 0:
         max_alloc_num -= 1
-        num0 = 18  # service ip should be like '18.xx.xx.xx'
+        num0 = service_clusterIP_prefix  # service ip should be like '18.xx.xx.xx'
         num1 = random.randint(0, 255)
         num2 = random.randint(0, 255)
         num3 = random.randint(0, 255)
@@ -242,6 +247,7 @@ def create_service(service_config: dict, pods_dict: dict):
     :param pods_dict: dict {'chain': list, 'rule': list}
     :return: None
     """
+    print("HEHEHEHHEHEHEHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
 
     iptables = dict()
     iptables['chains'] = list()
@@ -270,13 +276,12 @@ def create_service(service_config: dict, pods_dict: dict):
                  % (service_name, cluster_ip))
 
 
-def rm_service(service_config: dict, pods_dict: dict):
+def rm_service(service_config: dict):
     """
     delete original iptables chains and rules
     :param service_config: dict {'kind': str, 'name': str, 'type': str,
         'selector': dict, 'ports': list, 'instance_name': str,
         'pod_instances': list, 'clusterIP': str}
-    :param pods_dict: dict {'chain': list, 'rule': list}
     :return: None
     """
     # delete original chains and rules
@@ -289,6 +294,7 @@ def rm_service(service_config: dict, pods_dict: dict):
     chains = iptables['chains']
     for chain in chains:
         utils.delete_chain(chain['table'], chain['chain'])
+    service_config['status'] = 'Removed'
     return True
 
 
@@ -311,19 +317,54 @@ def restart_service(service_config: dict, pods_dict: dict, force=False):
     if force is False and service_config['iphash'] == hash('.'.join(pod_ip_list)):
         return False
     # delete original chains and rules
-    rm_service(service_config, pods_dict)
+    rm_service(service_config)
     # restart this service using create_service
     create_service(service_config, pods_dict)
     return True
 
 
-def get_service(name):
+def describe_service(service_config: dict, service_instance_name: str, title=False):
     """
-    get service running state by service name
-    :param name: target service name
+    describe a service showing its info
+    | name | status | created time | type | cluster IP | external IP | port(s) |
+    :param service_config: service config from etcd
+    :param service_instance_name: service instance name with its suffix
+    :param title: a flag indicating whether to show the bar
+    :return: None
+    """
+    if title is True:
+        print("{0:10}{1:10}{2:16}{3:8}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
+                                                                 'type', 'cluster IP', "external IP",
+                                                                 'port(s)'))
+    service_status = service_config['status']  # todo
+    created_time = int(time.time() - service_config['created_time'])
+    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+    type = '<none>' if service_config.get('type') is None else service_config['type']
+    clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
+    externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
+    ports: dict = service_config.get('ports')
+    show_ports = list()
+    if ports is not None:
+        for p in ports:
+            format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
+            show_ports.append(format)
+    show_ports = ','.join(show_ports)
+    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}"
+          f"{type:12}{clusterIP:15}{externalIP:15}{show_ports:20}")
+
+
+def get_services(service_dict: dict):
+    """
+    get all services running state
+    :param service_dict:
     :return: a list of service running state
     """
-    pass
+    print("{0:10}{1:10}{2:16}{3:8}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
+                                                             'type', 'cluster IP', "external IP",
+                                                             'port(s)'))
+    for service_instance_name in service_dict['services_list']:
+        service_config = service_dict[service_instance_name]
+        describe_service(service_config=service_config, service_instance_name=service_instance_name, title=False)
 
 
 def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol,
@@ -337,7 +378,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     :param port: exposed service port, which can be visited by other pods by cluster_ip:port
     :param target_port: container runs on target_port actually, must be matched with `pod port`
                         if not matched, we can reject this request or just let it go depending on me
-    :param protocol: http
+    :param protocol: tcp/udp/all
     :param pod_ip_list: a list of pod ip address, which belongs to the service target pod
     :param strategy: service load balance strategy, which should be random/roundrobin
     :param ip_prefix_len: must be 32 here, so use default value please
@@ -443,9 +484,6 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                  % (service_name, cluster_ip, port, target_port, strategy))
 
 
-default_iptables_path = "./sources/iptables-script"
-
-
 def save_iptables(path=default_iptables_path):
     """
     save current iptables to disk file, equals to the command:
@@ -486,13 +524,15 @@ def clear_iptables():
 
 
 def example():
-    set_iptables_clusterIP(cluster_ip='10.1.2.3',
-                           service_name='you-service',
+    set_iptables_clusterIP(cluster_ip='18.255.255.255',
+                           service_name='example-service',
                            port=1111,
                            target_port=8080,
-                           ip_prefix_len=32,
+                           protocol='tcp',
                            pod_ip_list=['172.17.0.2', '172.17.0.4'],
-                           strategy='random')
+                           strategy='random',
+                           ip_prefix_len=32,
+                           iptables=None)
 
 
 if __name__ == '__main__':

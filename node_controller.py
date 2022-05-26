@@ -7,16 +7,19 @@ import requests
 import json
 import six
 import sys
+
+import const
 from entities import parse_bytes
 
-api_server_url = 'http://localhost:5050/'
+api_server_url = const.api_server_url
+
 
 def main():
     while True:
         time.sleep(1)
         nodes_dict = None
         try:
-            r = requests.get(url=api_server_url + 'Node')
+            r = requests.get(url='{}/Node'.format(api_server_url))
             nodes_dict = json.loads(r.content.decode('UTF-8'))
         except Exception as e:
             print('Connect API Server Failure!')
@@ -29,9 +32,10 @@ def main():
             if current_sec - last_receive_time > 20:
                 print("Node {} timeout!".format(node_instance_name))
                 try:
-                    r = requests.delete(url=api_server_url + 'Node/{}'.format(node_instance_name))
+                    r = requests.delete(url='{}/Node/{}'.format(api_server_url, node_instance_name))
                 except Exception as e:
                     print('Connect API Server Failure!')
+
 
 if __name__ == '__main__':
     main()

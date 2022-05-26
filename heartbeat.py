@@ -1,12 +1,16 @@
 import memcache
 import time
 import ast
+
+import const
 from kubelet import node_name
 import json
 import requests
 
 share = memcache.Client(["127.0.0.1:11211"], debug=True)
-url = "http://127.0.0.1:5050/heartbeat"
+api_server_url = const.api_server_url
+url = "{}/heartbeat".format(api_server_url)
+
 if __name__ == '__main__':
     while True:
         time.sleep(2)

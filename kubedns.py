@@ -1,11 +1,11 @@
 import logging
 import os
 
-import utils
+import const
 
 
-dns_port = 80
-conf_path = '/'.join([os.getcwd(), 'dns', 'conf'])
+dns_port = const.dns_port
+conf_path = const.dns_conf_path
 
 
 def format_conf(listen_port: int, host_name: str, paths: list):
@@ -28,7 +28,7 @@ def format_conf(listen_port: int, host_name: str, paths: list):
     format_str  = "server {\n" \
                   "\tlisten %s;\n" \
                   "\tserver_name %s;\n" \
-                  "\tindex index.php index.html index.htm\n\n" % (str(listen_port), host_name)
+                  "\tindex index.html index.htm;\n\n" % (str(listen_port), host_name)
     format_str = comment_str + format_str
     location_str = "\tlocation %s/ {\n" \
                    "\t\tproxy_pass http://%s:%s/;\n" \
@@ -45,6 +45,13 @@ def format_conf(listen_port: int, host_name: str, paths: list):
 
 
 def create_conf(listen_port: int, host_name: str, paths: list):
+    """
+    create a conf file in the folder ./minik8s/dns/conf
+    :param listen_port: must be 80 here
+    :param host_name: like `minik8s.com`
+    :param paths: subpath include `path`, `service_name` and `service_port`
+    :return:
+    """
     format_str = format_conf(listen_port, host_name, paths)
     file_name = "%s.conf" % host_name
     file_path = '/'.join([conf_path, file_name])
@@ -63,7 +70,7 @@ def create_dns(dns_config: dict, service_dict: dict):
         paths:
           - path: '/dd'
             service_name: 'xhd-service'
-            service_port: 801
+            service_port: 80
     :param service_dict: service dict to find corresponding service
     :return:
     """
@@ -74,12 +81,14 @@ def create_dns(dns_config: dict, service_dict: dict):
         service_name = p['service_name']
         for svc_name in service_dict['services_list']:
             if service_dict[svc_name]['name'] == service_name:
-                print(service_dict[svc_name])
                 p['service_ip'] = service_dict[svc_name]['clusterIP']
                 break
         if p.get('service_ip') is None:
-            logging.warning('No Available Service %s Found for DNS' % service_name)
+            logging.warning('Currently No Available Service {} Found for DNS'.format(service_name))
             return False
     create_conf(listen_port=dns_port, host_name=host, paths=paths)
     return True
 
+
+def get_dns(dns_dict: dict):
+    pass
