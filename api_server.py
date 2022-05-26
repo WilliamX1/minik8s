@@ -223,19 +223,18 @@ def post_pod(instance_name: str, behavior: str):
     if behavior == 'create':
         json_data = request.json
         config: dict = json.loads(json_data)
-        config['behavior'] = 'create'
         etcd_supplant[instance_name] = config
+        config['behavior'] = 'create'
     elif behavior == 'remove':
-        etcd_supplant[instance_name]['behavior'] = 'remove'
         etcd_supplant[instance_name]['status'] = 'Removed'
         config = etcd_supplant[instance_name]
+        config['behavior'] = 'remove'
     elif behavior == 'execute':
         config = etcd_supplant[instance_name]
         json_data = request.json
         upload_cmd: dict = json.loads(json_data)
         config['behavior'] = 'execute'
         config['cmd'] = upload_cmd['cmd']
-        etcd_supplant[instance_name] = config
     elif behavior == 'delete':
         # delete the config
         index = -1
