@@ -3,6 +3,7 @@ import sys
 import os
 import time
 
+import const
 import yaml_loader
 import entities
 import string
@@ -21,6 +22,8 @@ node_instance_name = uuid.uuid1().__str__()
 
 pods = list()
 
+api_server_url = const.api_server_url
+
 
 def get_pod_by_name(instance_name: str):
     index = -1
@@ -31,6 +34,7 @@ def get_pod_by_name(instance_name: str):
             pod = pods[i]
             break
     return index, pod
+
 
 # 回调函数
 def hand_pods(ch, method, properties, body):
@@ -62,16 +66,14 @@ def hand_pods(ch, method, properties, body):
         pod.exec_run(cmd)
 
 
-
-
-
 def send_heart_beat():
     data = psutil.virtual_memory()
     total = data.total  # 总内存,单位为byte
     free = data.available  # 可用内存
     memory_use_percent = (int(round(data.percent)))
     cpu_use_percent = psutil.cpu_percent(interval=None)
-    config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total, 'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
+    config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
+                    'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                     'free_memory': free, 'status': 'RUNNING', 'pod_instances': list()}
     for pod in pods:
         pod_status_heartbeat = dict()
@@ -84,7 +86,7 @@ def send_heart_beat():
         config['pod_instances'].append(pod.instance_name)
         config[pod.instance_name] = pod_status_heartbeat
 
-    url = "http://127.0.0.1:5050/heartbeat"
+    url = "{}/heartbeat".format(api_server_url)
     json_data = json.dumps(config)
     r = requests.post(url=url, json=json_data)
     if r.status_code == 200:
@@ -105,9 +107,10 @@ def init_node():
     memory_use_percent = (int(round(data.percent)))
     cpu_use_percent = psutil.cpu_percent(interval=1)
     # print(data, total, free, memory, cpu_use_percent)
-    config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total, 'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
+    config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
+                    'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                     'free_memory': free}
-    url = "http://127.0.0.1:5050/Node"
+    url = "{}/Node".format(api_server_url)
     json_data = json.dumps(config)
     r = requests.post(url=url, json=json_data)
     if r.status_code == 200:
@@ -115,6 +118,7 @@ def init_node():
     else:
         print("kubelet节点注册失败")
         exit()
+
 
 def main():
     init_node()
@@ -125,7 +129,7 @@ def main():
     channel.exchange_declare(exchange="Pod", exchange_type="fanout")
     # rabbit会随机分配一个名字, exclusive=True会在使用此queue的消费者断开后,自动将queue删除，result是queue的对象实例
     result = channel.queue_declare(queue="")  # 参数 exclusive=True 独家唯一的
-    queue_name = result.method.queue    # 绑定pods频道
+    queue_name = result.method.queue  # 绑定pods频道
 
     channel.queue_bind(exchange="Pod", queue=queue_name)
     # 消费信息

@@ -4,8 +4,13 @@ import warnings
 import ttkbootstrap as ttk
 from tkinter.filedialog import askopenfilename
 from ttkbootstrap.constants import *
+
+import const
 import yaml_loader
 import json
+
+
+api_server_url = const.api_server_url
 
 
 def choose_file():
@@ -25,7 +30,7 @@ def upload_yaml():
     except Exception as e:
         print(e.__str__())
         return
-    url = "http://127.0.0.1:5050/{}".format(config['kind'])
+    url = "{}/{}".format(api_server_url, config['kind'])
     try:
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
@@ -41,7 +46,7 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
-        url = "http://127.0.0.1:5050/Pod/"
+        url = "{}}/Pod/".format(api_server_url)
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):

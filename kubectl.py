@@ -5,13 +5,16 @@ import os
 import time
 
 import requests
+
+import const
 import utils
 
 import yaml_loader
 import entities
+import kubeproxy
 
 
-api_server_url = 'http://localhost:5050/'
+api_server_url = const.api_server_url
 
 
 def print_info():
@@ -47,7 +50,7 @@ def main():
         elif show_match:
             object_type = show_match.group(1)
             if object_type == "pods":
-                r = requests.get(url=api_server_url + 'Pod')
+                r = requests.get(url='{}/Pod'.format(api_server_url))
                 pods_dict = json.loads(r.content.decode('UTF-8'))
                 print("{0:100}{1:30}{2:30}".format('name', 'status', 'created time'))
                 for pod_instance_name in pods_dict['pods_list']:
@@ -57,28 +60,9 @@ def main():
                     print(f"{pod_instance_name:100}{pod_config['status']:30}{created_time.strip():30}")
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=api_server_url)
-                print("{0:10}{1:10}{2:16}{3:8}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
-                                                                          'type', 'cluster IP', "external IP",
-                                                                          'port(s)'))
-                for service_instance_name in service_dict['services_list']:
-                    service_config = service_dict[service_instance_name]
-                    service_status = service_config['status']  # todo
-                    created_time = int(time.time() - service_config['created_time'])
-                    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                    type = '<none>' if service_config.get('type') is None else service_config['type']
-                    clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
-                    externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
-                    ports: dict = service_config.get('ports')
-                    show_ports = list()
-                    if ports is not None:
-                        for p in ports:
-                            format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
-                            show_ports.append(format)
-                    show_ports = ','.join(show_ports)
-                    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}"
-                          f"{type:12}{clusterIP:15}{externalIP:15}{show_ports:20}")
+                kubeproxy.get_services(service_dict)
             elif object_type == 'replicasets':
-                r = requests.get(url=api_server_url + 'ReplicaSet')
+                r = requests.get(url='{}/ReplicaSet'.format(api_server_url))
                 rc_dict = json.loads(r.content.decode('UTF-8'))
                 print("{0:100}{1:30}{2:30}{3:15}".format('name', 'status', 'created time', 'replicas'))
                 for rc_instance_name in rc_dict['replica_sets_list']:
@@ -98,7 +82,7 @@ def main():
             instance_name = normal_command_match.group(3)  # instance_name
             if object_type == 'pod':
                 json_data = json.dumps(dict())
-                r = requests.post(url=api_server_url + 'Pod/{}/{}'.format(instance_name, cmd_type), json=json_data)
+                r = requests.post(url='{}/Pod/{}/{}'.format(api_server_url, instance_name, cmd_type), json=json_data)
 
             if object_type == 'service':
                 if cmd_type == 'remove':

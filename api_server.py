@@ -14,7 +14,8 @@ etcd = etcd3.client()
 etcd_supplant = {'nodes_list': list(), 'pods_list': list(),
                  'services_list': list(), 'replica_sets_list': list(),
                  'dns_list': list(),
-                 'dns_config': dict()  # used for dns
+                 'dns_config': dict(),  # used for dns
+                 'dns_config_dict': dict()
                  }
 
 
@@ -61,10 +62,10 @@ def delete_node(instance_name: str):
             etcd_supplant['nodes_list'].pop(i)
     etcd_supplant[instance_name]['status'] = 'Not Available'
     for pod_instance_name in etcd_supplant['pods_list']:
-        if etcd_supplant[pod_instance_name].__contains__('node') and etcd_supplant[pod_instance_name][
-            'node'] == instance_name:
+        if etcd_supplant[pod_instance_name].__contains__('node') and \
+                etcd_supplant[pod_instance_name]['node'] == instance_name:
             etcd_supplant[pod_instance_name]['status'] = 'Lost Connect'
-    print("Remode node {}".format(instance_name))
+    print("Remove node {}".format(instance_name))
     return json.dumps(etcd_supplant['nodes_list']), 200
 
 
@@ -240,9 +241,10 @@ def post_pod(instance_name: str, behavior: str):
         config = etcd_supplant[instance_name]
         json_data = request.json
         upload_cmd: dict = json.loads(json_data)
-        config['behavior'] = 'execute'
-        config['cmd'] = upload_cmd['cmd']
-        etcd_supplant[instance_name] = config
+        if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
+            config['behavior'] = 'execute'
+            config['cmd'] = upload_cmd['cmd']
+            etcd_supplant[instance_name] = config
     elif behavior == 'delete':
         # delete the config
         index = -1
@@ -270,8 +272,10 @@ def get_dag(dag_name: str):
     else:
         raise NotImplementedError
 
+
 def run_serverless_function(serverless_function: ServerlessFunction):
     pass
+
 
 @app.route('/DAG/run/<string:dag_name>', methods=['GET'])
 def run_DAG(dag_name: str):
@@ -361,6 +365,7 @@ def receive_heartbeat():
 
 def main():
     app.run(port=5050, processes=True)
+
 
 if __name__ == '__main__':
     main()
