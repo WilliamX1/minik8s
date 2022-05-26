@@ -7,6 +7,7 @@ import time
 import requests
 
 import const
+import kubedns
 import utils
 
 import yaml_loader
@@ -37,7 +38,7 @@ def main():
         exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
         help_match = re.fullmatch(r'help', cmd.strip(), re.I)
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
-        show_match = re.fullmatch(r'show *(pods|services|replicasets)', cmd.strip(), re.I)
+        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns)', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         normal_command_match = re.fullmatch(r'(start|remove) *(pod|service) *([\w-]*)', cmd.strip(), re.I)
 
@@ -72,6 +73,9 @@ def main():
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
                     replicas = str(rc_config['spec']['replicas']).strip()
                     print(f"{rc_instance_name:100}{rc_status:30}{created_time.strip():30}{replicas:15}")
+            elif object_type == 'dns':
+                dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
+                kubedns.get_dns(dns_dict)
             else:
                 # todo : handle other types
                 pass

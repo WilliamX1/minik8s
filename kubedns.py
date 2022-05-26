@@ -89,3 +89,6 @@ def create_dns(dns_config: dict, service_dict: dict):
     create_conf(listen_port=dns_port, host_name=host, paths=paths)
     return True
 
+
+def get_dns(dns_dict: dict):
+    pass
