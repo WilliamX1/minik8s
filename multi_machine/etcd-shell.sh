@@ -10,11 +10,11 @@ ETCD_INITIAL_CLUSTER=$3  # etcd0=http://10.119.11.120:2380,etcd1=http://10.119.1
 ETCD_INITIAL_CLUSTER_STATE=$4  # new/existing
 
 sudo ./etcd/etcd \
-  -name etcd0 \
-  -advertise-client-urls $IP_ADDRESS:2379,$IP_ADDRESS:4001 \
+  -name ${ETCD_NAME} \
+  -advertise-client-urls ${IP_ADDRESS}:2379,${IP_ADDRESS}:4001 \
   -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
-  -initial-advertise-peer-urls $IP_ADDRESS:2380 \
+  -initial-advertise-peer-urls ${IP_ADDRESS}:2380 \
   -listen-peer-urls http://0.0.0.0:2380 \
   -initial-cluster-token etcd-cluster \
-  -initial-cluster ETCD_INITIAL_CLUSTER \
-  -initial-cluster-state new
+  -initial-cluster ${ETCD_INITIAL_CLUSTER} \
+  -initial-cluster-state ${ETCD_INITIAL_CLUSTER_STATE}

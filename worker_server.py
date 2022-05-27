@@ -36,6 +36,7 @@ def update_iptables():
         kubeproxy.create_service(service_config, pods_dict)
     else:
         kubeproxy.restart_service(service_config, pods_dict)
+    return "Successfully Update Iptables", 200
 
 
 @app.route('/ServerlessFunction/<string:instance_name>/upload', methods=['POST'])

@@ -1,3 +1,4 @@
+import copy
 import time
 from flask import Flask, redirect, url_for, request, jsonify, Response
 import json
@@ -146,7 +147,7 @@ def post_pods():
     etcd_supplant['pods_list'].append(instance_name)
     etcd_supplant[instance_name] = config
     print("BroadCast_Message Pod")
-    broadcast_message('Pod', config.__str__())
+    # broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
 
@@ -238,14 +239,14 @@ def post_pod(instance_name: str, behavior: str):
     if behavior == 'create':
         json_data = request.json
         config: dict = json.loads(json_data)
-        etcd_supplant[instance_name] = config
+        etcd_supplant[instance_name] = copy.deepcopy(config)
         config['behavior'] = 'create'
     elif behavior == 'remove':
         etcd_supplant[instance_name]['status'] = 'Removed'
-        config = etcd_supplant[instance_name]
+        config = copy.deepcopy(etcd_supplant[instance_name])
         config['behavior'] = 'remove'
     elif behavior == 'execute':
-        config = etcd_supplant[instance_name]
+        config = copy.deepcopy(etcd_supplant[instance_name])
         json_data = request.json
         upload_cmd: dict = json.loads(json_data)
         if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
