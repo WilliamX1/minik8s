@@ -48,6 +48,13 @@ def hand_pods(ch, method, properties, body):
     if config['behavior'] == 'create':
         print("接收到调度请求 Pod")
         # 是自己的调度，进行操作
+        if config.__contains__('script_data'):
+            # serverless Pod
+            import const
+            # todo : handle it with different worker url
+            module_name = config['metadata']['labels']['module_name']
+            r = requests.post(url=const.worker0_url + '/ServerlessFunction/{}/upload'.format(module_name), json=json.dumps(config))
+            print("response = ", r.content.decode())
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # share.set('status', str(status))

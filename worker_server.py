@@ -25,13 +25,17 @@ def execute_cmd():
     return json.dumps(dict()), 200
 
 
-@app.route('/ServerlessFunction/<string:instance_name>/upload', methods=['POST'])
-def upload_script(instance_name: str):
+@app.route('/ServerlessFunction/<string:module_name>/upload', methods=['POST'])
+def upload_script(module_name: str):
     # todo : add serverless logic here
-    f = request.files['file']
+    config = json.loads(request.json)
+    print(config)
+    data = config['script_data']
     print(request.files)
-    f.save('./tmp/' + secure_filename('{}.py'.format(instance_name)))
-    os.system("cd tmp && docker build . -t {}".format(instance_name))
+    f = open('./tmp/' + secure_filename('{}.py'.format(module_name)), 'w')
+    f.write(data)
+    f.close()
+    os.system("cd tmp && docker build . -t {}".format(module_name))
     # we will build a docker image with tag: <instance_name>:latest here
     return 'file uploaded successfully'
 

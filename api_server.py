@@ -1,4 +1,6 @@
 import time
+
+import requests
 from flask import Flask, redirect, url_for, request, jsonify, Response
 import json
 import pika

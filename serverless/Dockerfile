@@ -14,6 +14,7 @@ RUN pip install flask
 ADD ./serverless_server.py serverless_server.py
 ADD ./my_module.py my_module.py
 
+EXPOSE 5052
 
 # define command for this image
 CMD ["python3","/serverless_server.py"]
