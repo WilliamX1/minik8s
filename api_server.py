@@ -5,19 +5,24 @@ import json
 import pika
 import uuid
 import etcd3
+
+import const
+import utils
 from serverless import ServerlessFunction, Edge, DAG
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = False
+use_etcd = const.use_etcd
 etcd = etcd3.client()
 etcd_supplant = {'nodes_list': list(), 'pods_list': list(),
                  'services_list': list(), 'replica_sets_list': list(),
                  'dns_list': list(),
                  'dns_config': dict(),  # used for dns
-                 'dns_config_dict': dict()
                  }
+
+
+api_server_url = const.api_server_url
 
 
 def broadcast_message(channel_name: str, message: str):
@@ -117,6 +122,7 @@ def post_dns_config():
     config: dict = json.loads(json_data)
     for key, item in config.items():
         etcd_supplant['dns_config'][key] = item
+    return "Successfully changed DNS Config", 200
 
 
 @app.route('/ReplicaSet', methods=['GET'])
@@ -146,8 +152,8 @@ def post_pods():
     print("create {}".format(instance_name))
     etcd_supplant['pods_list'].append(instance_name)
     etcd_supplant[instance_name] = config
-    print("BroadCast_Message Pod")
-    # broadcast_message('Pod', config.__str__())
+    # print("BroadCast_Message Pod")
+    broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
 
@@ -176,9 +182,10 @@ def upload_service():
     config['instance_name'] = service_instance_name
     config['pod_instances'] = list()
     config['created_time'] = time.time()
-    config['status'] = 'Created'
     etcd_supplant['services_list'].append(service_instance_name)
     etcd_supplant[service_instance_name] = config
+    url = '{}/Service/{}/{}'.format(api_server_url, service_instance_name, 'create')
+    utils.post(url=url, config=config)
     return "Successfully create service instance {}".format(service_instance_name), 200
 
 
@@ -186,10 +193,16 @@ def upload_service():
 def update_service(instance_name: str, behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
-    if behavior == 'create' or behavior == 'running':
+    if behavior == 'create':
+        config['status'] = 'Creating'
+    elif behavior == 'update':
+        config['status'] = 'Updating'
+    elif behavior == 'restart':
+        config['status'] = 'Restarting'
+    elif behavior == 'running':
         config['status'] = 'Running'
     elif behavior == 'remove':
-        config['status'] = 'Removed'
+        config['status'] = 'Removing'
     elif behavior == 'none':
         config['status'] = 'None'
     etcd_supplant[instance_name] = config
@@ -205,9 +218,10 @@ def upload_dns():
     config['instance_name'] = dns_instance_name
     config['service_instances'] = list()
     config['created_time'] = time.time()
-    config['status'] = 'Created'
     etcd_supplant['dns_list'].append(dns_instance_name)
     etcd_supplant[dns_instance_name] = config
+    url = "{}/Dns/{}/{}".format(api_server_url, dns_instance_name, 'create')
+    utils.post(url=url, config=config)
     return "Successfully create dns instance {}".format(dns_instance_name), 200
 
 
@@ -215,14 +229,17 @@ def upload_dns():
 def update_dns(instance_name: str, behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
-    if behavior == 'create' or 'behavior' == 'running':
+    if behavior == 'create':
+        config['status'] = 'Creating'
+    elif behavior == 'update':
+        config['status'] = 'Updating'
+    elif behavior == 'running':
         config['status'] = 'Running'
     elif behavior == 'remove':
-        config['status'] = 'Removed'
+        config['status'] = 'Removing'
     elif behavior == 'none':
         config['status'] = 'None'
     etcd_supplant[instance_name] = config
-    # broadcast_message('Dns', config.__str__())
     return "Successfully update dns instance {}".format(instance_name)
 
 

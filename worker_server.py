@@ -1,19 +1,24 @@
+import logging
 import os
 
 from flask import Flask, redirect, url_for, request, jsonify, Response
 import json
 
 import const
+import kubedns
 import utils
 from werkzeug.utils import secure_filename
 import kubeproxy
 
 app = Flask(__name__)
 
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
 
 # CORS(app, supports_credentials=True)
 
 worker_url = const.worker_url_list[0]
+init: bool = False
 
 
 @app.route('/cmd', methods=['POST'])
@@ -25,18 +30,24 @@ def execute_cmd():
     return json.dumps(dict()), 200
 
 
-@app.route('/update_iptables', methods=['POST'])
-def update_iptables():
+@app.route('/update_services/<string:behavior>', methods=['POST'])
+def update_services(behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
     service_config = config['service_config']
     pods_dict = config['pods_dict']
-    # implement the service forward logic
-    if service_config.get('iptables') is None:
-        kubeproxy.create_service(service_config, pods_dict)
-    else:
-        kubeproxy.restart_service(service_config, pods_dict)
-    return "Successfully Update Iptables", 200
+    global init
+    if init is False:
+        init = True
+        kubeproxy.init_iptables()
+
+    if behavior == 'create':
+        kubeproxy.sync_service(service_config, pods_dict)
+    elif behavior == 'update':
+        kubeproxy.sync_service(service_config, pods_dict)
+    elif behavior == 'remove':
+        kubeproxy.rm_service(service_config)
+    return json.dumps(service_config), 200
 
 
 @app.route('/ServerlessFunction/<string:instance_name>/upload', methods=['POST'])

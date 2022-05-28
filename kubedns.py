@@ -1,8 +1,10 @@
 import logging
 import os
+import time
 
 import const
 
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 dns_port = const.dns_port
 conf_path = const.dns_conf_path
@@ -25,10 +27,10 @@ def format_conf(listen_port: int, host_name: str, paths: list):
     :return: format string which can be written into a file directly
     """
     comment_str = "# %s.conf\n" % host_name
-    format_str  = "server {\n" \
-                  "\tlisten %s;\n" \
-                  "\tserver_name %s;\n" \
-                  "\tindex index.html index.htm;\n\n" % (str(listen_port), host_name)
+    format_str = "server {\n" \
+                 "\tlisten %s;\n" \
+                 "\tserver_name %s;\n" \
+                 "\tindex index.html index.htm;\n\n" % (str(listen_port), host_name)
     format_str = comment_str + format_str
     location_str = "\tlocation %s/ {\n" \
                    "\t\tproxy_pass http://%s:%s/;\n" \
@@ -91,9 +93,49 @@ def create_dns(dns_config: dict, service_dict: dict):
     return True
 
 
-def get_dns(dns_dict: dict):
-    pass
+def describe_dns(dns_config: dict, dns_instance_name: dict, title=False):
+    """
+    describe a dns showing its info
+    | name | status | created time | host | path | service_name | service_port |
+    :param dns_config: dns config from etcd
+    :param dns_instance_name: dns instance name with its suffix
+    :param title: a flag indicating whether to show the bar
+    :return: None
+    """
+    if title is True:
+        print("|{0:10}|{1:10}|{2:16}|{3:16}|{4:8}|{5:8}|{6:4}".format('name', 'status', 'created time',
+                                                              'host', 'path', 'service_name', 'service_port'))
+    dns_status = dns_config['status']
+    created_time = int(time.time() - dns_config['created_time'])
+    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+    host = dns_config['host']
+    paths: list = dns_config['paths']
+    if paths is None:
+        print(f"{dns_instance_name:100}{dns_status:30}{created_time.strip():30}"
+              f"{host:12}{'<none>':15}{'<none>':15}{'<none>':15}")
+    else:
+        for p in paths:
+            print(f"{dns_instance_name:100}{dns_status:30}{created_time.strip():30}"
+                  f"{host:12}{p['path']:15}{p['service_name']:15}{p['service_port']:15}")
+
+
+def show_dns(dns_dict: dict):
+    """
+    get all dns running state
+    :param dns_dict:
+    :return: a list of dns
+    """
+    print("|{0:10}|{1:10}|{2:16}|{3:8}|{4:8}|{5:8}|{6:4}".format('name', 'status', 'created time',
+                                                          'host', 'path', 'service_name', 'service_port'))
+    for dns_instance_name in dns_dict['dns_list']:
+        dns_config = dns_dict[dns_instance_name]
+        describe_dns(dns_config=dns_config, dns_instance_name=dns_instance_name, title=False)
 
 
 def rm_dns(dns_config: dict):
+    """
+    delete dns config file
+    :param dns_config: dns config
+    :return: None
+    """
     os.remove(dns_config['conf-path'])

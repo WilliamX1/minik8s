@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import sys
 import os
@@ -19,15 +20,15 @@ api_server_url = const.api_server_url
 
 
 def print_info():
-    print("version                       show minik8s version")
-    print("show pods                      display extant pods")
-    print("show services              display extant services")
-    print("start -f filepath                  start container")
-    print("start pod/service name   start stopped pod/service")
-    print("stop pod/service name             stop pod/service")
-    print("kill pod/service name             kill pod/service")
-    print("restart pod/service name       restart pod/service")
-    print("remove pod/service name         remove pod/service")
+    print("version                              show minik8s version")
+    print("start -f filepath                    start container")
+    print("start pod name                       start stopped pod")
+    print("stop pod name                        stop pod/service")
+    print("kill pod name                        kill pod/service")
+    print("show pods/services/dns               display extant pods/services/dns")
+    print("update service/dns name              update service/dns")
+    print("restart pod/service/dns name         restart pod/service/dns")
+    print("remove pod/service/dns name          remove pod/service/dns")
 
 
 def main():
@@ -40,7 +41,9 @@ def main():
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
         show_match = re.fullmatch(r'show *(pods|services|replicasets|dns)', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
-        normal_command_match = re.fullmatch(r'(start|remove) *(pod|service) *([\w-]*)', cmd.strip(), re.I)
+        pod_command_match = re.fullmatch(r'(start|remove) * pod *([\w-]*)', cmd.strip(), re.I)
+        service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
+        dns_command_match = re.fullmatch(r'(update|restart|remove) * dns *([\w-]*)', cmd.strip(), re.I)
 
         if exit_match:
             break
@@ -61,7 +64,7 @@ def main():
                     print(f"{pod_instance_name:100}{pod_config['status']:30}{created_time.strip():30}")
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=api_server_url)
-                kubeproxy.get_services(service_dict)
+                kubeproxy.show_services(service_dict)
             elif object_type == 'replicasets':
                 r = requests.get(url='{}/ReplicaSet'.format(api_server_url))
                 rc_dict = json.loads(r.content.decode('UTF-8'))
@@ -75,32 +78,41 @@ def main():
                     print(f"{rc_instance_name:100}{rc_status:30}{created_time.strip():30}{replicas:15}")
             elif object_type == 'dns':
                 dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
-                kubedns.get_dns(dns_dict)
+                kubedns.show_dns(dns_dict)
             else:
                 # todo : handle other types
                 pass
-        elif normal_command_match:
+        elif pod_command_match:
             pass
-            cmd_type = normal_command_match.group(1)  # start or remove
-            object_type = normal_command_match.group(2)  # pod or service
-            instance_name = normal_command_match.group(3)  # instance_name
-            if object_type == 'pod':
-                json_data = json.dumps(dict())
-                r = requests.post(url='{}/Pod/{}/{}'.format(api_server_url, instance_name, cmd_type), json=json_data)
-
-            if object_type == 'service':
-                if cmd_type == 'remove':
-                    service_dict = utils.get_service_dict(api_server_url=api_server_url)
-                    if instance_name not in service_dict['services_list']:
-                        print("Service {} Not Found".format(instance_name))
-                    else:
-                        url = "{}/Service/{}/{}".format(api_server_url, instance_name, 'remove')
-                        config = service_dict[instance_name]
-                        utils.post(url=url, config=config)
+            '''cmd_type = pod_command_match.group(1)  # start or remove
+            instance_name = pod_command_match.group(2)  # instance_name
+            json_data = json.dumps(dict())
+            r = requests.post(url='{}/Pod/{}/{}'.format(api_server_url, instance_name, cmd_type), json=json_data)
+            '''
             #     raise NotImplementedError
             # elif object_type == 'pod':
             #     pod = pods[object_name]
             #     getattr(pod, cmd_type)()
+        elif service_command_match:
+            cmd_type = service_command_match.group(1)  # restart or update or remove
+            instance_name = service_command_match.group(2)  # instance_name
+            service_dict = utils.get_service_dict(api_server_url=api_server_url)
+            if instance_name not in service_dict['services_list']:
+                logging.warning("Service {} Not Found".format(instance_name))
+            else:
+                url = "{}/Service/{}/{}".format(api_server_url, instance_name, cmd_type)
+                config = service_dict[instance_name]
+                utils.post(url=url, config=config)
+        elif dns_command_match:
+            cmd_type = dns_command_match.group(1)  # restart or update or remove
+            instance_name = dns_command_match.group(2)  # instance_name
+            dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
+            if instance_name not in dns_dict['dns_list']:
+                logging.warning("Dns {} Not Found".format(instance_name))
+            else:
+                url = "{}/Dns/{}/{}".format(api_server_url, instance_name, cmd_type)
+                config = dns_dict[instance_name]
+                utils.post(url=url, config=config)
         elif start_file_match:
             pass
             # file_path = start_file_match.group(1)
