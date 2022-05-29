@@ -1,0 +1,1698 @@
+2022/05/28 22:38:05 [notice] 1#1: using the "epoll" event method
+2022/05/28 22:38:05 [notice] 1#1: nginx/1.21.6
+2022/05/28 22:38:05 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/28 22:38:05 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/28 22:38:05 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/28 22:38:05 [notice] 1#1: start worker processes
+2022/05/28 22:38:05 [notice] 1#1: start worker process 22
+2022/05/28 22:38:05 [notice] 1#1: start worker process 23
+2022/05/28 22:49:06 [emerg] 1#1: "user" directive is not allowed here in /etc/nginx/conf.d/nginx.conf:1
+2022/05/28 22:53:35 [notice] 1#1: using the "epoll" event method
+2022/05/28 22:53:35 [notice] 1#1: nginx/1.21.6
+2022/05/28 22:53:35 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/28 22:53:35 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/28 22:53:35 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/28 22:53:35 [notice] 1#1: start worker processes
+2022/05/28 22:53:35 [notice] 1#1: start worker process 24
+2022/05/28 22:53:35 [notice] 1#1: start worker process 25
+2022/05/28 22:54:12 [notice] 26#26: signal process started
+2022/05/28 22:54:12 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/28 22:54:12 [notice] 1#1: reconfiguring
+2022/05/28 22:54:12 [notice] 1#1: using the "epoll" event method
+2022/05/28 22:54:12 [notice] 1#1: start worker processes
+2022/05/28 22:54:12 [notice] 1#1: start worker process 32
+2022/05/28 22:54:12 [notice] 1#1: start worker process 33
+2022/05/28 22:54:12 [notice] 24#24: gracefully shutting down
+2022/05/28 22:54:12 [notice] 24#24: exiting
+2022/05/28 22:54:12 [notice] 24#24: exit
+2022/05/28 22:54:12 [notice] 25#25: gracefully shutting down
+2022/05/28 22:54:12 [notice] 25#25: exiting
+2022/05/28 22:54:12 [notice] 25#25: exit
+2022/05/28 22:54:12 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/28 22:54:12 [notice] 1#1: worker process 25 exited with code 0
+2022/05/28 22:54:12 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 22:54:12 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/28 22:54:12 [notice] 1#1: worker process 24 exited with code 0
+2022/05/28 22:54:12 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 22:56:35 [notice] 53#53: signal process started
+2022/05/28 22:56:35 [notice] 1#1: signal 1 (SIGHUP) received from 53, reconfiguring
+2022/05/28 22:56:35 [notice] 1#1: reconfiguring
+2022/05/28 22:56:35 [notice] 1#1: using the "epoll" event method
+2022/05/28 22:56:35 [notice] 1#1: start worker processes
+2022/05/28 22:56:35 [notice] 1#1: start worker process 59
+2022/05/28 22:56:35 [notice] 1#1: start worker process 60
+2022/05/28 22:56:35 [notice] 32#32: gracefully shutting down
+2022/05/28 22:56:35 [notice] 33#33: gracefully shutting down
+2022/05/28 22:56:35 [notice] 32#32: exiting
+2022/05/28 22:56:35 [notice] 33#33: exiting
+2022/05/28 22:56:35 [notice] 32#32: exit
+2022/05/28 22:56:35 [notice] 33#33: exit
+2022/05/28 22:56:35 [notice] 1#1: signal 17 (SIGCHLD) received from 33
+2022/05/28 22:56:35 [notice] 1#1: worker process 32 exited with code 0
+2022/05/28 22:56:35 [notice] 1#1: worker process 33 exited with code 0
+2022/05/28 22:56:35 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 22:58:16 [error] 59#59: *6 open() "/usr/share/nginx/html/favicon.ico" failed (2: No such file or directory), client: 172.17.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "172.17.0.2", referrer: "http://172.17.0.2/index.html"
+2022/05/28 23:00:55 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:00:55 [notice] 1#1: nginx/1.21.6
+2022/05/28 23:00:55 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/28 23:00:55 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/28 23:00:55 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/28 23:00:55 [notice] 1#1: start worker processes
+2022/05/28 23:00:55 [notice] 1#1: start worker process 24
+2022/05/28 23:00:55 [notice] 1#1: start worker process 25
+2022/05/28 23:01:47 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/28 23:01:47 [notice] 25#25: gracefully shutting down
+2022/05/28 23:01:47 [notice] 24#24: gracefully shutting down
+2022/05/28 23:01:47 [notice] 25#25: exiting
+2022/05/28 23:01:47 [notice] 24#24: exiting
+2022/05/28 23:01:47 [notice] 25#25: exit
+2022/05/28 23:01:47 [notice] 24#24: exit
+2022/05/28 23:01:47 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/28 23:01:47 [notice] 1#1: worker process 25 exited with code 0
+2022/05/28 23:01:47 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:01:47 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/28 23:01:47 [notice] 1#1: worker process 24 exited with code 0
+2022/05/28 23:01:47 [notice] 1#1: exit
+2022/05/28 23:01:56 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:01:56 [notice] 1#1: nginx/1.21.6
+2022/05/28 23:01:56 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/28 23:01:56 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/28 23:01:56 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/28 23:01:56 [notice] 1#1: start worker processes
+2022/05/28 23:01:56 [notice] 1#1: start worker process 24
+2022/05/28 23:01:56 [notice] 1#1: start worker process 25
+2022/05/28 23:10:04 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/28 23:10:04 [notice] 24#24: gracefully shutting down
+2022/05/28 23:10:04 [notice] 24#24: exiting
+2022/05/28 23:10:04 [notice] 24#24: exit
+2022/05/28 23:10:04 [notice] 25#25: gracefully shutting down
+2022/05/28 23:10:04 [notice] 25#25: exiting
+2022/05/28 23:10:04 [notice] 25#25: exit
+2022/05/28 23:10:04 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/28 23:10:04 [notice] 1#1: worker process 24 exited with code 0
+2022/05/28 23:10:04 [notice] 1#1: worker process 25 exited with code 0
+2022/05/28 23:10:04 [notice] 1#1: exit
+2022/05/28 23:17:18 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:17:18 [notice] 1#1: nginx/1.21.6
+2022/05/28 23:17:18 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/28 23:17:18 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/28 23:17:18 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/28 23:17:18 [notice] 1#1: start worker processes
+2022/05/28 23:17:18 [notice] 1#1: start worker process 22
+2022/05/28 23:17:18 [notice] 1#1: start worker process 23
+2022/05/28 23:20:29 [notice] 24#24: signal process started
+2022/05/28 23:20:29 [notice] 1#1: signal 1 (SIGHUP) received from 24, reconfiguring
+2022/05/28 23:20:29 [notice] 1#1: reconfiguring
+2022/05/28 23:20:29 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:20:29 [notice] 1#1: start worker processes
+2022/05/28 23:20:29 [notice] 1#1: start worker process 29
+2022/05/28 23:20:29 [notice] 1#1: start worker process 30
+2022/05/28 23:20:29 [notice] 23#23: gracefully shutting down
+2022/05/28 23:20:29 [notice] 23#23: exiting
+2022/05/28 23:20:29 [notice] 22#22: gracefully shutting down
+2022/05/28 23:20:29 [notice] 22#22: exiting
+2022/05/28 23:20:29 [notice] 23#23: exit
+2022/05/28 23:20:29 [notice] 22#22: exit
+2022/05/28 23:20:29 [notice] 1#1: signal 17 (SIGCHLD) received from 22
+2022/05/28 23:20:29 [notice] 1#1: worker process 22 exited with code 0
+2022/05/28 23:20:29 [notice] 1#1: worker process 23 exited with code 0
+2022/05/28 23:20:29 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:20:29 [notice] 1#1: signal 17 (SIGCHLD) received from 23
+2022/05/28 23:20:54 [notice] 31#31: signal process started
+2022/05/28 23:20:54 [notice] 1#1: signal 1 (SIGHUP) received from 31, reconfiguring
+2022/05/28 23:20:54 [notice] 1#1: reconfiguring
+2022/05/28 23:20:54 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:20:54 [notice] 1#1: start worker processes
+2022/05/28 23:20:54 [notice] 1#1: start worker process 38
+2022/05/28 23:20:54 [notice] 1#1: start worker process 39
+2022/05/28 23:20:54 [notice] 29#29: gracefully shutting down
+2022/05/28 23:20:54 [notice] 29#29: exiting
+2022/05/28 23:20:54 [notice] 30#30: gracefully shutting down
+2022/05/28 23:20:54 [notice] 30#30: exiting
+2022/05/28 23:20:54 [notice] 29#29: exit
+2022/05/28 23:20:54 [notice] 30#30: exit
+2022/05/28 23:20:54 [notice] 1#1: signal 17 (SIGCHLD) received from 29
+2022/05/28 23:20:54 [notice] 1#1: worker process 29 exited with code 0
+2022/05/28 23:20:54 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:20:54 [notice] 1#1: signal 17 (SIGCHLD) received from 30
+2022/05/28 23:20:54 [notice] 1#1: worker process 30 exited with code 0
+2022/05/28 23:20:54 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:25:34 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/28 23:25:34 [notice] 38#38: gracefully shutting down
+2022/05/28 23:25:34 [notice] 38#38: exiting
+2022/05/28 23:25:34 [notice] 38#38: exit
+2022/05/28 23:25:34 [notice] 39#39: gracefully shutting down
+2022/05/28 23:25:34 [notice] 39#39: exiting
+2022/05/28 23:25:34 [notice] 39#39: exit
+2022/05/28 23:25:34 [notice] 1#1: signal 17 (SIGCHLD) received from 39
+2022/05/28 23:25:34 [notice] 1#1: worker process 39 exited with code 0
+2022/05/28 23:25:34 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:25:34 [notice] 1#1: signal 17 (SIGCHLD) received from 38
+2022/05/28 23:25:34 [notice] 1#1: worker process 38 exited with code 0
+2022/05/28 23:25:34 [notice] 1#1: exit
+2022/05/28 23:26:20 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:26:20 [notice] 1#1: nginx/1.21.6
+2022/05/28 23:26:20 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/28 23:26:20 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/28 23:26:20 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/28 23:26:20 [notice] 1#1: start worker processes
+2022/05/28 23:26:20 [notice] 1#1: start worker process 24
+2022/05/28 23:26:20 [notice] 1#1: start worker process 25
+2022/05/28 23:28:18 [error] 24#24: *7 open() "/usr/share/nginx/html/dd" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /dd HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:28:20 [error] 24#24: *8 open() "/usr/share/nginx/html/dd" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /dd HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:32:37 [notice] 26#26: signal process started
+2022/05/28 23:32:37 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/28 23:32:37 [notice] 1#1: reconfiguring
+2022/05/28 23:32:37 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:32:37 [notice] 1#1: start worker processes
+2022/05/28 23:32:37 [notice] 1#1: start worker process 31
+2022/05/28 23:32:37 [notice] 1#1: start worker process 32
+2022/05/28 23:32:37 [notice] 25#25: gracefully shutting down
+2022/05/28 23:32:37 [notice] 25#25: exiting
+2022/05/28 23:32:37 [notice] 24#24: gracefully shutting down
+2022/05/28 23:32:37 [notice] 24#24: exiting
+2022/05/28 23:32:37 [notice] 25#25: exit
+2022/05/28 23:32:37 [notice] 24#24: exit
+2022/05/28 23:32:37 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/28 23:32:37 [notice] 1#1: worker process 25 exited with code 0
+2022/05/28 23:32:37 [notice] 1#1: worker process 24 exited with code 0
+2022/05/28 23:32:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:32:37 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/28 23:33:02 [notice] 33#33: signal process started
+2022/05/28 23:33:02 [notice] 1#1: signal 1 (SIGHUP) received from 33, reconfiguring
+2022/05/28 23:33:02 [notice] 1#1: reconfiguring
+2022/05/28 23:33:02 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:33:02 [notice] 1#1: start worker processes
+2022/05/28 23:33:02 [notice] 1#1: start worker process 39
+2022/05/28 23:33:02 [notice] 1#1: start worker process 40
+2022/05/28 23:33:02 [notice] 31#31: gracefully shutting down
+2022/05/28 23:33:02 [notice] 32#32: gracefully shutting down
+2022/05/28 23:33:02 [notice] 31#31: exiting
+2022/05/28 23:33:02 [notice] 32#32: exiting
+2022/05/28 23:33:02 [notice] 32#32: exit
+2022/05/28 23:33:02 [notice] 31#31: exit
+2022/05/28 23:33:02 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2022/05/28 23:33:02 [notice] 1#1: worker process 32 exited with code 0
+2022/05/28 23:33:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:33:02 [notice] 1#1: signal 17 (SIGCHLD) received from 31
+2022/05/28 23:33:02 [notice] 1#1: worker process 31 exited with code 0
+2022/05/28 23:33:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:33:22 [notice] 41#41: signal process started
+2022/05/28 23:33:22 [notice] 1#1: signal 1 (SIGHUP) received from 41, reconfiguring
+2022/05/28 23:33:22 [notice] 1#1: reconfiguring
+2022/05/28 23:33:22 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:33:22 [notice] 1#1: start worker processes
+2022/05/28 23:33:22 [notice] 1#1: start worker process 47
+2022/05/28 23:33:22 [notice] 1#1: start worker process 48
+2022/05/28 23:33:23 [notice] 40#40: gracefully shutting down
+2022/05/28 23:33:23 [notice] 39#39: gracefully shutting down
+2022/05/28 23:33:23 [notice] 40#40: exiting
+2022/05/28 23:33:23 [notice] 39#39: exiting
+2022/05/28 23:33:23 [notice] 40#40: exit
+2022/05/28 23:33:23 [notice] 39#39: exit
+2022/05/28 23:33:23 [notice] 1#1: signal 17 (SIGCHLD) received from 40
+2022/05/28 23:33:23 [notice] 1#1: worker process 39 exited with code 0
+2022/05/28 23:33:23 [notice] 1#1: worker process 40 exited with code 0
+2022/05/28 23:33:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:33:23 [notice] 1#1: signal 17 (SIGCHLD) received from 39
+2022/05/28 23:33:34 [notice] 49#49: signal process started
+2022/05/28 23:33:34 [notice] 1#1: signal 1 (SIGHUP) received from 49, reconfiguring
+2022/05/28 23:33:34 [notice] 1#1: reconfiguring
+2022/05/28 23:33:34 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:33:34 [notice] 1#1: start worker processes
+2022/05/28 23:33:34 [notice] 1#1: start worker process 55
+2022/05/28 23:33:34 [notice] 1#1: start worker process 56
+2022/05/28 23:33:34 [notice] 48#48: gracefully shutting down
+2022/05/28 23:33:34 [notice] 47#47: gracefully shutting down
+2022/05/28 23:33:34 [notice] 48#48: exiting
+2022/05/28 23:33:34 [notice] 47#47: exiting
+2022/05/28 23:33:34 [notice] 48#48: exit
+2022/05/28 23:33:34 [notice] 47#47: exit
+2022/05/28 23:33:34 [notice] 1#1: signal 17 (SIGCHLD) received from 48
+2022/05/28 23:33:34 [notice] 1#1: worker process 47 exited with code 0
+2022/05/28 23:33:34 [notice] 1#1: worker process 48 exited with code 0
+2022/05/28 23:33:34 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:33:41 [error] 56#56: *28 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET / HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:33:43 [error] 56#56: *29 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET / HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:33:47 [error] 56#56: *30 open() "/etc/nginx/html/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /index.html HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:33:48 [error] 56#56: *31 open() "/etc/nginx/html/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /index.html HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:33:50 [error] 56#56: *32 open() "/etc/nginx/html/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /index.html HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:35:05 [error] 56#56: *35 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET / HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:35:09 [error] 56#56: *36 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET / HTTP/1.1", host: "nginx-service.com"
+2022/05/28 23:35:54 [notice] 57#57: signal process started
+2022/05/28 23:35:54 [notice] 1#1: signal 1 (SIGHUP) received from 57, reconfiguring
+2022/05/28 23:35:54 [notice] 1#1: reconfiguring
+2022/05/28 23:35:54 [notice] 1#1: using the "epoll" event method
+2022/05/28 23:35:54 [notice] 1#1: start worker processes
+2022/05/28 23:35:54 [notice] 1#1: start worker process 63
+2022/05/28 23:35:54 [notice] 1#1: start worker process 64
+2022/05/28 23:35:54 [notice] 55#55: gracefully shutting down
+2022/05/28 23:35:54 [notice] 56#56: gracefully shutting down
+2022/05/28 23:35:54 [notice] 55#55: exiting
+2022/05/28 23:35:54 [notice] 56#56: exiting
+2022/05/28 23:35:54 [notice] 56#56: exit
+2022/05/28 23:35:54 [notice] 55#55: exit
+2022/05/28 23:35:54 [notice] 1#1: signal 17 (SIGCHLD) received from 56
+2022/05/28 23:35:54 [notice] 1#1: worker process 55 exited with code 0
+2022/05/28 23:35:54 [notice] 1#1: worker process 56 exited with code 0
+2022/05/28 23:35:54 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/28 23:35:54 [notice] 1#1: signal 17 (SIGCHLD) received from 55
+2022/05/29 00:25:18 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 00:25:18 [notice] 64#64: gracefully shutting down
+2022/05/29 00:25:18 [notice] 64#64: exiting
+2022/05/29 00:25:18 [notice] 64#64: exit
+2022/05/29 00:25:18 [notice] 63#63: gracefully shutting down
+2022/05/29 00:25:18 [notice] 63#63: exiting
+2022/05/29 00:25:18 [notice] 63#63: exit
+2022/05/29 00:25:18 [notice] 1#1: signal 17 (SIGCHLD) received from 64
+2022/05/29 00:25:18 [notice] 1#1: worker process 64 exited with code 0
+2022/05/29 00:25:18 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 00:25:18 [notice] 1#1: signal 17 (SIGCHLD) received from 63
+2022/05/29 00:25:18 [notice] 1#1: worker process 63 exited with code 0
+2022/05/29 00:25:18 [notice] 1#1: exit
+2022/05/29 00:25:40 [notice] 1#1: using the "epoll" event method
+2022/05/29 00:25:40 [notice] 1#1: nginx/1.21.6
+2022/05/29 00:25:40 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 00:25:40 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 00:25:40 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 00:25:40 [notice] 1#1: start worker processes
+2022/05/29 00:25:40 [notice] 1#1: start worker process 24
+2022/05/29 00:25:40 [notice] 1#1: start worker process 25
+2022/05/29 00:28:31 [error] 25#25: *3 open() "/usr/share/nginx/html/dd" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /dd HTTP/1.1", host: "nginx-service.com"
+2022/05/29 00:28:32 [error] 25#25: *4 open() "/usr/share/nginx/html/dd" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /dd HTTP/1.1", host: "nginx-service.com"
+2022/05/29 00:31:10 [error] 25#25: *6 open() "/usr/share/nginx/html/dd" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /dd HTTP/1.1", host: "nginx-service.com"
+2022/05/29 00:31:12 [error] 25#25: *7 "/usr/share/nginx/html/dd/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /dd/ HTTP/1.1", host: "nginx-service.com"
+2022/05/29 00:34:25 [notice] 26#26: signal process started
+2022/05/29 00:34:25 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/29 00:34:25 [notice] 1#1: reconfiguring
+2022/05/29 00:34:25 [notice] 1#1: using the "epoll" event method
+2022/05/29 00:34:25 [notice] 1#1: start worker processes
+2022/05/29 00:34:25 [notice] 1#1: start worker process 33
+2022/05/29 00:34:25 [notice] 1#1: start worker process 34
+2022/05/29 00:34:25 [notice] 24#24: gracefully shutting down
+2022/05/29 00:34:25 [notice] 25#25: gracefully shutting down
+2022/05/29 00:34:25 [notice] 24#24: exiting
+2022/05/29 00:34:25 [notice] 25#25: exiting
+2022/05/29 00:34:25 [notice] 24#24: exit
+2022/05/29 00:34:25 [notice] 25#25: exit
+2022/05/29 00:34:25 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/29 00:34:25 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 00:34:25 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 00:34:25 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 00:34:25 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 00:34:25 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 00:34:33 [error] 33#33: *10 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET / HTTP/1.1", host: "nginx-service.com"
+2022/05/29 00:34:50 [error] 33#33: *16 open() "/etc/nginx/html/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /index.html HTTP/1.1", host: "nginx-service.com"
+2022/05/29 00:37:05 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 00:37:05 [notice] 34#34: gracefully shutting down
+2022/05/29 00:37:05 [notice] 34#34: exiting
+2022/05/29 00:37:05 [notice] 33#33: gracefully shutting down
+2022/05/29 00:37:05 [notice] 34#34: exit
+2022/05/29 00:37:05 [notice] 33#33: exiting
+2022/05/29 00:37:05 [notice] 33#33: exit
+2022/05/29 00:37:05 [notice] 1#1: signal 17 (SIGCHLD) received from 34
+2022/05/29 00:37:05 [notice] 1#1: worker process 33 exited with code 0
+2022/05/29 00:37:05 [notice] 1#1: worker process 34 exited with code 0
+2022/05/29 00:37:05 [notice] 1#1: exit
+2022/05/29 00:37:13 [notice] 1#1: using the "epoll" event method
+2022/05/29 00:37:13 [notice] 1#1: nginx/1.21.6
+2022/05/29 00:37:13 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 00:37:13 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 00:37:13 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 00:37:13 [notice] 1#1: start worker processes
+2022/05/29 00:37:13 [notice] 1#1: start worker process 23
+2022/05/29 00:37:13 [notice] 1#1: start worker process 24
+2022/05/29 00:39:50 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 00:39:50 [notice] 23#23: gracefully shutting down
+2022/05/29 00:39:50 [notice] 23#23: exiting
+2022/05/29 00:39:50 [notice] 23#23: exit
+2022/05/29 00:39:50 [notice] 24#24: gracefully shutting down
+2022/05/29 00:39:50 [notice] 24#24: exiting
+2022/05/29 00:39:50 [notice] 24#24: exit
+2022/05/29 00:39:50 [notice] 1#1: signal 17 (SIGCHLD) received from 23
+2022/05/29 00:39:50 [notice] 1#1: worker process 23 exited with code 0
+2022/05/29 00:39:50 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 00:39:50 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 00:39:50 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 00:39:50 [notice] 1#1: exit
+2022/05/29 00:39:56 [notice] 1#1: using the "epoll" event method
+2022/05/29 00:39:56 [notice] 1#1: nginx/1.21.6
+2022/05/29 00:39:56 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 00:39:56 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 00:39:56 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 00:39:56 [notice] 1#1: start worker processes
+2022/05/29 00:39:56 [notice] 1#1: start worker process 24
+2022/05/29 00:39:56 [notice] 1#1: start worker process 25
+2022/05/29 00:42:55 [error] 25#25: *2 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-service.com"
+2022/05/29 00:44:15 [error] 24#24: *4 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET //yy HTTP/1.1", host: "xhd-service.com"
+2022/05/29 00:44:43 [notice] 26#26: signal process started
+2022/05/29 00:44:43 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/29 00:44:43 [notice] 1#1: reconfiguring
+2022/05/29 00:44:43 [notice] 1#1: using the "epoll" event method
+2022/05/29 00:44:43 [notice] 1#1: start worker processes
+2022/05/29 00:44:43 [notice] 1#1: start worker process 33
+2022/05/29 00:44:43 [notice] 1#1: start worker process 34
+2022/05/29 00:44:43 [notice] 24#24: gracefully shutting down
+2022/05/29 00:44:43 [notice] 25#25: gracefully shutting down
+2022/05/29 00:44:43 [notice] 24#24: exiting
+2022/05/29 00:44:43 [notice] 25#25: exiting
+2022/05/29 00:44:43 [notice] 24#24: exit
+2022/05/29 00:44:43 [notice] 25#25: exit
+2022/05/29 00:44:43 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/29 00:44:43 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 00:44:43 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 00:44:43 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:04:48 [notice] 35#35: signal process started
+2022/05/29 01:04:48 [notice] 1#1: signal 1 (SIGHUP) received from 35, reconfiguring
+2022/05/29 01:04:48 [notice] 1#1: reconfiguring
+2022/05/29 01:04:48 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:04:48 [notice] 1#1: start worker processes
+2022/05/29 01:04:48 [notice] 1#1: start worker process 41
+2022/05/29 01:04:48 [notice] 1#1: start worker process 42
+2022/05/29 01:04:48 [notice] 33#33: gracefully shutting down
+2022/05/29 01:04:48 [notice] 34#34: gracefully shutting down
+2022/05/29 01:04:48 [notice] 33#33: exiting
+2022/05/29 01:04:48 [notice] 34#34: exiting
+2022/05/29 01:04:48 [notice] 34#34: exit
+2022/05/29 01:04:48 [notice] 33#33: exit
+2022/05/29 01:04:48 [notice] 1#1: signal 17 (SIGCHLD) received from 33
+2022/05/29 01:04:48 [notice] 1#1: worker process 33 exited with code 0
+2022/05/29 01:04:48 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:04:48 [notice] 1#1: signal 17 (SIGCHLD) received from 34
+2022/05/29 01:04:48 [notice] 1#1: worker process 34 exited with code 0
+2022/05/29 01:04:48 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:05:25 [error] 41#41: *10 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-service.com, request: "GET / HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:05:27 [error] 42#42: *11 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-service.com, request: "GET / HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:08:54 [notice] 43#43: signal process started
+2022/05/29 01:08:54 [notice] 1#1: signal 1 (SIGHUP) received from 43, reconfiguring
+2022/05/29 01:08:54 [notice] 1#1: reconfiguring
+2022/05/29 01:08:54 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:08:54 [notice] 1#1: start worker processes
+2022/05/29 01:08:54 [notice] 1#1: start worker process 49
+2022/05/29 01:08:54 [notice] 1#1: start worker process 50
+2022/05/29 01:08:55 [notice] 41#41: gracefully shutting down
+2022/05/29 01:08:55 [notice] 42#42: gracefully shutting down
+2022/05/29 01:08:55 [notice] 41#41: exiting
+2022/05/29 01:08:55 [notice] 42#42: exiting
+2022/05/29 01:08:55 [notice] 41#41: exit
+2022/05/29 01:08:55 [notice] 42#42: exit
+2022/05/29 01:08:55 [notice] 1#1: signal 17 (SIGCHLD) received from 41
+2022/05/29 01:08:55 [notice] 1#1: worker process 41 exited with code 0
+2022/05/29 01:08:55 [notice] 1#1: worker process 42 exited with code 0
+2022/05/29 01:08:55 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:09:06 [notice] 51#51: signal process started
+2022/05/29 01:09:06 [notice] 1#1: signal 1 (SIGHUP) received from 51, reconfiguring
+2022/05/29 01:09:06 [notice] 1#1: reconfiguring
+2022/05/29 01:09:06 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:09:06 [notice] 1#1: start worker processes
+2022/05/29 01:09:06 [notice] 1#1: start worker process 58
+2022/05/29 01:09:06 [notice] 1#1: start worker process 59
+2022/05/29 01:09:06 [notice] 50#50: gracefully shutting down
+2022/05/29 01:09:06 [notice] 50#50: exiting
+2022/05/29 01:09:06 [notice] 49#49: gracefully shutting down
+2022/05/29 01:09:06 [notice] 49#49: exiting
+2022/05/29 01:09:06 [notice] 50#50: exit
+2022/05/29 01:09:06 [notice] 49#49: exit
+2022/05/29 01:09:06 [notice] 1#1: signal 17 (SIGCHLD) received from 50
+2022/05/29 01:09:06 [notice] 1#1: worker process 50 exited with code 0
+2022/05/29 01:09:06 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:09:06 [notice] 1#1: signal 17 (SIGCHLD) received from 49
+2022/05/29 01:09:06 [notice] 1#1: worker process 49 exited with code 0
+2022/05/29 01:09:06 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:09:48 [notice] 77#77: signal process started
+2022/05/29 01:09:48 [notice] 1#1: signal 1 (SIGHUP) received from 77, reconfiguring
+2022/05/29 01:09:48 [notice] 1#1: reconfiguring
+2022/05/29 01:09:48 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:09:48 [notice] 1#1: start worker processes
+2022/05/29 01:09:48 [notice] 1#1: start worker process 83
+2022/05/29 01:09:48 [notice] 1#1: start worker process 84
+2022/05/29 01:09:49 [notice] 59#59: gracefully shutting down
+2022/05/29 01:09:49 [notice] 58#58: gracefully shutting down
+2022/05/29 01:09:49 [notice] 59#59: exiting
+2022/05/29 01:09:49 [notice] 58#58: exiting
+2022/05/29 01:09:49 [notice] 59#59: exit
+2022/05/29 01:09:49 [notice] 58#58: exit
+2022/05/29 01:09:49 [notice] 1#1: signal 17 (SIGCHLD) received from 58
+2022/05/29 01:09:49 [notice] 1#1: worker process 58 exited with code 0
+2022/05/29 01:09:49 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:09:49 [notice] 1#1: signal 17 (SIGCHLD) received from 59
+2022/05/29 01:09:49 [notice] 1#1: worker process 59 exited with code 0
+2022/05/29 01:09:49 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:09:49 [notice] 85#85: signal process started
+2022/05/29 01:09:49 [notice] 1#1: signal 1 (SIGHUP) received from 85, reconfiguring
+2022/05/29 01:09:49 [notice] 1#1: reconfiguring
+2022/05/29 01:09:49 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:09:49 [notice] 1#1: start worker processes
+2022/05/29 01:09:49 [notice] 1#1: start worker process 92
+2022/05/29 01:09:49 [notice] 1#1: start worker process 93
+2022/05/29 01:09:49 [notice] 84#84: gracefully shutting down
+2022/05/29 01:09:49 [notice] 83#83: gracefully shutting down
+2022/05/29 01:09:49 [notice] 84#84: exiting
+2022/05/29 01:09:49 [notice] 83#83: exiting
+2022/05/29 01:09:49 [notice] 84#84: exit
+2022/05/29 01:09:49 [notice] 83#83: exit
+2022/05/29 01:09:49 [notice] 1#1: signal 17 (SIGCHLD) received from 84
+2022/05/29 01:09:49 [notice] 1#1: worker process 84 exited with code 0
+2022/05/29 01:09:49 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:09:49 [notice] 1#1: signal 17 (SIGCHLD) received from 83
+2022/05/29 01:09:49 [notice] 1#1: worker process 83 exited with code 0
+2022/05/29 01:09:49 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:11:37 [error] 93#93: *14 open() "/usr/share/nginx/html/indexd.html" failed (2: No such file or directory), client: 172.17.0.1, server: localhost, request: "GET /indexd.html HTTP/1.1", host: "172.17.0.2"
+2022/05/29 01:17:52 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 01:17:52 [notice] 92#92: gracefully shutting down
+2022/05/29 01:17:52 [notice] 92#92: exiting
+2022/05/29 01:17:52 [notice] 92#92: exit
+2022/05/29 01:17:52 [notice] 93#93: gracefully shutting down
+2022/05/29 01:17:52 [notice] 93#93: exiting
+2022/05/29 01:17:52 [notice] 93#93: exit
+2022/05/29 01:17:52 [notice] 1#1: signal 17 (SIGCHLD) received from 93
+2022/05/29 01:17:52 [notice] 1#1: worker process 93 exited with code 0
+2022/05/29 01:17:52 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:17:52 [notice] 1#1: signal 17 (SIGCHLD) received from 92
+2022/05/29 01:17:52 [notice] 1#1: worker process 92 exited with code 0
+2022/05/29 01:17:52 [notice] 1#1: exit
+2022/05/29 01:18:01 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:18:01 [notice] 1#1: nginx/1.21.6
+2022/05/29 01:18:01 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 01:18:01 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 01:18:01 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 01:18:01 [notice] 1#1: start worker processes
+2022/05/29 01:18:01 [notice] 1#1: start worker process 23
+2022/05/29 01:18:01 [notice] 1#1: start worker process 24
+2022/05/29 01:23:05 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 01:23:05 [notice] 24#24: gracefully shutting down
+2022/05/29 01:23:05 [notice] 24#24: exiting
+2022/05/29 01:23:05 [notice] 24#24: exit
+2022/05/29 01:23:05 [notice] 23#23: gracefully shutting down
+2022/05/29 01:23:05 [notice] 23#23: exiting
+2022/05/29 01:23:05 [notice] 23#23: exit
+2022/05/29 01:23:05 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 01:23:05 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 01:23:05 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:23:05 [notice] 1#1: signal 17 (SIGCHLD) received from 23
+2022/05/29 01:23:05 [notice] 1#1: worker process 23 exited with code 0
+2022/05/29 01:23:05 [notice] 1#1: exit
+2022/05/29 01:23:15 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:23:15 [notice] 1#1: nginx/1.21.6
+2022/05/29 01:23:15 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 01:23:15 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 01:23:15 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 01:23:15 [notice] 1#1: start worker processes
+2022/05/29 01:23:15 [notice] 1#1: start worker process 24
+2022/05/29 01:23:15 [notice] 1#1: start worker process 25
+2022/05/29 01:25:52 [error] 24#24: *2 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:25:57 [error] 25#25: *3 open() "/usr/share/nginx/html/yy/index" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/index HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:25:59 [error] 25#25: *4 "/usr/share/nginx/html/yy/index/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/index/ HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:26:03 [error] 25#25: *5 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/index.html HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:26:24 [error] 25#25: *6 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:26:58 [notice] 26#26: signal process started
+2022/05/29 01:26:58 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/29 01:26:58 [notice] 1#1: reconfiguring
+2022/05/29 01:26:58 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:26:58 [notice] 1#1: start worker processes
+2022/05/29 01:26:58 [notice] 1#1: start worker process 32
+2022/05/29 01:26:58 [notice] 1#1: start worker process 33
+2022/05/29 01:26:58 [notice] 24#24: gracefully shutting down
+2022/05/29 01:26:58 [notice] 25#25: gracefully shutting down
+2022/05/29 01:26:58 [notice] 24#24: exiting
+2022/05/29 01:26:58 [notice] 25#25: exiting
+2022/05/29 01:26:58 [notice] 25#25: exit
+2022/05/29 01:26:58 [notice] 24#24: exit
+2022/05/29 01:26:58 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 01:26:58 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 01:26:58 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 01:26:58 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:27:25 [error] 33#33: *8 open() "/etc/nginx/html/zz" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-service.com, request: "GET /zz HTTP/1.1", host: "xhd-service.com"
+2022/05/29 01:30:45 [error] 32#32: *12 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET / HTTP/1.1", host: "nginx-service.com"
+2022/05/29 01:31:23 [notice] 34#34: signal process started
+2022/05/29 01:31:23 [notice] 1#1: signal 1 (SIGHUP) received from 34, reconfiguring
+2022/05/29 01:31:23 [notice] 1#1: reconfiguring
+2022/05/29 01:31:23 [notice] 1#1: using the "epoll" event method
+2022/05/29 01:31:23 [notice] 1#1: start worker processes
+2022/05/29 01:31:23 [notice] 1#1: start worker process 40
+2022/05/29 01:31:23 [notice] 1#1: start worker process 41
+2022/05/29 01:31:23 [notice] 32#32: gracefully shutting down
+2022/05/29 01:31:23 [notice] 33#33: gracefully shutting down
+2022/05/29 01:31:23 [notice] 32#32: exiting
+2022/05/29 01:31:23 [notice] 33#33: exiting
+2022/05/29 01:31:23 [notice] 32#32: exit
+2022/05/29 01:31:23 [notice] 33#33: exit
+2022/05/29 01:31:23 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2022/05/29 01:31:23 [notice] 1#1: worker process 32 exited with code 0
+2022/05/29 01:31:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:31:23 [notice] 1#1: signal 17 (SIGCHLD) received from 33
+2022/05/29 01:31:23 [notice] 1#1: worker process 33 exited with code 0
+2022/05/29 01:31:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 01:32:07 [error] 40#40: *21 open() "/etc/nginx/html/index" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /index HTTP/1.1", host: "nginx-service.com"
+2022/05/29 04:06:52 [error] 40#40: *29 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /yy HTTP/1.1", host: "nginx-service.com"
+2022/05/29 04:07:09 [error] 40#40: *30 open() "/etc/nginx/html/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: nginx-service.com, request: "GET /index.html HTTP/1.1", host: "nginx-service.com"
+2022/05/29 04:12:19 [error] 40#40: *31 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-service.com, request: "GET / HTTP/1.1", host: "xhd-service.com"
+2022/05/29 05:01:59 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:01:59 [notice] 1#1: nginx/1.21.6
+2022/05/29 05:01:59 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 05:01:59 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 05:01:59 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 05:01:59 [notice] 1#1: start worker processes
+2022/05/29 05:01:59 [notice] 1#1: start worker process 24
+2022/05/29 05:01:59 [notice] 1#1: start worker process 25
+2022/05/29 05:02:26 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:02:26 [notice] 1#1: nginx/1.21.6
+2022/05/29 05:02:26 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 05:02:26 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 05:02:26 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 05:02:26 [notice] 1#1: start worker processes
+2022/05/29 05:02:26 [notice] 1#1: start worker process 24
+2022/05/29 05:02:26 [notice] 1#1: start worker process 25
+2022/05/29 05:14:26 [emerg] 26#26: unexpected "}" in /etc/nginx/conf.d/xhdservice.conf:11
+2022/05/29 05:14:50 [notice] 32#32: signal process started
+2022/05/29 05:14:50 [notice] 1#1: signal 1 (SIGHUP) received from 32, reconfiguring
+2022/05/29 05:14:50 [notice] 1#1: reconfiguring
+2022/05/29 05:14:50 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:14:50 [notice] 1#1: start worker processes
+2022/05/29 05:14:50 [notice] 1#1: start worker process 38
+2022/05/29 05:14:50 [notice] 1#1: start worker process 39
+2022/05/29 05:14:50 [notice] 24#24: gracefully shutting down
+2022/05/29 05:14:50 [notice] 25#25: gracefully shutting down
+2022/05/29 05:14:50 [notice] 24#24: exiting
+2022/05/29 05:14:50 [notice] 25#25: exiting
+2022/05/29 05:14:50 [notice] 25#25: exit
+2022/05/29 05:14:50 [notice] 24#24: exit
+2022/05/29 05:14:50 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/29 05:14:50 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 05:14:50 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:14:50 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 05:14:50 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 05:14:50 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:17:29 [emerg] 40#40: unexpected "}" in /etc/nginx/conf.d/xhdservice.conf:12
+2022/05/29 05:17:34 [notice] 46#46: signal process started
+2022/05/29 05:17:34 [notice] 1#1: signal 1 (SIGHUP) received from 46, reconfiguring
+2022/05/29 05:17:34 [notice] 1#1: reconfiguring
+2022/05/29 05:17:34 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:17:34 [notice] 1#1: start worker processes
+2022/05/29 05:17:34 [notice] 1#1: start worker process 52
+2022/05/29 05:17:34 [notice] 1#1: start worker process 53
+2022/05/29 05:17:34 [notice] 39#39: gracefully shutting down
+2022/05/29 05:17:34 [notice] 39#39: exiting
+2022/05/29 05:17:34 [notice] 38#38: gracefully shutting down
+2022/05/29 05:17:34 [notice] 38#38: exiting
+2022/05/29 05:17:34 [notice] 39#39: exit
+2022/05/29 05:17:34 [notice] 38#38: exit
+2022/05/29 05:17:34 [notice] 1#1: signal 17 (SIGCHLD) received from 38
+2022/05/29 05:17:34 [notice] 1#1: worker process 38 exited with code 0
+2022/05/29 05:17:34 [notice] 1#1: worker process 39 exited with code 0
+2022/05/29 05:17:34 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:17:53 [notice] 54#54: signal process started
+2022/05/29 05:17:53 [notice] 1#1: signal 1 (SIGHUP) received from 54, reconfiguring
+2022/05/29 05:17:53 [notice] 1#1: reconfiguring
+2022/05/29 05:17:53 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:17:53 [notice] 1#1: start worker processes
+2022/05/29 05:17:53 [notice] 1#1: start worker process 60
+2022/05/29 05:17:53 [notice] 1#1: start worker process 61
+2022/05/29 05:17:53 [notice] 52#52: gracefully shutting down
+2022/05/29 05:17:53 [notice] 53#53: gracefully shutting down
+2022/05/29 05:17:53 [notice] 52#52: exiting
+2022/05/29 05:17:53 [notice] 53#53: exiting
+2022/05/29 05:17:53 [notice] 52#52: exit
+2022/05/29 05:17:53 [notice] 53#53: exit
+2022/05/29 05:17:53 [notice] 1#1: signal 17 (SIGCHLD) received from 53
+2022/05/29 05:17:53 [notice] 1#1: worker process 52 exited with code 0
+2022/05/29 05:17:53 [notice] 1#1: worker process 53 exited with code 0
+2022/05/29 05:17:53 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:17:53 [notice] 1#1: signal 17 (SIGCHLD) received from 52
+2022/05/29 05:18:07 [notice] 62#62: signal process started
+2022/05/29 05:18:07 [notice] 1#1: signal 1 (SIGHUP) received from 62, reconfiguring
+2022/05/29 05:18:07 [notice] 1#1: reconfiguring
+2022/05/29 05:18:07 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:18:07 [notice] 1#1: start worker processes
+2022/05/29 05:18:07 [notice] 1#1: start worker process 68
+2022/05/29 05:18:07 [notice] 1#1: start worker process 69
+2022/05/29 05:18:07 [notice] 60#60: gracefully shutting down
+2022/05/29 05:18:07 [notice] 61#61: gracefully shutting down
+2022/05/29 05:18:07 [notice] 60#60: exiting
+2022/05/29 05:18:07 [notice] 61#61: exiting
+2022/05/29 05:18:07 [notice] 61#61: exit
+2022/05/29 05:18:07 [notice] 60#60: exit
+2022/05/29 05:18:07 [notice] 1#1: signal 17 (SIGCHLD) received from 61
+2022/05/29 05:18:07 [notice] 1#1: worker process 60 exited with code 0
+2022/05/29 05:18:07 [notice] 1#1: worker process 61 exited with code 0
+2022/05/29 05:18:07 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:18:08 [error] 69#69: *10 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhdservice, request: "GET / HTTP/1.1", host: "xhdservice"
+2022/05/29 05:18:15 [notice] 70#70: signal process started
+2022/05/29 05:18:16 [notice] 1#1: signal 1 (SIGHUP) received from 70, reconfiguring
+2022/05/29 05:18:16 [notice] 1#1: reconfiguring
+2022/05/29 05:18:16 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:18:16 [notice] 1#1: start worker processes
+2022/05/29 05:18:16 [notice] 1#1: start worker process 76
+2022/05/29 05:18:16 [notice] 1#1: start worker process 77
+2022/05/29 05:18:16 [notice] 68#68: gracefully shutting down
+2022/05/29 05:18:16 [notice] 69#69: gracefully shutting down
+2022/05/29 05:18:16 [notice] 68#68: exiting
+2022/05/29 05:18:16 [notice] 69#69: exiting
+2022/05/29 05:18:16 [notice] 68#68: exit
+2022/05/29 05:18:16 [notice] 69#69: exit
+2022/05/29 05:18:16 [notice] 1#1: signal 17 (SIGCHLD) received from 68
+2022/05/29 05:18:16 [notice] 1#1: worker process 68 exited with code 0
+2022/05/29 05:18:16 [notice] 1#1: worker process 69 exited with code 0
+2022/05/29 05:18:16 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:18:16 [notice] 1#1: signal 17 (SIGCHLD) received from 69
+2022/05/29 05:18:17 [error] 76#76: *11 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhdservice, request: "GET / HTTP/1.1", host: "xhdservice"
+2022/05/29 05:18:23 [notice] 78#78: signal process started
+2022/05/29 05:18:23 [notice] 1#1: signal 1 (SIGHUP) received from 78, reconfiguring
+2022/05/29 05:18:23 [notice] 1#1: reconfiguring
+2022/05/29 05:18:23 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:18:23 [notice] 1#1: start worker processes
+2022/05/29 05:18:23 [notice] 1#1: start worker process 84
+2022/05/29 05:18:23 [notice] 1#1: start worker process 85
+2022/05/29 05:18:23 [notice] 77#77: gracefully shutting down
+2022/05/29 05:18:23 [notice] 77#77: exiting
+2022/05/29 05:18:23 [notice] 76#76: gracefully shutting down
+2022/05/29 05:18:23 [notice] 76#76: exiting
+2022/05/29 05:18:23 [notice] 77#77: exit
+2022/05/29 05:18:23 [notice] 76#76: exit
+2022/05/29 05:18:23 [notice] 1#1: signal 17 (SIGCHLD) received from 76
+2022/05/29 05:18:23 [notice] 1#1: worker process 76 exited with code 0
+2022/05/29 05:18:23 [notice] 1#1: worker process 77 exited with code 0
+2022/05/29 05:18:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:18:24 [error] 84#84: *12 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhdservice, request: "GET / HTTP/1.1", host: "xhdservice"
+2022/05/29 05:18:33 [notice] 86#86: signal process started
+2022/05/29 05:18:33 [notice] 1#1: signal 1 (SIGHUP) received from 86, reconfiguring
+2022/05/29 05:18:33 [notice] 1#1: reconfiguring
+2022/05/29 05:18:33 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:18:33 [notice] 1#1: start worker processes
+2022/05/29 05:18:33 [notice] 1#1: start worker process 92
+2022/05/29 05:18:33 [notice] 1#1: start worker process 93
+2022/05/29 05:18:33 [notice] 85#85: gracefully shutting down
+2022/05/29 05:18:33 [notice] 84#84: gracefully shutting down
+2022/05/29 05:18:33 [notice] 85#85: exiting
+2022/05/29 05:18:33 [notice] 84#84: exiting
+2022/05/29 05:18:33 [notice] 84#84: exit
+2022/05/29 05:18:33 [notice] 85#85: exit
+2022/05/29 05:18:33 [notice] 1#1: signal 17 (SIGCHLD) received from 85
+2022/05/29 05:18:33 [notice] 1#1: worker process 85 exited with code 0
+2022/05/29 05:18:33 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:18:33 [notice] 1#1: signal 17 (SIGCHLD) received from 84
+2022/05/29 05:18:33 [notice] 1#1: worker process 84 exited with code 0
+2022/05/29 05:18:33 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:18:34 [error] 93#93: *13 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhdservice, request: "GET / HTTP/1.1", host: "xhdservice"
+2022/05/29 05:19:10 [notice] 94#94: signal process started
+2022/05/29 05:19:10 [notice] 1#1: signal 1 (SIGHUP) received from 94, reconfiguring
+2022/05/29 05:19:10 [notice] 1#1: reconfiguring
+2022/05/29 05:19:10 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:19:10 [notice] 1#1: start worker processes
+2022/05/29 05:19:10 [notice] 1#1: start worker process 100
+2022/05/29 05:19:10 [notice] 1#1: start worker process 101
+2022/05/29 05:19:10 [notice] 93#93: gracefully shutting down
+2022/05/29 05:19:10 [notice] 92#92: gracefully shutting down
+2022/05/29 05:19:10 [notice] 93#93: exiting
+2022/05/29 05:19:10 [notice] 92#92: exiting
+2022/05/29 05:19:10 [notice] 92#92: exit
+2022/05/29 05:19:10 [notice] 93#93: exit
+2022/05/29 05:19:10 [notice] 1#1: signal 17 (SIGCHLD) received from 92
+2022/05/29 05:19:10 [notice] 1#1: worker process 92 exited with code 0
+2022/05/29 05:19:10 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:10 [notice] 1#1: signal 17 (SIGCHLD) received from 93
+2022/05/29 05:19:10 [notice] 1#1: worker process 93 exited with code 0
+2022/05/29 05:19:10 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:25 [notice] 102#102: signal process started
+2022/05/29 05:19:25 [notice] 1#1: signal 1 (SIGHUP) received from 102, reconfiguring
+2022/05/29 05:19:25 [notice] 1#1: reconfiguring
+2022/05/29 05:19:25 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:19:25 [notice] 1#1: start worker processes
+2022/05/29 05:19:25 [notice] 1#1: start worker process 108
+2022/05/29 05:19:25 [notice] 1#1: start worker process 109
+2022/05/29 05:19:25 [notice] 101#101: gracefully shutting down
+2022/05/29 05:19:25 [notice] 101#101: exiting
+2022/05/29 05:19:25 [notice] 100#100: gracefully shutting down
+2022/05/29 05:19:25 [notice] 100#100: exiting
+2022/05/29 05:19:25 [notice] 101#101: exit
+2022/05/29 05:19:25 [notice] 100#100: exit
+2022/05/29 05:19:26 [notice] 1#1: signal 17 (SIGCHLD) received from 100
+2022/05/29 05:19:26 [notice] 1#1: worker process 100 exited with code 0
+2022/05/29 05:19:26 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:26 [notice] 1#1: signal 17 (SIGCHLD) received from 101
+2022/05/29 05:19:26 [notice] 1#1: worker process 101 exited with code 0
+2022/05/29 05:19:26 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:39 [notice] 110#110: signal process started
+2022/05/29 05:19:39 [notice] 1#1: signal 1 (SIGHUP) received from 110, reconfiguring
+2022/05/29 05:19:39 [notice] 1#1: reconfiguring
+2022/05/29 05:19:39 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:19:39 [notice] 1#1: start worker processes
+2022/05/29 05:19:39 [notice] 1#1: start worker process 115
+2022/05/29 05:19:39 [notice] 1#1: start worker process 116
+2022/05/29 05:19:40 [notice] 109#109: gracefully shutting down
+2022/05/29 05:19:40 [notice] 109#109: exiting
+2022/05/29 05:19:40 [notice] 108#108: gracefully shutting down
+2022/05/29 05:19:40 [notice] 108#108: exiting
+2022/05/29 05:19:40 [notice] 109#109: exit
+2022/05/29 05:19:40 [notice] 108#108: exit
+2022/05/29 05:19:40 [notice] 1#1: signal 17 (SIGCHLD) received from 109
+2022/05/29 05:19:40 [notice] 1#1: worker process 109 exited with code 0
+2022/05/29 05:19:40 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:40 [notice] 1#1: signal 17 (SIGCHLD) received from 108
+2022/05/29 05:19:40 [notice] 1#1: worker process 108 exited with code 0
+2022/05/29 05:19:40 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:51 [notice] 117#117: signal process started
+2022/05/29 05:19:51 [notice] 1#1: signal 1 (SIGHUP) received from 117, reconfiguring
+2022/05/29 05:19:51 [notice] 1#1: reconfiguring
+2022/05/29 05:19:51 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:19:51 [notice] 1#1: start worker processes
+2022/05/29 05:19:51 [notice] 1#1: start worker process 123
+2022/05/29 05:19:51 [notice] 1#1: start worker process 124
+2022/05/29 05:19:51 [notice] 115#115: gracefully shutting down
+2022/05/29 05:19:51 [notice] 116#116: gracefully shutting down
+2022/05/29 05:19:51 [notice] 115#115: exiting
+2022/05/29 05:19:51 [notice] 116#116: exiting
+2022/05/29 05:19:51 [notice] 116#116: exit
+2022/05/29 05:19:51 [notice] 115#115: exit
+2022/05/29 05:19:51 [notice] 1#1: signal 17 (SIGCHLD) received from 115
+2022/05/29 05:19:51 [notice] 1#1: worker process 115 exited with code 0
+2022/05/29 05:19:51 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:19:51 [notice] 1#1: signal 17 (SIGCHLD) received from 116
+2022/05/29 05:19:51 [notice] 1#1: worker process 116 exited with code 0
+2022/05/29 05:19:51 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:20:23 [notice] 125#125: signal process started
+2022/05/29 05:20:23 [notice] 1#1: signal 1 (SIGHUP) received from 125, reconfiguring
+2022/05/29 05:20:23 [notice] 1#1: reconfiguring
+2022/05/29 05:20:23 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:20:23 [notice] 1#1: start worker processes
+2022/05/29 05:20:23 [notice] 1#1: start worker process 130
+2022/05/29 05:20:23 [notice] 1#1: start worker process 131
+2022/05/29 05:20:23 [notice] 123#123: gracefully shutting down
+2022/05/29 05:20:23 [notice] 124#124: gracefully shutting down
+2022/05/29 05:20:23 [notice] 123#123: exiting
+2022/05/29 05:20:23 [notice] 124#124: exiting
+2022/05/29 05:20:23 [notice] 123#123: exit
+2022/05/29 05:20:23 [notice] 124#124: exit
+2022/05/29 05:20:23 [notice] 1#1: signal 17 (SIGCHLD) received from 123
+2022/05/29 05:20:23 [notice] 1#1: worker process 123 exited with code 0
+2022/05/29 05:20:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:20:23 [notice] 1#1: signal 17 (SIGCHLD) received from 124
+2022/05/29 05:20:23 [notice] 1#1: worker process 124 exited with code 0
+2022/05/29 05:20:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:21:24 [notice] 132#132: signal process started
+2022/05/29 05:21:24 [notice] 1#1: signal 1 (SIGHUP) received from 132, reconfiguring
+2022/05/29 05:21:24 [notice] 1#1: reconfiguring
+2022/05/29 05:21:24 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:21:24 [notice] 1#1: start worker processes
+2022/05/29 05:21:24 [notice] 1#1: start worker process 138
+2022/05/29 05:21:24 [notice] 1#1: start worker process 139
+2022/05/29 05:21:24 [notice] 131#131: gracefully shutting down
+2022/05/29 05:21:24 [notice] 130#130: gracefully shutting down
+2022/05/29 05:21:24 [notice] 131#131: exiting
+2022/05/29 05:21:24 [notice] 130#130: exiting
+2022/05/29 05:21:24 [notice] 131#131: exit
+2022/05/29 05:21:24 [notice] 130#130: exit
+2022/05/29 05:21:24 [notice] 1#1: signal 17 (SIGCHLD) received from 131
+2022/05/29 05:21:24 [notice] 1#1: worker process 131 exited with code 0
+2022/05/29 05:21:24 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:21:24 [notice] 1#1: signal 17 (SIGCHLD) received from 130
+2022/05/29 05:21:24 [notice] 1#1: worker process 130 exited with code 0
+2022/05/29 05:21:24 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:23:32 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 05:23:32 [notice] 138#138: gracefully shutting down
+2022/05/29 05:23:32 [notice] 138#138: exiting
+2022/05/29 05:23:32 [notice] 138#138: exit
+2022/05/29 05:23:32 [notice] 139#139: gracefully shutting down
+2022/05/29 05:23:32 [notice] 139#139: exiting
+2022/05/29 05:23:32 [notice] 139#139: exit
+2022/05/29 05:23:32 [notice] 1#1: signal 17 (SIGCHLD) received from 138
+2022/05/29 05:23:32 [notice] 1#1: worker process 138 exited with code 0
+2022/05/29 05:23:32 [notice] 1#1: worker process 139 exited with code 0
+2022/05/29 05:23:32 [notice] 1#1: exit
+2022/05/29 05:23:54 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:23:54 [notice] 1#1: nginx/1.21.6
+2022/05/29 05:23:54 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 05:23:54 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 05:23:54 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 05:23:54 [notice] 1#1: start worker processes
+2022/05/29 05:23:54 [notice] 1#1: start worker process 24
+2022/05/29 05:23:54 [notice] 1#1: start worker process 25
+2022/05/29 05:27:37 [error] 24#24: *2 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:27:42 [error] 25#25: *3 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:27:44 [error] 25#25: *4 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:28:05 [error] 25#25: *5 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:28:13 [error] 25#25: *6 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:28:21 [error] 25#25: *7 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:28:25 [error] 25#25: *8 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/index.html HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:28:27 [error] 25#25: *9 open() "/usr/share/nginx/html/yy/index" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/index HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:29:29 [notice] 26#26: signal process started
+2022/05/29 05:29:29 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/29 05:29:29 [notice] 1#1: reconfiguring
+2022/05/29 05:29:29 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:29:29 [notice] 1#1: start worker processes
+2022/05/29 05:29:29 [notice] 1#1: start worker process 32
+2022/05/29 05:29:29 [notice] 1#1: start worker process 33
+2022/05/29 05:29:29 [notice] 25#25: gracefully shutting down
+2022/05/29 05:29:29 [notice] 25#25: exiting
+2022/05/29 05:29:29 [notice] 24#24: gracefully shutting down
+2022/05/29 05:29:29 [notice] 24#24: exiting
+2022/05/29 05:29:29 [notice] 25#25: exit
+2022/05/29 05:29:29 [notice] 24#24: exit
+2022/05/29 05:29:30 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/29 05:29:30 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 05:29:30 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 05:29:30 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:29:46 [notice] 34#34: signal process started
+2022/05/29 05:29:46 [notice] 1#1: signal 1 (SIGHUP) received from 34, reconfiguring
+2022/05/29 05:29:46 [notice] 1#1: reconfiguring
+2022/05/29 05:29:46 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:29:46 [notice] 1#1: start worker processes
+2022/05/29 05:29:46 [notice] 1#1: start worker process 40
+2022/05/29 05:29:46 [notice] 1#1: start worker process 41
+2022/05/29 05:29:46 [notice] 32#32: gracefully shutting down
+2022/05/29 05:29:46 [notice] 33#33: gracefully shutting down
+2022/05/29 05:29:46 [notice] 32#32: exiting
+2022/05/29 05:29:46 [notice] 33#33: exiting
+2022/05/29 05:29:46 [notice] 32#32: exit
+2022/05/29 05:29:46 [notice] 33#33: exit
+2022/05/29 05:29:46 [notice] 1#1: signal 17 (SIGCHLD) received from 33
+2022/05/29 05:29:46 [notice] 1#1: worker process 33 exited with code 0
+2022/05/29 05:29:46 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:29:46 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2022/05/29 05:29:46 [notice] 1#1: worker process 32 exited with code 0
+2022/05/29 05:29:46 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:29:47 [error] 40#40: *11 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET / HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:29:57 [error] 41#41: *12 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:29:59 [error] 40#40: *13 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:30:08 [notice] 42#42: signal process started
+2022/05/29 05:30:08 [notice] 1#1: signal 1 (SIGHUP) received from 42, reconfiguring
+2022/05/29 05:30:08 [notice] 1#1: reconfiguring
+2022/05/29 05:30:08 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:30:08 [notice] 1#1: start worker processes
+2022/05/29 05:30:08 [notice] 1#1: start worker process 48
+2022/05/29 05:30:08 [notice] 1#1: start worker process 49
+2022/05/29 05:30:09 [notice] 41#41: gracefully shutting down
+2022/05/29 05:30:09 [notice] 40#40: gracefully shutting down
+2022/05/29 05:30:09 [notice] 41#41: exiting
+2022/05/29 05:30:09 [notice] 40#40: exiting
+2022/05/29 05:30:09 [notice] 41#41: exit
+2022/05/29 05:30:09 [notice] 40#40: exit
+2022/05/29 05:30:09 [notice] 1#1: signal 17 (SIGCHLD) received from 41
+2022/05/29 05:30:09 [notice] 1#1: worker process 40 exited with code 0
+2022/05/29 05:30:09 [notice] 1#1: worker process 41 exited with code 0
+2022/05/29 05:30:09 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:30:10 [error] 48#48: *14 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:30:12 [error] 49#49: *15 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:30:45 [emerg] 50#50: unexpected "}" in /etc/nginx/conf.d/xhd-dns.conf:11
+2022/05/29 05:30:50 [notice] 56#56: signal process started
+2022/05/29 05:30:50 [notice] 1#1: signal 1 (SIGHUP) received from 56, reconfiguring
+2022/05/29 05:30:50 [notice] 1#1: reconfiguring
+2022/05/29 05:30:50 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:30:50 [notice] 1#1: start worker processes
+2022/05/29 05:30:50 [notice] 1#1: start worker process 62
+2022/05/29 05:30:50 [notice] 1#1: start worker process 63
+2022/05/29 05:30:50 [notice] 49#49: gracefully shutting down
+2022/05/29 05:30:50 [notice] 48#48: gracefully shutting down
+2022/05/29 05:30:50 [notice] 49#49: exiting
+2022/05/29 05:30:50 [notice] 48#48: exiting
+2022/05/29 05:30:50 [notice] 49#49: exit
+2022/05/29 05:30:50 [notice] 48#48: exit
+2022/05/29 05:30:50 [notice] 1#1: signal 17 (SIGCHLD) received from 48
+2022/05/29 05:30:50 [notice] 1#1: worker process 48 exited with code 0
+2022/05/29 05:30:50 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:30:50 [notice] 1#1: signal 17 (SIGCHLD) received from 49
+2022/05/29 05:30:50 [notice] 1#1: worker process 49 exited with code 0
+2022/05/29 05:30:50 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:31:43 [notice] 75#75: signal process started
+2022/05/29 05:31:43 [notice] 1#1: signal 1 (SIGHUP) received from 75, reconfiguring
+2022/05/29 05:31:43 [notice] 1#1: reconfiguring
+2022/05/29 05:31:43 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:31:43 [notice] 1#1: start worker processes
+2022/05/29 05:31:43 [notice] 1#1: start worker process 81
+2022/05/29 05:31:43 [notice] 1#1: start worker process 82
+2022/05/29 05:31:44 [notice] 62#62: gracefully shutting down
+2022/05/29 05:31:44 [notice] 63#63: gracefully shutting down
+2022/05/29 05:31:44 [notice] 62#62: exiting
+2022/05/29 05:31:44 [notice] 63#63: exiting
+2022/05/29 05:31:44 [notice] 62#62: exit
+2022/05/29 05:31:44 [notice] 63#63: exit
+2022/05/29 05:31:44 [notice] 1#1: signal 17 (SIGCHLD) received from 62
+2022/05/29 05:31:44 [notice] 1#1: worker process 62 exited with code 0
+2022/05/29 05:31:44 [notice] 1#1: worker process 63 exited with code 0
+2022/05/29 05:31:44 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:31:44 [notice] 1#1: signal 17 (SIGCHLD) received from 63
+2022/05/29 05:32:00 [error] 81#81: *17 "/usr/share/nginx/html/yy/xhdservice.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:32:01 [error] 82#82: *18 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:32:21 [error] 81#81: *19 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:32:21 [error] 81#81: *19 open() "/etc/nginx/html/favicon.ico" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /favicon.ico HTTP/1.1", host: "xhd-dns", referrer: "http://xhd-dns/yy"
+2022/05/29 05:32:27 [error] 81#81: *19 "/usr/share/nginx/html/yy/xhdservice.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:32:43 [notice] 83#83: signal process started
+2022/05/29 05:32:43 [notice] 1#1: signal 1 (SIGHUP) received from 83, reconfiguring
+2022/05/29 05:32:43 [notice] 1#1: reconfiguring
+2022/05/29 05:32:43 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:32:43 [notice] 1#1: start worker processes
+2022/05/29 05:32:43 [notice] 1#1: start worker process 90
+2022/05/29 05:32:43 [notice] 1#1: start worker process 91
+2022/05/29 05:32:43 [notice] 82#82: gracefully shutting down
+2022/05/29 05:32:43 [notice] 82#82: exiting
+2022/05/29 05:32:43 [notice] 81#81: gracefully shutting down
+2022/05/29 05:32:43 [notice] 82#82: exit
+2022/05/29 05:32:43 [notice] 81#81: exiting
+2022/05/29 05:32:43 [notice] 81#81: exit
+2022/05/29 05:32:43 [notice] 1#1: signal 17 (SIGCHLD) received from 82
+2022/05/29 05:32:43 [notice] 1#1: worker process 82 exited with code 0
+2022/05/29 05:32:43 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:32:43 [notice] 1#1: signal 17 (SIGCHLD) received from 81
+2022/05/29 05:32:43 [notice] 1#1: worker process 81 exited with code 0
+2022/05/29 05:32:43 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:33:30 [notice] 92#92: signal process started
+2022/05/29 05:33:30 [notice] 1#1: signal 1 (SIGHUP) received from 92, reconfiguring
+2022/05/29 05:33:30 [notice] 1#1: reconfiguring
+2022/05/29 05:33:30 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:33:30 [notice] 1#1: start worker processes
+2022/05/29 05:33:30 [notice] 1#1: start worker process 97
+2022/05/29 05:33:30 [notice] 1#1: start worker process 98
+2022/05/29 05:33:30 [notice] 90#90: gracefully shutting down
+2022/05/29 05:33:30 [notice] 91#91: gracefully shutting down
+2022/05/29 05:33:30 [notice] 90#90: exiting
+2022/05/29 05:33:30 [notice] 91#91: exiting
+2022/05/29 05:33:30 [notice] 90#90: exit
+2022/05/29 05:33:30 [notice] 91#91: exit
+2022/05/29 05:33:30 [notice] 1#1: signal 17 (SIGCHLD) received from 91
+2022/05/29 05:33:30 [notice] 1#1: worker process 90 exited with code 0
+2022/05/29 05:33:30 [notice] 1#1: worker process 91 exited with code 0
+2022/05/29 05:33:30 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:33:30 [notice] 1#1: signal 17 (SIGCHLD) received from 90
+2022/05/29 05:33:39 [error] 97#97: *20 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:33:41 [error] 98#98: *21 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /yy HTTP/1.1", host: "xhddns"
+2022/05/29 05:33:42 [error] 97#97: *22 "/usr/share/nginx/html/yy/xhdservice.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /yy/ HTTP/1.1", host: "xhddns"
+2022/05/29 05:34:53 [error] 97#97: *23 open() "/etc/nginx/html/index" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /index HTTP/1.1", host: "xhddns"
+2022/05/29 05:34:55 [error] 97#97: *24 open() "/usr/share/nginx/html/yy/index" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /yy/index HTTP/1.1", host: "xhddns"
+2022/05/29 05:34:58 [error] 97#97: *25 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /yy/index.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:35:03 [error] 97#97: *26 open() "/usr/share/nginx/html/yy/xhdservice.html" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /yy/xhdservice.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:37:45 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:37:45 [notice] 1#1: nginx/1.21.6
+2022/05/29 05:37:45 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 05:37:45 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 05:37:45 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 05:37:45 [notice] 1#1: start worker processes
+2022/05/29 05:37:45 [notice] 1#1: start worker process 23
+2022/05/29 05:37:45 [notice] 1#1: start worker process 24
+2022/05/29 05:38:32 [error] 24#24: *1 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:38:34 [error] 23#23: *2 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy HTTP/1.1", host: "xhddns"
+2022/05/29 05:38:36 [error] 24#24: *3 "/usr/share/nginx/html/yy/xhdservice.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy/ HTTP/1.1", host: "xhddns"
+2022/05/29 05:38:59 [error] 24#24: *4 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy HTTP/1.1", host: "xhddns"
+2022/05/29 05:39:01 [error] 24#24: *5 "/usr/share/nginx/html/yy/xhdservice.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy/ HTTP/1.1", host: "xhddns"
+2022/05/29 05:39:07 [error] 24#24: *6 open() "/usr/share/nginx/html/yy/xhdservice.html" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy/xhdservice.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:39:13 [error] 24#24: *7 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy/index.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:39:38 [notice] 25#25: signal process started
+2022/05/29 05:39:38 [notice] 1#1: signal 1 (SIGHUP) received from 25, reconfiguring
+2022/05/29 05:39:38 [notice] 1#1: reconfiguring
+2022/05/29 05:39:38 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:39:38 [notice] 1#1: start worker processes
+2022/05/29 05:39:38 [notice] 1#1: start worker process 31
+2022/05/29 05:39:38 [notice] 1#1: start worker process 32
+2022/05/29 05:39:39 [notice] 24#24: gracefully shutting down
+2022/05/29 05:39:39 [notice] 23#23: gracefully shutting down
+2022/05/29 05:39:39 [notice] 24#24: exiting
+2022/05/29 05:39:39 [notice] 23#23: exiting
+2022/05/29 05:39:39 [notice] 24#24: exit
+2022/05/29 05:39:39 [notice] 23#23: exit
+2022/05/29 05:39:39 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 05:39:39 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 05:39:39 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:39:39 [notice] 1#1: signal 17 (SIGCHLD) received from 23
+2022/05/29 05:39:39 [notice] 1#1: worker process 23 exited with code 0
+2022/05/29 05:39:39 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:39:50 [error] 32#32: *9 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:39:52 [error] 31#31: *10 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy HTTP/1.1", host: "xhddns"
+2022/05/29 05:40:11 [notice] 40#40: signal process started
+2022/05/29 05:40:11 [notice] 1#1: signal 1 (SIGHUP) received from 40, reconfiguring
+2022/05/29 05:40:11 [notice] 1#1: reconfiguring
+2022/05/29 05:40:11 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:40:11 [notice] 1#1: start worker processes
+2022/05/29 05:40:11 [notice] 1#1: start worker process 46
+2022/05/29 05:40:11 [notice] 1#1: start worker process 47
+2022/05/29 05:40:11 [notice] 32#32: gracefully shutting down
+2022/05/29 05:40:11 [notice] 31#31: gracefully shutting down
+2022/05/29 05:40:11 [notice] 32#32: exiting
+2022/05/29 05:40:11 [notice] 31#31: exiting
+2022/05/29 05:40:11 [notice] 32#32: exit
+2022/05/29 05:40:11 [notice] 31#31: exit
+2022/05/29 05:40:11 [notice] 1#1: signal 17 (SIGCHLD) received from 31
+2022/05/29 05:40:11 [notice] 1#1: worker process 31 exited with code 0
+2022/05/29 05:40:11 [notice] 1#1: worker process 32 exited with code 0
+2022/05/29 05:40:11 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:40:41 [error] 47#47: *11 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy HTTP/1.1", host: "xhddns"
+2022/05/29 05:40:46 [error] 46#46: *12 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy/index.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:40:47 [error] 47#47: *13 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yy/index.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:41:11 [notice] 54#54: signal process started
+2022/05/29 05:41:11 [notice] 1#1: signal 1 (SIGHUP) received from 54, reconfiguring
+2022/05/29 05:41:11 [notice] 1#1: reconfiguring
+2022/05/29 05:41:11 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:41:11 [notice] 1#1: start worker processes
+2022/05/29 05:41:11 [notice] 1#1: start worker process 60
+2022/05/29 05:41:11 [notice] 1#1: start worker process 61
+2022/05/29 05:41:11 [notice] 46#46: gracefully shutting down
+2022/05/29 05:41:11 [notice] 47#47: gracefully shutting down
+2022/05/29 05:41:11 [notice] 46#46: exiting
+2022/05/29 05:41:11 [notice] 47#47: exiting
+2022/05/29 05:41:11 [notice] 47#47: exit
+2022/05/29 05:41:11 [notice] 46#46: exit
+2022/05/29 05:41:11 [notice] 1#1: signal 17 (SIGCHLD) received from 47
+2022/05/29 05:41:11 [notice] 1#1: worker process 46 exited with code 0
+2022/05/29 05:41:11 [notice] 1#1: worker process 47 exited with code 0
+2022/05/29 05:41:11 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:41:14 [error] 61#61: *16 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 172.17.0.2, server: localhost, request: "GET /yy/index.html HTTP/1.0", host: "172.17.0.2"
+2022/05/29 05:41:22 [error] 60#60: *20 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 172.17.0.2, server: localhost, request: "GET /yy/index.html HTTP/1.0", host: "172.17.0.2"
+2022/05/29 05:41:36 [notice] 62#62: signal process started
+2022/05/29 05:41:36 [notice] 1#1: signal 1 (SIGHUP) received from 62, reconfiguring
+2022/05/29 05:41:36 [notice] 1#1: reconfiguring
+2022/05/29 05:41:36 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:41:36 [notice] 1#1: start worker processes
+2022/05/29 05:41:36 [notice] 1#1: start worker process 68
+2022/05/29 05:41:36 [notice] 1#1: start worker process 69
+2022/05/29 05:41:37 [notice] 61#61: gracefully shutting down
+2022/05/29 05:41:37 [notice] 60#60: gracefully shutting down
+2022/05/29 05:41:37 [notice] 61#61: exiting
+2022/05/29 05:41:37 [notice] 60#60: exiting
+2022/05/29 05:41:37 [notice] 61#61: exit
+2022/05/29 05:41:37 [notice] 60#60: exit
+2022/05/29 05:41:37 [notice] 1#1: signal 17 (SIGCHLD) received from 61
+2022/05/29 05:41:37 [notice] 1#1: worker process 61 exited with code 0
+2022/05/29 05:41:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:41:37 [notice] 1#1: signal 17 (SIGCHLD) received from 60
+2022/05/29 05:41:37 [notice] 1#1: worker process 60 exited with code 0
+2022/05/29 05:41:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:41:52 [notice] 70#70: signal process started
+2022/05/29 05:41:52 [notice] 1#1: signal 1 (SIGHUP) received from 70, reconfiguring
+2022/05/29 05:41:52 [notice] 1#1: reconfiguring
+2022/05/29 05:41:52 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:41:52 [notice] 1#1: start worker processes
+2022/05/29 05:41:52 [notice] 1#1: start worker process 75
+2022/05/29 05:41:52 [notice] 1#1: start worker process 76
+2022/05/29 05:41:52 [notice] 69#69: gracefully shutting down
+2022/05/29 05:41:52 [notice] 68#68: gracefully shutting down
+2022/05/29 05:41:52 [notice] 69#69: exiting
+2022/05/29 05:41:52 [notice] 68#68: exiting
+2022/05/29 05:41:52 [notice] 69#69: exit
+2022/05/29 05:41:52 [notice] 68#68: exit
+2022/05/29 05:41:52 [notice] 1#1: signal 17 (SIGCHLD) received from 69
+2022/05/29 05:41:52 [notice] 1#1: worker process 69 exited with code 0
+2022/05/29 05:41:52 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:41:52 [notice] 1#1: signal 17 (SIGCHLD) received from 68
+2022/05/29 05:41:52 [notice] 1#1: worker process 68 exited with code 0
+2022/05/29 05:41:52 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:42:03 [error] 75#75: *28 open() "/etc/nginx/html/yyindex.html" failed (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /yyindex.html HTTP/1.1", host: "xhddns"
+2022/05/29 05:42:10 [error] 75#75: *29 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:43:00 [notice] 77#77: signal process started
+2022/05/29 05:43:00 [notice] 1#1: signal 1 (SIGHUP) received from 77, reconfiguring
+2022/05/29 05:43:00 [notice] 1#1: reconfiguring
+2022/05/29 05:43:00 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:43:00 [notice] 1#1: start worker processes
+2022/05/29 05:43:00 [notice] 1#1: start worker process 82
+2022/05/29 05:43:00 [notice] 1#1: start worker process 83
+2022/05/29 05:43:00 [notice] 76#76: gracefully shutting down
+2022/05/29 05:43:00 [notice] 76#76: exiting
+2022/05/29 05:43:00 [notice] 75#75: gracefully shutting down
+2022/05/29 05:43:00 [notice] 75#75: exiting
+2022/05/29 05:43:00 [notice] 75#75: exit
+2022/05/29 05:43:00 [notice] 76#76: exit
+2022/05/29 05:43:00 [notice] 1#1: signal 17 (SIGCHLD) received from 75
+2022/05/29 05:43:00 [notice] 1#1: worker process 75 exited with code 0
+2022/05/29 05:43:00 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:43:00 [notice] 1#1: signal 17 (SIGCHLD) received from 76
+2022/05/29 05:43:00 [notice] 1#1: worker process 76 exited with code 0
+2022/05/29 05:43:00 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:43:23 [error] 82#82: *31 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:43:47 [notice] 84#84: signal process started
+2022/05/29 05:43:47 [notice] 1#1: signal 1 (SIGHUP) received from 84, reconfiguring
+2022/05/29 05:43:47 [notice] 1#1: reconfiguring
+2022/05/29 05:43:47 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:43:47 [notice] 1#1: start worker processes
+2022/05/29 05:43:47 [notice] 1#1: start worker process 90
+2022/05/29 05:43:47 [notice] 1#1: start worker process 91
+2022/05/29 05:43:47 [notice] 83#83: gracefully shutting down
+2022/05/29 05:43:47 [notice] 83#83: exiting
+2022/05/29 05:43:47 [notice] 82#82: gracefully shutting down
+2022/05/29 05:43:47 [notice] 82#82: exiting
+2022/05/29 05:43:47 [notice] 83#83: exit
+2022/05/29 05:43:47 [notice] 82#82: exit
+2022/05/29 05:43:47 [notice] 1#1: signal 17 (SIGCHLD) received from 82
+2022/05/29 05:43:47 [notice] 1#1: worker process 82 exited with code 0
+2022/05/29 05:43:47 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:43:47 [notice] 1#1: signal 17 (SIGCHLD) received from 83
+2022/05/29 05:43:47 [notice] 1#1: worker process 83 exited with code 0
+2022/05/29 05:43:47 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:44:01 [notice] 92#92: signal process started
+2022/05/29 05:44:01 [notice] 1#1: signal 1 (SIGHUP) received from 92, reconfiguring
+2022/05/29 05:44:01 [notice] 1#1: reconfiguring
+2022/05/29 05:44:01 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:44:01 [notice] 1#1: start worker processes
+2022/05/29 05:44:01 [notice] 1#1: start worker process 98
+2022/05/29 05:44:01 [notice] 1#1: start worker process 99
+2022/05/29 05:44:01 [notice] 90#90: gracefully shutting down
+2022/05/29 05:44:01 [notice] 91#91: gracefully shutting down
+2022/05/29 05:44:01 [notice] 90#90: exiting
+2022/05/29 05:44:01 [notice] 91#91: exiting
+2022/05/29 05:44:01 [notice] 91#91: exit
+2022/05/29 05:44:01 [notice] 90#90: exit
+2022/05/29 05:44:01 [notice] 1#1: signal 17 (SIGCHLD) received from 90
+2022/05/29 05:44:01 [notice] 1#1: worker process 90 exited with code 0
+2022/05/29 05:44:01 [notice] 1#1: worker process 91 exited with code 0
+2022/05/29 05:44:01 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:44:01 [notice] 1#1: signal 17 (SIGCHLD) received from 91
+2022/05/29 05:45:06 [notice] 100#100: signal process started
+2022/05/29 05:45:06 [notice] 1#1: signal 1 (SIGHUP) received from 100, reconfiguring
+2022/05/29 05:45:06 [notice] 1#1: reconfiguring
+2022/05/29 05:45:06 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:45:06 [notice] 1#1: start worker processes
+2022/05/29 05:45:06 [notice] 1#1: start worker process 107
+2022/05/29 05:45:06 [notice] 1#1: start worker process 108
+2022/05/29 05:45:06 [notice] 98#98: gracefully shutting down
+2022/05/29 05:45:06 [notice] 99#99: gracefully shutting down
+2022/05/29 05:45:06 [notice] 98#98: exiting
+2022/05/29 05:45:06 [notice] 99#99: exiting
+2022/05/29 05:45:06 [notice] 99#99: exit
+2022/05/29 05:45:06 [notice] 98#98: exit
+2022/05/29 05:45:06 [notice] 1#1: signal 17 (SIGCHLD) received from 99
+2022/05/29 05:45:06 [notice] 1#1: worker process 98 exited with code 0
+2022/05/29 05:45:06 [notice] 1#1: worker process 99 exited with code 0
+2022/05/29 05:45:06 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:45:10 [error] 108#108: *39 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:45:31 [notice] 109#109: signal process started
+2022/05/29 05:45:31 [notice] 1#1: signal 1 (SIGHUP) received from 109, reconfiguring
+2022/05/29 05:45:31 [notice] 1#1: reconfiguring
+2022/05/29 05:45:31 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:45:31 [notice] 1#1: start worker processes
+2022/05/29 05:45:31 [notice] 1#1: start worker process 115
+2022/05/29 05:45:31 [notice] 1#1: start worker process 116
+2022/05/29 05:45:32 [notice] 108#108: gracefully shutting down
+2022/05/29 05:45:32 [notice] 108#108: exiting
+2022/05/29 05:45:32 [notice] 107#107: gracefully shutting down
+2022/05/29 05:45:32 [notice] 107#107: exiting
+2022/05/29 05:45:32 [notice] 108#108: exit
+2022/05/29 05:45:32 [notice] 107#107: exit
+2022/05/29 05:45:32 [notice] 1#1: signal 17 (SIGCHLD) received from 108
+2022/05/29 05:45:32 [notice] 1#1: worker process 108 exited with code 0
+2022/05/29 05:45:32 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:45:32 [notice] 1#1: signal 17 (SIGCHLD) received from 107
+2022/05/29 05:45:32 [notice] 1#1: worker process 107 exited with code 0
+2022/05/29 05:45:32 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:45:35 [error] 115#115: *47 "/etc/nginx/html/proxy/index.html" is not found (2: No such file or directory), client: 172.17.0.1, server: xhddns, request: "GET /proxy/ HTTP/1.1", host: "xhddns"
+2022/05/29 05:45:55 [notice] 117#117: signal process started
+2022/05/29 05:45:55 [notice] 1#1: signal 1 (SIGHUP) received from 117, reconfiguring
+2022/05/29 05:45:55 [notice] 1#1: reconfiguring
+2022/05/29 05:45:55 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:45:55 [notice] 1#1: start worker processes
+2022/05/29 05:45:55 [notice] 1#1: start worker process 123
+2022/05/29 05:45:55 [notice] 1#1: start worker process 124
+2022/05/29 05:45:55 [notice] 115#115: gracefully shutting down
+2022/05/29 05:45:55 [notice] 115#115: exiting
+2022/05/29 05:45:55 [notice] 115#115: exit
+2022/05/29 05:45:55 [notice] 116#116: gracefully shutting down
+2022/05/29 05:45:55 [notice] 116#116: exiting
+2022/05/29 05:45:55 [notice] 116#116: exit
+2022/05/29 05:45:55 [notice] 1#1: signal 17 (SIGCHLD) received from 116
+2022/05/29 05:45:55 [notice] 1#1: worker process 116 exited with code 0
+2022/05/29 05:45:55 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:45:55 [notice] 1#1: signal 17 (SIGCHLD) received from 115
+2022/05/29 05:45:55 [notice] 1#1: worker process 115 exited with code 0
+2022/05/29 05:45:55 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:47:04 [notice] 125#125: signal process started
+2022/05/29 05:47:04 [notice] 1#1: signal 1 (SIGHUP) received from 125, reconfiguring
+2022/05/29 05:47:04 [notice] 1#1: reconfiguring
+2022/05/29 05:47:04 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:47:04 [notice] 1#1: start worker processes
+2022/05/29 05:47:04 [notice] 1#1: start worker process 131
+2022/05/29 05:47:04 [notice] 1#1: start worker process 132
+2022/05/29 05:47:04 [notice] 124#124: gracefully shutting down
+2022/05/29 05:47:04 [notice] 124#124: exiting
+2022/05/29 05:47:04 [notice] 123#123: gracefully shutting down
+2022/05/29 05:47:04 [notice] 123#123: exiting
+2022/05/29 05:47:04 [notice] 124#124: exit
+2022/05/29 05:47:04 [notice] 123#123: exit
+2022/05/29 05:47:04 [notice] 1#1: signal 17 (SIGCHLD) received from 124
+2022/05/29 05:47:04 [notice] 1#1: worker process 124 exited with code 0
+2022/05/29 05:47:04 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:47:04 [notice] 1#1: signal 17 (SIGCHLD) received from 123
+2022/05/29 05:47:04 [notice] 1#1: worker process 123 exited with code 0
+2022/05/29 05:47:04 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:47:58 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 05:47:58 [notice] 132#132: gracefully shutting down
+2022/05/29 05:47:58 [notice] 132#132: exiting
+2022/05/29 05:47:58 [notice] 132#132: exit
+2022/05/29 05:47:58 [notice] 131#131: gracefully shutting down
+2022/05/29 05:47:58 [notice] 131#131: exiting
+2022/05/29 05:47:58 [notice] 131#131: exit
+2022/05/29 05:47:58 [notice] 1#1: signal 17 (SIGCHLD) received from 132
+2022/05/29 05:47:58 [notice] 1#1: worker process 131 exited with code 0
+2022/05/29 05:47:58 [notice] 1#1: worker process 132 exited with code 0
+2022/05/29 05:47:58 [notice] 1#1: exit
+2022/05/29 05:48:12 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:48:12 [notice] 1#1: nginx/1.21.6
+2022/05/29 05:48:12 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 05:48:12 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 05:48:12 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 05:48:12 [notice] 1#1: start worker processes
+2022/05/29 05:48:12 [notice] 1#1: start worker process 24
+2022/05/29 05:48:12 [notice] 1#1: start worker process 25
+2022/05/29 05:50:19 [notice] 26#26: signal process started
+2022/05/29 05:50:19 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/29 05:50:19 [notice] 1#1: reconfiguring
+2022/05/29 05:50:19 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:50:19 [notice] 1#1: start worker processes
+2022/05/29 05:50:19 [notice] 1#1: start worker process 32
+2022/05/29 05:50:19 [notice] 1#1: start worker process 33
+2022/05/29 05:50:19 [notice] 25#25: gracefully shutting down
+2022/05/29 05:50:19 [notice] 25#25: exiting
+2022/05/29 05:50:19 [notice] 24#24: gracefully shutting down
+2022/05/29 05:50:19 [notice] 24#24: exiting
+2022/05/29 05:50:19 [notice] 25#25: exit
+2022/05/29 05:50:19 [notice] 24#24: exit
+2022/05/29 05:50:19 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/29 05:50:19 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 05:50:19 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:50:19 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 05:50:19 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 05:50:19 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:51:14 [notice] 34#34: signal process started
+2022/05/29 05:51:14 [notice] 1#1: signal 1 (SIGHUP) received from 34, reconfiguring
+2022/05/29 05:51:14 [notice] 1#1: reconfiguring
+2022/05/29 05:51:14 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:51:14 [notice] 1#1: start worker processes
+2022/05/29 05:51:14 [notice] 1#1: start worker process 39
+2022/05/29 05:51:14 [notice] 1#1: start worker process 40
+2022/05/29 05:51:14 [notice] 32#32: gracefully shutting down
+2022/05/29 05:51:14 [notice] 33#33: gracefully shutting down
+2022/05/29 05:51:14 [notice] 32#32: exiting
+2022/05/29 05:51:14 [notice] 33#33: exiting
+2022/05/29 05:51:14 [notice] 32#32: exit
+2022/05/29 05:51:14 [notice] 33#33: exit
+2022/05/29 05:51:14 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2022/05/29 05:51:14 [notice] 1#1: worker process 32 exited with code 0
+2022/05/29 05:51:14 [notice] 1#1: worker process 33 exited with code 0
+2022/05/29 05:51:14 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:51:16 [error] 40#40: *3 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET / HTTP/1.1", host: "xhddns"
+2022/05/29 05:51:19 [error] 39#39: *4 open() "/etc/nginx/html/pp" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /pp HTTP/1.1", host: "xhddns"
+2022/05/29 05:51:21 [error] 40#40: *5 "/usr/share/nginx/html/pp/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /pp/ HTTP/1.1", host: "xhddns"
+2022/05/29 05:51:25 [error] 40#40: *6 "/usr/share/nginx/html/pp/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /pp// HTTP/1.1", host: "xhddns"
+2022/05/29 05:51:27 [error] 40#40: *7 "/usr/share/nginx/html/pp/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /pp/ HTTP/1.1", host: "xhddns"
+2022/05/29 05:51:41 [notice] 41#41: signal process started
+2022/05/29 05:51:41 [notice] 1#1: signal 1 (SIGHUP) received from 41, reconfiguring
+2022/05/29 05:51:41 [notice] 1#1: reconfiguring
+2022/05/29 05:51:41 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:51:41 [notice] 1#1: start worker processes
+2022/05/29 05:51:41 [notice] 1#1: start worker process 48
+2022/05/29 05:51:41 [notice] 1#1: start worker process 49
+2022/05/29 05:51:41 [notice] 40#40: gracefully shutting down
+2022/05/29 05:51:41 [notice] 39#39: gracefully shutting down
+2022/05/29 05:51:41 [notice] 40#40: exiting
+2022/05/29 05:51:41 [notice] 39#39: exiting
+2022/05/29 05:51:41 [notice] 39#39: exit
+2022/05/29 05:51:41 [notice] 40#40: exit
+2022/05/29 05:51:41 [notice] 1#1: signal 17 (SIGCHLD) received from 40
+2022/05/29 05:51:41 [notice] 1#1: worker process 39 exited with code 0
+2022/05/29 05:51:41 [notice] 1#1: worker process 40 exited with code 0
+2022/05/29 05:51:41 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:51:41 [notice] 50#50: signal process started
+2022/05/29 05:51:41 [notice] 1#1: signal 1 (SIGHUP) received from 50, reconfiguring
+2022/05/29 05:51:41 [notice] 1#1: reconfiguring
+2022/05/29 05:51:41 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:51:41 [notice] 1#1: start worker processes
+2022/05/29 05:51:41 [notice] 1#1: start worker process 56
+2022/05/29 05:51:41 [notice] 1#1: start worker process 57
+2022/05/29 05:51:41 [notice] 49#49: gracefully shutting down
+2022/05/29 05:51:41 [notice] 49#49: exiting
+2022/05/29 05:51:41 [notice] 48#48: gracefully shutting down
+2022/05/29 05:51:41 [notice] 48#48: exiting
+2022/05/29 05:51:41 [notice] 49#49: exit
+2022/05/29 05:51:41 [notice] 48#48: exit
+2022/05/29 05:51:41 [notice] 1#1: signal 17 (SIGCHLD) received from 48
+2022/05/29 05:51:41 [notice] 1#1: worker process 48 exited with code 0
+2022/05/29 05:51:41 [notice] 1#1: worker process 49 exited with code 0
+2022/05/29 05:51:41 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:51:41 [notice] 1#1: signal 17 (SIGCHLD) received from 49
+2022/05/29 05:51:42 [notice] 58#58: signal process started
+2022/05/29 05:51:42 [notice] 1#1: signal 1 (SIGHUP) received from 58, reconfiguring
+2022/05/29 05:51:42 [notice] 1#1: reconfiguring
+2022/05/29 05:51:42 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:51:42 [notice] 1#1: start worker processes
+2022/05/29 05:51:42 [notice] 1#1: start worker process 64
+2022/05/29 05:51:42 [notice] 1#1: start worker process 65
+2022/05/29 05:51:42 [notice] 57#57: gracefully shutting down
+2022/05/29 05:51:42 [notice] 56#56: gracefully shutting down
+2022/05/29 05:51:42 [notice] 57#57: exiting
+2022/05/29 05:51:42 [notice] 56#56: exiting
+2022/05/29 05:51:42 [notice] 56#56: exit
+2022/05/29 05:51:42 [notice] 57#57: exit
+2022/05/29 05:51:42 [notice] 1#1: signal 17 (SIGCHLD) received from 56
+2022/05/29 05:51:42 [notice] 1#1: worker process 56 exited with code 0
+2022/05/29 05:51:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:51:42 [notice] 1#1: signal 17 (SIGCHLD) received from 57
+2022/05/29 05:51:42 [notice] 1#1: worker process 57 exited with code 0
+2022/05/29 05:51:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:51:48 [error] 64#64: *8 connect() failed (113: No route to host) while connecting to upstream, client: 192.168.1.12, server: xhddns, request: "GET /pp/ HTTP/1.1", upstream: "http://172.17.0.3:80/pp/", host: "xhddns"
+2022/05/29 05:51:48 [error] 64#64: *8 open() "/usr/share/nginx/html/50x.html" failed (2: No such file or directory), client: 192.168.1.12, server: xhddns, request: "GET /pp/ HTTP/1.1", upstream: "http://172.17.0.3:80/pp/", host: "xhddns"
+2022/05/29 05:52:18 [notice] 66#66: signal process started
+2022/05/29 05:52:18 [notice] 1#1: signal 1 (SIGHUP) received from 66, reconfiguring
+2022/05/29 05:52:18 [notice] 1#1: reconfiguring
+2022/05/29 05:52:18 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:52:18 [notice] 1#1: start worker processes
+2022/05/29 05:52:18 [notice] 1#1: start worker process 72
+2022/05/29 05:52:18 [notice] 1#1: start worker process 73
+2022/05/29 05:52:18 [notice] 64#64: gracefully shutting down
+2022/05/29 05:52:18 [notice] 64#64: exiting
+2022/05/29 05:52:18 [notice] 65#65: gracefully shutting down
+2022/05/29 05:52:18 [notice] 64#64: exit
+2022/05/29 05:52:18 [notice] 65#65: exiting
+2022/05/29 05:52:18 [notice] 65#65: exit
+2022/05/29 05:52:18 [notice] 1#1: signal 17 (SIGCHLD) received from 64
+2022/05/29 05:52:18 [notice] 1#1: worker process 64 exited with code 0
+2022/05/29 05:52:18 [notice] 1#1: worker process 65 exited with code 0
+2022/05/29 05:52:18 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:52:47 [notice] 74#74: signal process started
+2022/05/29 05:52:47 [notice] 1#1: signal 1 (SIGHUP) received from 74, reconfiguring
+2022/05/29 05:52:47 [notice] 1#1: reconfiguring
+2022/05/29 05:52:47 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:52:47 [notice] 1#1: start worker processes
+2022/05/29 05:52:47 [notice] 1#1: start worker process 80
+2022/05/29 05:52:47 [notice] 1#1: start worker process 81
+2022/05/29 05:52:47 [notice] 73#73: gracefully shutting down
+2022/05/29 05:52:47 [notice] 73#73: exiting
+2022/05/29 05:52:47 [notice] 72#72: gracefully shutting down
+2022/05/29 05:52:47 [notice] 72#72: exiting
+2022/05/29 05:52:47 [notice] 73#73: exit
+2022/05/29 05:52:47 [notice] 72#72: exit
+2022/05/29 05:52:47 [notice] 1#1: signal 17 (SIGCHLD) received from 72
+2022/05/29 05:52:47 [notice] 1#1: worker process 72 exited with code 0
+2022/05/29 05:52:47 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:52:47 [notice] 1#1: signal 17 (SIGCHLD) received from 73
+2022/05/29 05:52:47 [notice] 1#1: worker process 73 exited with code 0
+2022/05/29 05:52:47 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:54:31 [error] 81#81: *17 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:54:33 [error] 80#80: *18 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:54:44 [notice] 82#82: signal process started
+2022/05/29 05:54:44 [notice] 1#1: signal 1 (SIGHUP) received from 82, reconfiguring
+2022/05/29 05:54:44 [notice] 1#1: reconfiguring
+2022/05/29 05:54:44 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:54:44 [notice] 1#1: start worker processes
+2022/05/29 05:54:44 [notice] 1#1: start worker process 88
+2022/05/29 05:54:44 [notice] 1#1: start worker process 89
+2022/05/29 05:54:44 [notice] 80#80: gracefully shutting down
+2022/05/29 05:54:44 [notice] 81#81: gracefully shutting down
+2022/05/29 05:54:44 [notice] 81#81: exiting
+2022/05/29 05:54:44 [notice] 80#80: exiting
+2022/05/29 05:54:44 [notice] 81#81: exit
+2022/05/29 05:54:44 [notice] 80#80: exit
+2022/05/29 05:54:44 [notice] 1#1: signal 17 (SIGCHLD) received from 81
+2022/05/29 05:54:44 [notice] 1#1: worker process 81 exited with code 0
+2022/05/29 05:54:44 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:54:44 [notice] 1#1: signal 17 (SIGCHLD) received from 80
+2022/05/29 05:54:44 [notice] 1#1: worker process 80 exited with code 0
+2022/05/29 05:54:44 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:54:55 [notice] 90#90: signal process started
+2022/05/29 05:54:55 [notice] 1#1: signal 1 (SIGHUP) received from 90, reconfiguring
+2022/05/29 05:54:55 [notice] 1#1: reconfiguring
+2022/05/29 05:54:55 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:54:55 [notice] 1#1: start worker processes
+2022/05/29 05:54:55 [notice] 1#1: start worker process 96
+2022/05/29 05:54:55 [notice] 1#1: start worker process 97
+2022/05/29 05:54:55 [notice] 89#89: gracefully shutting down
+2022/05/29 05:54:55 [notice] 89#89: exiting
+2022/05/29 05:54:55 [notice] 88#88: gracefully shutting down
+2022/05/29 05:54:55 [notice] 88#88: exiting
+2022/05/29 05:54:55 [notice] 89#89: exit
+2022/05/29 05:54:55 [notice] 88#88: exit
+2022/05/29 05:54:55 [notice] 1#1: signal 17 (SIGCHLD) received from 89
+2022/05/29 05:54:55 [notice] 1#1: worker process 89 exited with code 0
+2022/05/29 05:54:55 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:54:55 [notice] 1#1: signal 17 (SIGCHLD) received from 88
+2022/05/29 05:54:55 [notice] 1#1: worker process 88 exited with code 0
+2022/05/29 05:54:55 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:55:58 [error] 97#97: *21 open() "/etc/nginx/html/pp" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /pp HTTP/1.1", host: "xhd-dns"
+2022/05/29 05:56:29 [notice] 98#98: signal process started
+2022/05/29 05:56:29 [notice] 1#1: signal 1 (SIGHUP) received from 98, reconfiguring
+2022/05/29 05:56:29 [notice] 1#1: reconfiguring
+2022/05/29 05:56:29 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:56:29 [notice] 1#1: start worker processes
+2022/05/29 05:56:29 [notice] 1#1: start worker process 103
+2022/05/29 05:56:29 [notice] 1#1: start worker process 104
+2022/05/29 05:56:29 [notice] 96#96: gracefully shutting down
+2022/05/29 05:56:29 [notice] 97#97: gracefully shutting down
+2022/05/29 05:56:29 [notice] 96#96: exiting
+2022/05/29 05:56:29 [notice] 97#97: exiting
+2022/05/29 05:56:29 [notice] 96#96: exit
+2022/05/29 05:56:29 [notice] 97#97: exit
+2022/05/29 05:56:29 [notice] 1#1: signal 17 (SIGCHLD) received from 97
+2022/05/29 05:56:29 [notice] 1#1: worker process 96 exited with code 0
+2022/05/29 05:56:29 [notice] 1#1: worker process 97 exited with code 0
+2022/05/29 05:56:29 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:56:29 [notice] 1#1: signal 17 (SIGCHLD) received from 96
+2022/05/29 05:57:01 [notice] 105#105: signal process started
+2022/05/29 05:57:01 [notice] 1#1: signal 1 (SIGHUP) received from 105, reconfiguring
+2022/05/29 05:57:01 [notice] 1#1: reconfiguring
+2022/05/29 05:57:01 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:57:01 [notice] 1#1: start worker processes
+2022/05/29 05:57:01 [notice] 1#1: start worker process 111
+2022/05/29 05:57:01 [notice] 1#1: start worker process 112
+2022/05/29 05:57:02 [notice] 104#104: gracefully shutting down
+2022/05/29 05:57:02 [notice] 104#104: exiting
+2022/05/29 05:57:02 [notice] 103#103: gracefully shutting down
+2022/05/29 05:57:02 [notice] 103#103: exiting
+2022/05/29 05:57:02 [notice] 104#104: exit
+2022/05/29 05:57:02 [notice] 103#103: exit
+2022/05/29 05:57:02 [notice] 1#1: signal 17 (SIGCHLD) received from 104
+2022/05/29 05:57:02 [notice] 1#1: worker process 104 exited with code 0
+2022/05/29 05:57:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:57:02 [notice] 1#1: signal 17 (SIGCHLD) received from 103
+2022/05/29 05:57:02 [notice] 1#1: worker process 103 exited with code 0
+2022/05/29 05:57:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:57:42 [notice] 113#113: signal process started
+2022/05/29 05:57:42 [notice] 1#1: signal 1 (SIGHUP) received from 113, reconfiguring
+2022/05/29 05:57:42 [notice] 1#1: reconfiguring
+2022/05/29 05:57:42 [notice] 1#1: using the "epoll" event method
+2022/05/29 05:57:42 [notice] 1#1: start worker processes
+2022/05/29 05:57:42 [notice] 1#1: start worker process 119
+2022/05/29 05:57:42 [notice] 1#1: start worker process 120
+2022/05/29 05:57:42 [notice] 111#111: gracefully shutting down
+2022/05/29 05:57:42 [notice] 112#112: gracefully shutting down
+2022/05/29 05:57:42 [notice] 111#111: exiting
+2022/05/29 05:57:42 [notice] 112#112: exiting
+2022/05/29 05:57:42 [notice] 111#111: exit
+2022/05/29 05:57:42 [notice] 112#112: exit
+2022/05/29 05:57:42 [notice] 1#1: signal 17 (SIGCHLD) received from 112
+2022/05/29 05:57:42 [notice] 1#1: worker process 112 exited with code 0
+2022/05/29 05:57:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:57:42 [notice] 1#1: signal 17 (SIGCHLD) received from 111
+2022/05/29 05:57:42 [notice] 1#1: worker process 111 exited with code 0
+2022/05/29 05:57:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:59:52 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 05:59:52 [notice] 120#120: gracefully shutting down
+2022/05/29 05:59:52 [notice] 120#120: exiting
+2022/05/29 05:59:52 [notice] 120#120: exit
+2022/05/29 05:59:52 [notice] 119#119: gracefully shutting down
+2022/05/29 05:59:52 [notice] 119#119: exiting
+2022/05/29 05:59:52 [notice] 119#119: exit
+2022/05/29 05:59:52 [notice] 1#1: signal 17 (SIGCHLD) received from 120
+2022/05/29 05:59:52 [notice] 1#1: worker process 120 exited with code 0
+2022/05/29 05:59:52 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 05:59:52 [notice] 1#1: signal 17 (SIGCHLD) received from 119
+2022/05/29 05:59:52 [notice] 1#1: worker process 119 exited with code 0
+2022/05/29 05:59:52 [notice] 1#1: exit
+2022/05/29 06:00:09 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:00:09 [notice] 1#1: nginx/1.21.6
+2022/05/29 06:00:09 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 06:00:09 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 06:00:09 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 06:00:09 [notice] 1#1: start worker processes
+2022/05/29 06:00:09 [notice] 1#1: start worker process 24
+2022/05/29 06:00:09 [notice] 1#1: start worker process 25
+2022/05/29 06:06:27 [error] 24#24: *5 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:06:29 [error] 24#24: *6 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:08:40 [error] 24#24: *10 open() "/usr/share/nginx/html/index.htm" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /index.htm HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:09:36 [error] 24#24: *12 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:09:39 [error] 24#24: *13 open() "/usr/share/nginx/html/yy/index.html" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/index.html HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:10:10 [notice] 26#26: signal process started
+2022/05/29 06:10:10 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/29 06:10:10 [notice] 1#1: reconfiguring
+2022/05/29 06:10:10 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:10:10 [notice] 1#1: start worker processes
+2022/05/29 06:10:10 [notice] 1#1: start worker process 32
+2022/05/29 06:10:10 [notice] 1#1: start worker process 33
+2022/05/29 06:10:10 [notice] 24#24: gracefully shutting down
+2022/05/29 06:10:10 [notice] 24#24: exiting
+2022/05/29 06:10:10 [notice] 24#24: exit
+2022/05/29 06:10:10 [notice] 25#25: gracefully shutting down
+2022/05/29 06:10:10 [notice] 25#25: exiting
+2022/05/29 06:10:10 [notice] 25#25: exit
+2022/05/29 06:10:10 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/29 06:10:10 [notice] 1#1: worker process 25 exited with code 0
+2022/05/29 06:10:10 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:10:10 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/29 06:10:10 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 06:10:10 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:10:16 [error] 33#33: *17 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET / HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:10:21 [error] 32#32: *18 open() "/etc/nginx/html/index" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /index HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:10:27 [notice] 34#34: signal process started
+2022/05/29 06:10:27 [notice] 1#1: signal 1 (SIGHUP) received from 34, reconfiguring
+2022/05/29 06:10:27 [notice] 1#1: reconfiguring
+2022/05/29 06:10:27 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:10:27 [notice] 1#1: start worker processes
+2022/05/29 06:10:27 [notice] 1#1: start worker process 40
+2022/05/29 06:10:27 [notice] 1#1: start worker process 41
+2022/05/29 06:10:27 [notice] 33#33: gracefully shutting down
+2022/05/29 06:10:27 [notice] 33#33: exiting
+2022/05/29 06:10:27 [notice] 32#32: gracefully shutting down
+2022/05/29 06:10:27 [notice] 32#32: exiting
+2022/05/29 06:10:27 [notice] 33#33: exit
+2022/05/29 06:10:27 [notice] 32#32: exit
+2022/05/29 06:10:27 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2022/05/29 06:10:27 [notice] 1#1: worker process 32 exited with code 0
+2022/05/29 06:10:27 [notice] 1#1: worker process 33 exited with code 0
+2022/05/29 06:10:27 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:10:37 [notice] 42#42: signal process started
+2022/05/29 06:10:37 [notice] 1#1: signal 1 (SIGHUP) received from 42, reconfiguring
+2022/05/29 06:10:37 [notice] 1#1: reconfiguring
+2022/05/29 06:10:37 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:10:37 [notice] 1#1: start worker processes
+2022/05/29 06:10:37 [notice] 1#1: start worker process 49
+2022/05/29 06:10:37 [notice] 1#1: start worker process 50
+2022/05/29 06:10:37 [notice] 41#41: gracefully shutting down
+2022/05/29 06:10:37 [notice] 41#41: exiting
+2022/05/29 06:10:37 [notice] 40#40: gracefully shutting down
+2022/05/29 06:10:37 [notice] 40#40: exiting
+2022/05/29 06:10:37 [notice] 41#41: exit
+2022/05/29 06:10:37 [notice] 40#40: exit
+2022/05/29 06:10:38 [notice] 1#1: signal 17 (SIGCHLD) received from 40
+2022/05/29 06:10:38 [notice] 1#1: worker process 40 exited with code 0
+2022/05/29 06:10:38 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:10:38 [notice] 1#1: signal 17 (SIGCHLD) received from 41
+2022/05/29 06:10:38 [notice] 1#1: worker process 41 exited with code 0
+2022/05/29 06:10:38 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:25 [error] 49#49: *28 open() "/etc/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:11:27 [error] 49#49: *29 "/etc/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:11:28 [error] 49#49: *30 "/etc/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:11:40 [notice] 51#51: signal process started
+2022/05/29 06:11:40 [notice] 1#1: signal 1 (SIGHUP) received from 51, reconfiguring
+2022/05/29 06:11:40 [notice] 1#1: reconfiguring
+2022/05/29 06:11:40 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:11:40 [notice] 1#1: start worker processes
+2022/05/29 06:11:40 [notice] 1#1: start worker process 56
+2022/05/29 06:11:40 [notice] 1#1: start worker process 57
+2022/05/29 06:11:40 [notice] 49#49: gracefully shutting down
+2022/05/29 06:11:40 [notice] 50#50: gracefully shutting down
+2022/05/29 06:11:40 [notice] 49#49: exiting
+2022/05/29 06:11:40 [notice] 50#50: exiting
+2022/05/29 06:11:40 [notice] 50#50: exit
+2022/05/29 06:11:40 [notice] 49#49: exit
+2022/05/29 06:11:40 [notice] 1#1: signal 17 (SIGCHLD) received from 50
+2022/05/29 06:11:40 [notice] 1#1: worker process 50 exited with code 0
+2022/05/29 06:11:40 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:40 [notice] 1#1: signal 17 (SIGCHLD) received from 49
+2022/05/29 06:11:40 [notice] 1#1: worker process 49 exited with code 0
+2022/05/29 06:11:40 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:41 [notice] 58#58: signal process started
+2022/05/29 06:11:41 [notice] 1#1: signal 1 (SIGHUP) received from 58, reconfiguring
+2022/05/29 06:11:41 [notice] 1#1: reconfiguring
+2022/05/29 06:11:41 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:11:41 [notice] 1#1: start worker processes
+2022/05/29 06:11:41 [notice] 1#1: start worker process 64
+2022/05/29 06:11:41 [notice] 1#1: start worker process 65
+2022/05/29 06:11:41 [notice] 57#57: gracefully shutting down
+2022/05/29 06:11:41 [notice] 56#56: gracefully shutting down
+2022/05/29 06:11:41 [notice] 57#57: exiting
+2022/05/29 06:11:41 [notice] 56#56: exiting
+2022/05/29 06:11:41 [notice] 57#57: exit
+2022/05/29 06:11:41 [notice] 56#56: exit
+2022/05/29 06:11:41 [notice] 1#1: signal 17 (SIGCHLD) received from 57
+2022/05/29 06:11:41 [notice] 1#1: worker process 57 exited with code 0
+2022/05/29 06:11:41 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:41 [notice] 1#1: signal 17 (SIGCHLD) received from 56
+2022/05/29 06:11:41 [notice] 1#1: worker process 56 exited with code 0
+2022/05/29 06:11:41 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:42 [notice] 66#66: signal process started
+2022/05/29 06:11:42 [notice] 1#1: signal 1 (SIGHUP) received from 66, reconfiguring
+2022/05/29 06:11:42 [notice] 1#1: reconfiguring
+2022/05/29 06:11:42 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:11:42 [notice] 1#1: start worker processes
+2022/05/29 06:11:42 [notice] 1#1: start worker process 71
+2022/05/29 06:11:42 [notice] 1#1: start worker process 72
+2022/05/29 06:11:42 [notice] 65#65: gracefully shutting down
+2022/05/29 06:11:42 [notice] 65#65: exiting
+2022/05/29 06:11:42 [notice] 64#64: gracefully shutting down
+2022/05/29 06:11:42 [notice] 64#64: exiting
+2022/05/29 06:11:42 [notice] 65#65: exit
+2022/05/29 06:11:42 [notice] 64#64: exit
+2022/05/29 06:11:42 [notice] 1#1: signal 17 (SIGCHLD) received from 65
+2022/05/29 06:11:42 [notice] 1#1: worker process 65 exited with code 0
+2022/05/29 06:11:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:42 [notice] 1#1: signal 17 (SIGCHLD) received from 64
+2022/05/29 06:11:42 [notice] 1#1: worker process 64 exited with code 0
+2022/05/29 06:11:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:42 [notice] 73#73: signal process started
+2022/05/29 06:11:42 [notice] 1#1: signal 1 (SIGHUP) received from 73, reconfiguring
+2022/05/29 06:11:42 [notice] 1#1: reconfiguring
+2022/05/29 06:11:42 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:11:42 [notice] 1#1: start worker processes
+2022/05/29 06:11:42 [notice] 1#1: start worker process 79
+2022/05/29 06:11:42 [notice] 1#1: start worker process 80
+2022/05/29 06:11:42 [notice] 72#72: gracefully shutting down
+2022/05/29 06:11:42 [notice] 71#71: gracefully shutting down
+2022/05/29 06:11:42 [notice] 72#72: exiting
+2022/05/29 06:11:42 [notice] 71#71: exiting
+2022/05/29 06:11:42 [notice] 71#71: exit
+2022/05/29 06:11:42 [notice] 72#72: exit
+2022/05/29 06:11:42 [notice] 1#1: signal 17 (SIGCHLD) received from 71
+2022/05/29 06:11:42 [notice] 1#1: worker process 71 exited with code 0
+2022/05/29 06:11:42 [notice] 1#1: worker process 72 exited with code 0
+2022/05/29 06:11:42 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:59 [notice] 81#81: signal process started
+2022/05/29 06:11:59 [notice] 1#1: signal 1 (SIGHUP) received from 81, reconfiguring
+2022/05/29 06:11:59 [notice] 1#1: reconfiguring
+2022/05/29 06:11:59 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:11:59 [notice] 1#1: start worker processes
+2022/05/29 06:11:59 [notice] 1#1: start worker process 86
+2022/05/29 06:11:59 [notice] 1#1: start worker process 87
+2022/05/29 06:11:59 [notice] 79#79: gracefully shutting down
+2022/05/29 06:11:59 [notice] 80#80: gracefully shutting down
+2022/05/29 06:11:59 [notice] 79#79: exiting
+2022/05/29 06:11:59 [notice] 80#80: exiting
+2022/05/29 06:11:59 [notice] 80#80: exit
+2022/05/29 06:11:59 [notice] 79#79: exit
+2022/05/29 06:11:59 [notice] 1#1: signal 17 (SIGCHLD) received from 79
+2022/05/29 06:11:59 [notice] 1#1: worker process 79 exited with code 0
+2022/05/29 06:11:59 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:11:59 [notice] 1#1: signal 17 (SIGCHLD) received from 80
+2022/05/29 06:11:59 [notice] 1#1: worker process 80 exited with code 0
+2022/05/29 06:11:59 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:20:23 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/29 06:20:23 [notice] 87#87: gracefully shutting down
+2022/05/29 06:20:23 [notice] 87#87: exiting
+2022/05/29 06:20:23 [notice] 87#87: exit
+2022/05/29 06:20:23 [notice] 86#86: gracefully shutting down
+2022/05/29 06:20:23 [notice] 86#86: exiting
+2022/05/29 06:20:23 [notice] 86#86: exit
+2022/05/29 06:20:23 [notice] 1#1: signal 17 (SIGCHLD) received from 87
+2022/05/29 06:20:23 [notice] 1#1: worker process 87 exited with code 0
+2022/05/29 06:20:23 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/29 06:20:23 [notice] 1#1: signal 17 (SIGCHLD) received from 86
+2022/05/29 06:20:23 [notice] 1#1: worker process 86 exited with code 0
+2022/05/29 06:20:23 [notice] 1#1: exit
+2022/05/29 06:20:37 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:20:37 [notice] 1#1: nginx/1.21.6
+2022/05/29 06:20:37 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/29 06:20:37 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/29 06:20:37 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/29 06:20:37 [notice] 1#1: start worker processes
+2022/05/29 06:20:37 [notice] 1#1: start worker process 23
+2022/05/29 06:20:37 [notice] 1#1: start worker process 24
+2022/05/29 06:23:11 [error] 23#23: *1 open() "/usr/share/nginx/html/yy" failed (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:23:12 [error] 24#24: *2 "/usr/share/nginx/html/yy/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: localhost, request: "GET /yy/ HTTP/1.1", host: "xhd-dns"
+2022/05/29 06:23:24 [notice] 25#25: signal process started
+2022/05/29 06:23:24 [notice] 1#1: signal 1 (SIGHUP) received from 25, reconfiguring
+2022/05/29 06:23:24 [notice] 1#1: reconfiguring
+2022/05/29 06:23:24 [notice] 1#1: using the "epoll" event method
+2022/05/29 06:23:24 [notice] 1#1: start worker processes
+2022/05/29 06:23:24 [notice] 1#1: start worker process 31
+2022/05/29 06:23:24 [notice] 1#1: start worker process 32
+2022/05/29 06:23:24 [notice] 23#23: gracefully shutting down
+2022/05/29 06:23:24 [notice] 24#24: gracefully shutting down
+2022/05/29 06:23:24 [notice] 23#23: exiting
+2022/05/29 06:23:24 [notice] 24#24: exiting
+2022/05/29 06:23:24 [notice] 23#23: exit
+2022/05/29 06:23:24 [notice] 24#24: exit
+2022/05/29 06:23:24 [notice] 1#1: signal 17 (SIGCHLD) received from 23
+2022/05/29 06:23:24 [notice] 1#1: worker process 23 exited with code 0
+2022/05/29 06:23:24 [notice] 1#1: worker process 24 exited with code 0
+2022/05/29 06:23:24 [notice] 1#1: signal 29 (SIGIO) received

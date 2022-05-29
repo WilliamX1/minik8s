@@ -26,6 +26,14 @@ def init_dns_server():
     - start a dns for this service, default is 1`ns-nginx-server-service`
     :return: None
     """
+    # config: dict = yaml_loader.load("./dns/dns-nginx-server-replica-set.yaml")
+    # url = "{}/ReplicaSet".format(api_server_url)
+    config: dict = yaml_loader.load("./dns/dns-nginx-server-pod.yaml")
+    url = "{}/Pod".format(api_server_url)
+    utils.post(url=url, config=config)
+
+    time.sleep(5)
+
     config: dict = yaml_loader.load("./dns/dns-nginx-server-service.yaml")
     url = "{}/Service".format(api_server_url)
     utils.post(url=url, config=config)
@@ -41,12 +49,6 @@ def init_dns_server():
     url = "{}/Dns".format(api_server_url)
     utils.post(url=url, config=config)
     """
-
-    # config: dict = yaml_loader.load("./dns/dns-nginx-server-replica-set.yaml")
-    # url = "{}/ReplicaSet".format(api_server_url)
-    config: dict = yaml_loader.load("./dns/dns-nginx-server-pod.yaml")
-    url = "{}/Pod".format(api_server_url)
-    utils.post(url=url, config=config)
 
 
 def update_etc_hosts(hosts=True):

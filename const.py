@@ -15,6 +15,6 @@ service_iptables_save_path: str = "/".join(
 
 dns_controller_flush_interval: float = 2.0
 dns_port: int = 80
-dns_conf_path: str = '/'.join([os.getcwd(), 'dns', 'conf'])
+dns_conf_path: str = '/'.join([os.getcwd(), 'dns', 'nginx', 'conf'])
 
 

@@ -20,7 +20,7 @@ def format_conf(listen_port: int, host_name: str, paths: list):
         server_name minik8s.com;
 
         location /subpath {
-            proxy_pass http://10.119.22.33:801;
+            proxy_pass http://10.119.22.33:801/;
         }
     }
 
@@ -29,8 +29,7 @@ def format_conf(listen_port: int, host_name: str, paths: list):
     comment_str = "# %s.conf\n" % host_name
     format_str = "server {\n" \
                  "\tlisten %s;\n" \
-                 "\tserver_name %s;\n" \
-                 "\tindex index.html index.htm;\n\n" % (str(listen_port), host_name)
+                 "\tserver_name %s;\n"  % (str(listen_port), host_name)
     format_str = comment_str + format_str
     location_str = "\tlocation %s/ {\n" \
                    "\t\tproxy_pass http://%s:%s/;\n" \
@@ -57,7 +56,7 @@ def create_conf(listen_port: int, host_name: str, paths: list):
     format_str = format_conf(listen_port, host_name, paths)
     file_name = "%s.conf" % host_name
     file_path = '/'.join([conf_path, file_name])
-    f = open(file_path, 'w')
+    f = open(file_path, 'w+')
     f.write(format_str)
     f.close()
     return file_path
