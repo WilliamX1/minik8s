@@ -266,9 +266,9 @@ def post_pod(instance_name: str, behavior: str):
         config = copy.deepcopy(etcd_supplant[instance_name])
         json_data = request.json
         upload_cmd: dict = json.loads(json_data)
-        if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
-            config['behavior'] = 'execute'
-            config['cmd'] = upload_cmd['cmd']
+        # if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
+        config['behavior'] = 'execute'
+        config['cmd'] = upload_cmd['cmd']
     elif behavior == 'delete':
         # delete the config
         index = -1

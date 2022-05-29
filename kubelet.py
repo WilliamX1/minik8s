@@ -63,8 +63,9 @@ def hand_pods(ch, method, properties, body):
         pod.remove()
     elif config['behavior'] == 'execute':
         # todo: check the logic here
-        print('try to execute Pod {}'.format(instance_name))
+        print('try to execute Pod {} {}'.format(instance_name, config['cmd']))
         index, pod = get_pod_by_name(instance_name)
+        print(pod)
         cmd = config['cmd']
         pod.exec_run(cmd)
 

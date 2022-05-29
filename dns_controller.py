@@ -100,7 +100,8 @@ def update_nginx_service():
     for service_instance in service_dict['services_list']:
         if service_dict[service_instance]['name'] == nginx_service_name:
             for pod_instance in service_dict[service_instance]['pod_instances']:
-                url = "{}/{}/{}".format(api_server_url, pod_instance, 'execute')
+                print(pod_instance)
+                url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')
                 upload_cmd = dict()
                 upload_cmd['cmd'] = "nginx -s reload"
                 utils.post(url=url, config=upload_cmd)
@@ -188,7 +189,6 @@ def main():
         dns_config_dict['dns-hash'] = hash('.'.join(dns_dict['dns_list']))
         url = "{}/Dns/Config".format(api_server_url)
         utils.post(url=url, config=dns_config_dict)
-
         if update_flag is True:
             # update nginx service to exec `nginx -s reload`
             update_nginx_service()
