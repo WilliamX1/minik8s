@@ -26,4 +26,4 @@ Network Trash Folder
 Temporary Items
 .apdisk
 /etcd_test.py
-/tmp/
+/worker/tmp/
