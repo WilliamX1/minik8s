@@ -1,0 +1,10 @@
+kind: Service
+name: xhd-service
+type: ClusterIP
+selector:
+  app: xhd
+  version: major
+ports:
+  - protocol: tcp
+    port: 801
+    targetPort: 80

@@ -20,6 +20,11 @@ def get_pod_dict(api_server_url):
     return get(url)
 
 
+def get_replicaset_dict(api_server_url):
+    url = '{}/ReplicaSet'.format(api_server_url)
+    return get(url)
+
+
 def get_service_dict(api_server_url):
     url = '{}/Service'.format(api_server_url)
     return get(url)
@@ -68,9 +73,8 @@ def generate_random_str(randomlength=16, opts=0):
     return random_str
 
 
-def exec_command(command: list, shell=False):
+def exec_command(command, shell=False):
     logging.info("Execute Command > " + ' '.join(command))
-    print(command)
     p = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE)
     output, err = p.communicate()
     if str(output, 'utf-8') != "":
@@ -80,90 +84,104 @@ def exec_command(command: list, shell=False):
     return output, err
 
 
-def dump_iptables():
+def dump_iptables(simulate=False) -> None:
     """sudo iptables -X"""
     command = ["sudo", "iptables", "-X"]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def append_rule(table, chain, rulespec, target_extension):
+def append_rule(table, chain, rulespec, target_extension, simulate=False):
     """ sudo iptables -t <table> -A <chain> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-A", chain] + rulespec + target_extension
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
     return {'table': table, 'chain': chain, 'rule-specification': rulespec + target_extension}
 
 
-def delete_rule_by_rulenum(table, chain, rulenum):
+def delete_rule_by_rulenum(table, chain, rulenum, simulate=False):
     """ sudo iptables -t <table> -D <chain> <rulenum>"""
     command = ["sudo", "iptables", "-t", table, "-D", chain, str(rulenum)]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def delete_rule_by_spec(table, chain, rulespec):
+def delete_rule_by_spec(table, chain, rulespec, simulate=False):
     """ sudo iptables -t <table> -D <chain> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-D", chain] + rulespec
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def list_rules(table, chain=""):
+def list_rules(table, chain="", simulate=False):
     """ sudo iptables -t <table> -L <chain> """
     command = ["sudo", "iptables", "-t", table, "-L", chain]
-    return exec_command(command)
+    if simulate is False:
+        return exec_command(command)
 
 
-def insert_rule(table, chain, rulenum, rulespec, target_extension):
+def insert_rule(table, chain, rulenum, rulespec, target_extension, simulate=False):
     """ sudo iptables -t <table> -I <chain> <rulenum> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-I", chain, str(rulenum)] + rulespec + target_extension
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
     return {'table': table, 'chain': chain, 'rule-specification': rulespec + target_extension}
 
 
-def replace_rule(table, chain, rulenum, rulespec, target_extension):
+def replace_rule(table, chain, rulenum, rulespec, target_extension, simulate=False):
     """sudo iptables -t <table> -R <chain> <rulenum> <rule-specification>"""
     command = ["sudo", "iptables", "-t", table, "-R", chain, rulenum] + rulespec + target_extension
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def clear_rules():
+def clear_rules(simulate=False) -> None:
     """sudo iptables -F"""
     command = ["sudo", "iptables", "-F"]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def list_chain(table, chain=""):
+def list_chain(table, chain="", simulate=False) -> None:
     """sudo iptables -t <table> -n -L <chain>"""
     command = ["sudo", "iptables", "-t", table, "-L", chain]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def flush_chain(table, chain=""):
+def flush_chain(table, chain="", simulate=False) -> None:
     command = ["sudo", "iptables", "-t", table, "-F", chain]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def create_chain(table, chain):
+def create_chain(table, chain, simulate=False) -> dict:
     """ sudo iptables -t <table> -N <chain> """
     command = ["sudo", "iptables", "-t", table, "-N", chain]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
     return {'table': table, 'chain': chain}
 
 
-def delete_chain(table, chain):
+def delete_chain(table, chain, simulate=False) -> None:
     """ sudo iptables -t <table> -X <chain> """
     command = ["sudo", "iptables", "-t", table, "-X", chain]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def policy_chain(table, chain, target):
+def policy_chain(table, chain, target, simulate=False) -> None:
     """sudo iptables -t <table> -P <chain> <target>"""
     command = ["sudo", "iptables", "-t", table, "-P", chain] + target
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
-def rename_chain(table, old_chain, new_chain):
+def rename_chain(table, old_chain, new_chain, simulate=False) -> None:
     """sudo iptables -t <table> -E <old-chain> <new-chain>"""
     command = ["sudo", "iptables", "-t", table, "-E", old_chain, new_chain]
-    exec_command(command)
+    if simulate is False:
+        exec_command(command)
 
 
 def get_help():

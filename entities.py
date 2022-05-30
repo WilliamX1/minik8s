@@ -170,7 +170,5 @@ class Pod:
         """
         for name in self.container_names:
             if container_name is None or container_name == name:
-                status = self.client.api.inspect_container(name)
-                exec_id_dict = self.client.api.exec_create(container=status.get('ID', status.get('Id', None)),
-                                                            cmd=cmd)
-                self.client.api.exec_start(exec_id_dict['Id'])
+                ct = self.client.containers.get(name)
+                ct.exec_run(cmd=cmd)

@@ -4,6 +4,7 @@ import os
 import time
 
 import const
+import utils
 import yaml_loader
 import entities
 import string
@@ -17,6 +18,7 @@ import copy
 import memcache
 import uuid
 import psutil
+import shutil
 
 # node_instance_name = uuid.uuid1().__str__()
 
@@ -45,7 +47,8 @@ def hand_pods(ch, method, properties, body):
 
     print("get broadcast ", config)
     # config中不含node或者node不是自己都丢弃
-    if not config.__contains__('node') or config['node'] != node_instance_name or not config.__contains__('behavior'):
+    if not config.__contains__('node') or config['node'] != node_instance_name\
+            or not config.__contains__('behavior'):
         return
     bahavior = config['behavior']
     config.pop('behavior')
@@ -72,8 +75,9 @@ def hand_pods(ch, method, properties, body):
         pod.remove()
     elif bahavior == 'execute':
         # todo: check the logic here
-        print('try to execute Pod {}'.format(instance_name))
+        print('try to execute Pod {} {}'.format(instance_name, config['cmd']))
         index, pod = get_pod_by_name(instance_name)
+        print(pod)
         cmd = config['cmd']
         pod.exec_run(cmd)
 
@@ -112,6 +116,13 @@ def send_heart_beat():
 
 
 def init_node():
+    # delete original iptables and restore, init for service and dns
+    dir = const.dns_conf_path
+    for f in os.listdir(dir):
+        if f != 'default.conf':
+            os.remove(os.path.join(dir, f))
+    utils.exec_command(command="echo "" > /etc/hosts", shell=True)
+    utils.exec_command(command="iptables-restore < ./sources/iptables", shell=True)
     # todo: add other logic here
     # todo: recover pods here
 

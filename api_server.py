@@ -1,3 +1,4 @@
+import copy
 import time
 
 import requests
@@ -6,6 +7,9 @@ import json
 import pika
 import uuid
 import etcd3
+
+import const
+import utils
 from serverless import ServerlessFunction, Edge, DAG
 
 app = Flask(__name__)
@@ -58,6 +62,9 @@ def delete_key(key):
         etcd.delete(key)
     else:
         etcd_supplant.pop(key)
+
+
+api_server_url = const.api_server_url
 
 
 def broadcast_message(channel_name: str, message: str):
@@ -236,6 +243,8 @@ def upload_service():
     services_list.append(service_instance_name)
     put('services_list', services_list)
     put(service_instance_name, config)
+    url = '{}/Service/{}/{}'.format(api_server_url, service_instance_name, 'create')
+    utils.post(url=url, config=config)
     return "Successfully create service instance {}".format(service_instance_name), 200
 
 
@@ -243,10 +252,16 @@ def upload_service():
 def update_service(instance_name: str, behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
-    if behavior == 'create' or behavior == 'running':
+    if behavior == 'create':
+        config['status'] = 'Creating'
+    elif behavior == 'update':
+        config['status'] = 'Updating'
+    elif behavior == 'restart':
+        config['status'] = 'Restarting'
+    elif behavior == 'running':
         config['status'] = 'Running'
     elif behavior == 'remove':
-        config['status'] = 'Removed'
+        config['status'] = 'Removing'
     elif behavior == 'none':
         config['status'] = 'None'
     put(instance_name, config)
@@ -266,20 +281,32 @@ def upload_dns():
     dns_list.append(dns_instance_name)
     put('dns_list', dns_list)
     put(dns_instance_name, config)
+    url = "{}/Dns/{}/{}".format(api_server_url, dns_instance_name, 'create')
+    utils.post(url=url, config=config)
     return "Successfully create dns instance {}".format(dns_instance_name), 200
 
 
-@app.route('/Dns/<string:instance_name>', methods=['POST'])
-def update_dns(instance_name: str):
+@app.route('/Dns/<string:instance_name>/<string:behavior>', methods=['POST'])
+def update_dns(instance_name: str, behavior: str):
     json_data = request.json
     config: dict = json.loads(json_data)
+    if behavior == 'create':
+        config['status'] = 'Creating'
+    elif behavior == 'update':
+        config['status'] = 'Updating'
+    elif behavior == 'restart':
+        config['status'] = 'Restarting'
+    elif behavior == 'running':
+        config['status'] = 'Running'
+    elif behavior == 'remove':
+        config['status'] = 'Removing'
+    elif behavior == 'none':
+        config['status'] = 'None'
     put(instance_name, config)
-
-    broadcast_message('Dns', config.__str__())
     return "Successfully update dns instance {}".format(instance_name)
 
 
-@app.route('/ReplicaSet/<string:instance_name>', methods=['POST'])
+@app.route('/ReplicaSet/<string:instance_name>/', methods=['POST'])
 def update_replica_set(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)
@@ -303,9 +330,9 @@ def post_pod(instance_name: str, behavior: str):
         config = get(instance_name)
         json_data = request.json
         upload_cmd: dict = json.loads(json_data)
-        if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
-            config['behavior'] = 'execute'
-            config['cmd'] = upload_cmd['cmd']
+        # if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
+        config['behavior'] = 'execute'
+        config['cmd'] = upload_cmd['cmd']
     elif behavior == 'delete':
         pods_list: list = get('pods_list')
         index = -1
@@ -419,8 +446,7 @@ def receive_heartbeat():
 
 
 def main():
-    init_api_server()
-    app.run(port=5050, processes=True)
+    app.run(host='0.0.0.0', port=5050, processes=True)
 
 
 if __name__ == '__main__':

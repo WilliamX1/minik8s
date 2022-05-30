@@ -4,7 +4,7 @@ import logging
 import random
 import const
 import time
-
+import prettytable
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -41,13 +41,20 @@ def alloc_service_clusterIP(service_dict: dict):
     return ip, True
 
 
-def init_iptables(iptables: dict):
+def init_iptables():
     """
     init iptables for minik8s, create some necessary chains and insert some necessary rules
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
+    :param simulate: if true, then all the commands will not execute actually
     :return: None
     """
+    utils.exec_command(command="iptables-save < ./sources/iptables", shell=True)
+
     """ In table `nat`, set policy for some chains """
+    iptables = dict()
+    iptables['chains'] = list()
+    iptables['rules'] = list()
+
     utils.policy_chain('nat', 'PREROUTING', ['ACCEPT'])
     utils.policy_chain('nat', 'INPUT', ['ACCEPT'])
     utils.policy_chain('nat', 'OUTPUT', ['ACCEPT'])
@@ -111,7 +118,7 @@ def init_iptables(iptables: dict):
                           ),
                           utils.make_target_extensions(
                               mark='0x4000/0x4000'
-                        ))
+                          ))
     )
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-SERVICES', 1,
@@ -238,7 +245,7 @@ def init_iptables(iptables: dict):
     )
 
 
-def create_service(service_config: dict, pods_dict: dict):
+def create_service(service_config: dict, pods_dict: dict, simulate=False):
     """
     used for create a new service using original config file
     :param service_config: dict {'kind': str, 'name': str, 'type': str,
@@ -247,12 +254,9 @@ def create_service(service_config: dict, pods_dict: dict):
     :param pods_dict: dict {'chain': list, 'rule': list}
     :return: None
     """
-    print("HEHEHEHHEHEHEHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-
     iptables = dict()
     iptables['chains'] = list()
     iptables['rules'] = list()
-    init_iptables(iptables=iptables)
 
     cluster_ip = service_config['clusterIP']
     service_name = service_config['name']
@@ -268,15 +272,15 @@ def create_service(service_config: dict, pods_dict: dict):
         protocol = eachports['protocol']
         set_iptables_clusterIP(cluster_ip=cluster_ip, service_name=service_name,
                                port=port, target_port=targetPort, protocol=protocol,
-                               pod_ip_list=pod_ip_list, strategy=strategy, iptables=iptables)
+                               pod_ip_list=pod_ip_list, strategy=strategy, iptables=iptables,
+                               simulate=simulate)
     service_config['iptables'] = iptables
     service_config['status'] = 'Running'
-    service_config['iphash'] = hash('.'.join(pod_ip_list))  # used for restart service
     logging.info('Service [%s] ClusterIP [%s] Running Successfully!'
                  % (service_name, cluster_ip))
 
 
-def rm_service(service_config: dict):
+def rm_service(service_config: dict, simulate=False):
     """
     delete original iptables chains and rules
     :param service_config: dict {'kind': str, 'name': str, 'type': str,
@@ -290,20 +294,37 @@ def rm_service(service_config: dict):
     for rule in rules:
         utils.delete_rule_by_spec(table=rule['table'],
                                   chain=rule['chain'],
-                                  rulespec=rule['rule-specification'])
+                                  rulespec=rule['rule-specification'],
+                                  simulate=simulate)
     chains = iptables['chains']
     for chain in chains:
-        utils.delete_chain(chain['table'], chain['chain'])
+        utils.delete_chain(chain['table'], chain['chain'], simulate=simulate)
     service_config['status'] = 'Removed'
     return True
 
 
-def restart_service(service_config: dict, pods_dict: dict, force=False):
+def sync_service(service_config: dict, simulate=False):
+    """
+    synchronous service iptables with remote master etcd
+    :param service_config: master etcd
+    :param simulate:
+    :return:
+    """
+    iptables = service_config['iptables']
+    chains = iptables['chains']
+    for chain in chains:
+        utils.create_chain(table=chain['table'], chain=chain['chain'])
+    rules = iptables['rules']
+    for rule in rules:
+        utils.insert_rule(table=rule['table'], chain=rule['chain'], rulenum=1,
+                          rulespec=rule['rule-specification'], target_extension=[])
+
+
+def restart_service(service_config: dict, pods_dict: dict, simulate=False):
     """
     used for restart an exist service, simply
     delete all of the original iptable chains and rules
     then use create_service..
-    :param force: flush service immediately regardless of pod scale
     :param service_config: dict {'kind': str, 'name': str, 'type': str,
         'selector': dict, 'ports': list, 'instance_name': str,
         'pod_instances': list, 'clusterIP': str}
@@ -314,61 +335,67 @@ def restart_service(service_config: dict, pods_dict: dict, force=False):
     pod_ip_list = list()
     for pod_instance in service_config['pod_instances']:
         pod_ip_list.append(pods_dict[pod_instance]['ip'])
-    if force is False and service_config['iphash'] == hash('.'.join(pod_ip_list)):
-        return False
     # delete original chains and rules
-    rm_service(service_config)
+    rm_service(service_config, simulate=simulate)
     # restart this service using create_service
-    create_service(service_config, pods_dict)
-    return True
+    create_service(service_config, pods_dict, simulate=simulate)
+    return
 
 
-def describe_service(service_config: dict, service_instance_name: str, title=False):
+def describe_service(service_config: dict, service_instance_name: str, tb=None, show=False):
     """
     describe a service showing its info
     | name | status | created time | type | cluster IP | external IP | port(s) |
     :param service_config: service config from etcd
     :param service_instance_name: service instance name with its suffix
-    :param title: a flag indicating whether to show the bar
+    :param tb: pretty table used for print beautifully
+    :param show: a flag indicating whether to show the bar
     :return: None
     """
-    if title is True:
-        print("{0:70}{1:30}{2:30}{3:12}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
-                                                                 'type', 'cluster IP', "external IP",
-                                                                 'port(s)'))
+    if tb is None:
+        tb = prettytable.PrettyTable()
+        tb.field_names = ['name', 'status', 'created time',
+                          'type', 'cluster IP', "external IP",
+                          'port(s)']
     service_status = service_config['status']  # todo
     created_time = int(time.time() - service_config['created_time'])
     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
     type = '<none>' if service_config.get('type') is None else service_config['type']
     clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
     externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
-    ports: dict = service_config.get('ports')
+    ports: list = service_config.get('ports')
     show_ports = list()
     if ports is not None:
         for p in ports:
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
-    print(f"{service_instance_name:70}{service_status:30}{created_time.strip():30}"
-          f"{type:12}{clusterIP:15}{externalIP:15}{show_ports:20}")
+    tb.add_row([service_instance_name, service_status, created_time.strip(),
+                type, clusterIP, externalIP, show_ports])
+    if show is True:
+        print(tb)
 
 
-def get_services(service_dict: dict):
+def show_services(service_dict: dict):
     """
     get all services running state
     :param service_dict:
     :return: a list of service running state
     """
-    print("{0:70}{1:30}{2:30}{3:12}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
-                                                               'type', 'cluster IP', "external IP",
-                                                               'port(s)'))
+    tb = prettytable.PrettyTable()
+    tb.field_names = ['name', 'status', 'created time',
+                      'type', 'cluster IP', "external IP",
+                      'port(s)']
+
     for service_instance_name in service_dict['services_list']:
         service_config = service_dict[service_instance_name]
-        describe_service(service_config=service_config, service_instance_name=service_instance_name, title=False)
+        describe_service(service_config=service_config, service_instance_name=service_instance_name, tb=tb, show=False)
+    print(tb)
 
 
 def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol,
-                           pod_ip_list, strategy='random', ip_prefix_len=32, iptables: dict = None):
+                           pod_ip_list, strategy='random', ip_prefix_len=32, iptables: dict = None,
+                           simulate=False):
     """
     used for set service clusterIP, only for the first create
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
@@ -393,7 +420,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     kubesvc = 'KUBE-SVC-' + utils.generate_random_str(12, 1)
 
     iptables['chains'].append(
-        utils.create_chain('nat', kubesvc)
+        utils.create_chain('nat', kubesvc, simulate=simulate)
     )
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-SERVICES', 1,
@@ -404,14 +431,15 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                               comment=service_name + ': cluster IP',
                               dport=port
                           ),
-                          utils.make_target_extensions())
+                          utils.make_target_extensions(),
+                          simulate=simulate)
     )
 
     pod_num = len(pod_ip_list)
     for i in range(0, pod_num):
         kubesep = 'KUBE-SEP-' + utils.generate_random_str(12, 1)
         iptables['chains'].append(
-            utils.create_chain('nat', kubesep)
+            utils.create_chain('nat', kubesep, simulate=simulate)
         )
 
         if strategy == 'random':
@@ -422,7 +450,8 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
-                                      utils.make_target_extensions())
+                                      utils.make_target_extensions(),
+                                      simulate=simulate)
                 )
             else:
                 iptables['rules'].append(
@@ -434,7 +463,8 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                                           statistic=True,
                                           mode='random',
                                           probability=prob
-                                      ))
+                                      ),
+                                      simulate=simulate)
                 )
         elif strategy == 'roundrobin':
             if i == pod_num - 1:
@@ -443,7 +473,8 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
-                                      utils.make_target_extensions())
+                                      utils.make_target_extensions(),
+                                      simulate=simulate)
                 )
             else:
                 iptables['rules'].append(
@@ -456,7 +487,8 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                                           mode='nth',
                                           every=pod_num - i,
                                           packet=0
-                                      ))
+                                      ),
+                                      simulate=simulate)
                 )
         else:
             logging.error("Strategy Not Found! Use `random` or `roundrobin` Please")
@@ -467,7 +499,8 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                                   jump='KUBE-MARK-MASQ',
                                   source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
                               ),
-                              utils.make_target_extensions())
+                              utils.make_target_extensions(),
+                              simulate=simulate)
         )
         iptables['rules'].append(
             utils.append_rule('nat', kubesep,
@@ -478,7 +511,8 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                               utils.make_target_extensions(
                                   match=protocol,
                                   to_destination=':'.join([pod_ip_list[i], str(target_port)])
-                              ))
+                              ),
+                              simulate=simulate)
         )
     logging.info("Service [%s] Cluster IP: [%s] Port: [%s] TargetPort: [%s] Strategy: [%s]"
                  % (service_name, cluster_ip, port, target_port, strategy))
