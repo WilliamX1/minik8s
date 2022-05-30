@@ -120,7 +120,7 @@ def main():
         for service_name in service_dict['services_list']:
             service_config: dict = service_dict[service_name]
             status = service_config.get('status')
-            print(service_config)
+            # print(service_config)
             if status is None:
                 continue
             elif status == 'Creating':

@@ -45,9 +45,6 @@ def init_api_server():
     # for the very first start, init etcd
     if get('nodes_list', assert_exist=False) is None:
         put('nodes_list', list())
-        print("put!")
-    else:
-        print("not put")
     if get('pods_list', assert_exist=False) is None:
         put('pods_list', list())
     if get('services_list', assert_exist=False) is None:
@@ -98,7 +95,7 @@ def upload_nodes():
     node_config['last_receive_time'] = time.time()
     node_config['status'] = 'READY TO START'
 
-    print("node_config = ", node_config)
+    # print("node_config = ", node_config)
     nodes_list: list = get('nodes_list')
     # node instance name bind with physical mac address
     flag = 0
@@ -150,7 +147,7 @@ def get_services():
     result['services_list'] = get('services_list')
     for service_instance_name in result['services_list']:
         service_config = get(service_instance_name, assert_exist=False)
-        print("Service = ", service_config)
+        # print("Service = ", service_instance_name)
         if service_config:
             result[service_instance_name] = service_config
     return json.dumps(result), 200
@@ -167,7 +164,7 @@ def get_replica_set():
             pod_config = get(pod_instance_name, assert_exist=False)
             if pod_config:
                 result[pod_instance_name] = pod_config
-    print(result)
+    # print(result)
     return json.dumps(result), 200
 
 
@@ -206,7 +203,7 @@ def post_pods():
     config['instance_name'] = instance_name
     config['status'] = 'Wait for Schedule'
     config['created_time'] = time.time()
-    print("create {}".format(instance_name))
+    # print("create {}".format(instance_name))
     pods_list: list = get('pods_list')
     pods_list.append(instance_name)
     put('pods_list', pods_list)

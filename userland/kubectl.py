@@ -1,14 +1,17 @@
+import json
 import logging
 import re
 import time
 
-from userland import kubedns
-import sys, os
+import requests
+import sys
+import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
-import utils, const
-
-from worker import kubeproxy
+sys.path.append(os.path.join(BASE_DIR, '../worker'))
+import kubedns
+import utils, const, yaml_loader
+import kubeproxy
 import prettytable
 
 
@@ -35,12 +38,13 @@ def main():
         exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
         help_match = re.fullmatch(r'help', cmd.strip(), re.I)
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
-        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns)', cmd.strip(), re.I)
+        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns|nodes)', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         pod_command_match = re.fullmatch(r'(start|remove) * pod *([\w-]*)', cmd.strip(), re.I)
         service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
         dns_command_match = re.fullmatch(r'(update|restart|remove) * dns *([\w-]*)', cmd.strip(), re.I)
         curl_match = re.fullmatch(r'curl * ([a-zA-Z0-9:/\\_\-.]*)', cmd.strip(), re.I)  # only used for test
+        upload_match = re.fullmatch(r'upload *-f *([a-zA-Z0-9:/\\_\-.]*py)', cmd.strip(), re.I)  # only used for test
 
         if exit_match:
             break
@@ -55,10 +59,11 @@ def main():
                 tb = prettytable.PrettyTable()
                 tb.field_names = ['name', 'status', 'created time']
                 for pod_instance_name in pods_dict['pods_list']:
-                    pod_config = pods_dict[pod_instance_name]
-                    created_time = int(time.time() - pod_config['created_time'])
-                    created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                    tb.add_row([pod_instance_name, pod_config['status'], created_time.strip()])
+                    pod_config = pods_dict.get(pod_instance_name)
+                    if pod_config:
+                        created_time = int(time.time() - pod_config['created_time'])
+                        created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+                        tb.add_row([pod_instance_name, pod_config['status'], created_time.strip()])
                 print(tb)
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=api_server_url)
@@ -78,6 +83,8 @@ def main():
             elif object_type == 'dns':
                 dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
                 kubedns.show_dns(dns_dict)
+            elif object_type == 'nodes':
+                pass
             else:
                 # todo : handle other types
                 pass
@@ -112,30 +119,33 @@ def main():
                 url = "{}/Dns/{}/{}".format(api_server_url, instance_name, cmd_type)
                 config = dns_dict[instance_name]
                 utils.post(url=url, config=config)
-        elif start_file_match:
-            pass
-            # file_path = start_file_match.group(1)
-            # if not os.path.isfile(file_path):
-            #     print("file not exist")
-            #     continue
-            # config = yaml_loader.load(file_path)
-            # if 'name' not in config:
-            #     sys.stdout.write('yaml name is missing')
-            # if config.get('kind') == 'pod':
-            #     name = config.get('name')
-            #     检查pod是否已存在
-            # if name in pods:
-            #     print("pod:{} already exist".format(name))
-            #     continue
-            # 创建pod并创建开启容器
-            # pod = entities.Pod(config)
-            # pods[name] = pod
-            # print('pod:{} created successfully'.format(name))
-            # elif config.get('kind') == 'service':
-            # 创建service（检查重名）
-            # print('test')
-            # else:
-            #     print("file content error")
+        elif upload_match:
+            python_path = upload_match.group(1)
+            if not os.path.isfile(python_path):
+                print("file not exist")
+                continue
+            url = "{}/Pod".format(api_server_url)
+            module_name = None
+            with open(python_path) as f:
+                flag = 0
+                for i in range(len(f.name) - 1, 0, -1):
+                    if f.name[i] == '/':
+                        module_name = f.name[i + 1: -3]
+                        flag = 1
+                        break
+                if flag == 0:
+                    module_name = f.name[:-3]
+                content = f.read()
+            assert module_name
+            config: dict = yaml_loader.load(os.path.join(BASE_DIR, 'yaml_default', 'serverless-pod.yaml'))
+            config['name'] += module_name
+            config['metadata']['labels']['module_name'] = module_name
+            config['containers'][0]['name'] = module_name
+            config['containers'][0]['image'] = "{}:latest".format(module_name)
+            config['script_data'] = content
+
+            print(config)
+            r = requests.post(url=url, json=json.dumps(config))
 
         elif curl_match:
             ipordns = curl_match.group(1)  # ip or damain name

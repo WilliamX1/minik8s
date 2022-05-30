@@ -36,7 +36,7 @@ api_server_url = const.api_server_url
 #     r = requests.post(url=url, json=json_data)
 def main():
     while True:
-        time.sleep(1)
+        time.sleep(3)
         try:
             # get replica set and pod information
             r = requests.get(url='{}/ReplicaSet'.format(api_server_url))
