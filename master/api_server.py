@@ -15,8 +15,8 @@ from serverless import ServerlessFunction, Edge, DAG
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = True
-etcd = etcd3.client()
+use_etcd = False # True
+# etcd = etcd3.client()
 etcd_supplant = dict()
 
 
@@ -55,8 +55,7 @@ def init_api_server():
         put('dns_list', list())
     if get('dns_config', assert_exist=False) is None:
         put('dns_config', dict())
-    if get('dns_config_dict', assert_exist=False) is None:
-        put('dns_config_dict', dict())
+
 
 def delete_key(key):
     if use_etcd:
@@ -188,7 +187,10 @@ def get_dns_config():
 @app.route('/Dns/Config', methods=['POST'])
 def post_dns_config():
     json_data = request.json
-    config: dict = json.loads(json_data)
+    new_config: dict = json.loads(json_data)
+    config: dict = get('dns_config')
+    for key, item in new_config.items():
+        config[key] = item
     put('dns_config', config)
     return json.dumps(config)
 

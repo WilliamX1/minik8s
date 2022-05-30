@@ -10,12 +10,6 @@ import ast
 import requests
 import json
 import psutil
-<<<<<<< HEAD:kubelet.py
-import shutil
-import configparser
-
-=======
->>>>>>> 71c8772451cbb505c0654bfd344892bb35a46090:worker/kubelet.py
 
 # node_instance_name = uuid.uuid1().__str__()
 
@@ -118,14 +112,9 @@ def init_node():
     for f in os.listdir(dir):
         if f != 'default.conf':
             os.remove(os.path.join(dir, f))
-<<<<<<< HEAD:kubelet.py
-    utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
-    utils.exec_command(command="iptables-restore < ./sources/iptables", shell=True)
-=======
     iptable_path = os.path.dirname(os.path.realpath(__file__)) + "/sources/iptables"
     utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
     utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
->>>>>>> 71c8772451cbb505c0654bfd344892bb35a46090:worker/kubelet.py
     # todo: add other logic here
     # todo: recover pods here
 
