@@ -36,6 +36,10 @@ def upload_script(module_name: str):
     f.write(data)
     f.close()
     os.system("cd tmp && docker build . -t {}".format(module_name))
+    # import docker
+    #
+    # docker_client = docker.from_env(version='1.25', timeout=5)
+    # docker_client.images.build(path="./tmp")
     # we will build a docker image with tag: <instance_name>:latest here
     return 'file uploaded successfully'
 

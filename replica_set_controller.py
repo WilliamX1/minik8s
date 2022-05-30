@@ -38,45 +38,52 @@ api_server_url = const.api_server_url
 #     r = requests.post(url=url, json=json_data)
 def main():
     while True:
+        time.sleep(1)
         try:
+            # get replica set and pod information
             r = requests.get(url='{}/ReplicaSet'.format(api_server_url))
             replica_set_dict = json.loads(r.content.decode('UTF-8'))
+            r = requests.get(url='{}/Pod'.format(api_server_url))
+            pods_dict = json.loads(r.content.decode('UTF-8'))
+            pods_list = pods_dict['pods_list']
+            replica_sets_list = replica_set_dict['replica_sets_list']
+            # check the replica set one by one
+            for replica_set_name in replica_sets_list:
+                replica_config = replica_set_dict[replica_set_name]
+                expected_replica_number = replica_config['spec']['replicas']
+                alive_pod_instances = list()
+                for pod_instance_name in pods_list:
+                    if pods_dict.__contains__(pod_instance_name):
+                        pod_instance_config = pods_dict[pod_instance_name]
+                        pod_status = pod_instance_config.get('status')
+                        if pod_instance_config.get('belong_to') == replica_set_name:
+                            if pod_status == 'Wait for Schedule' or pod_status == 'Ready to Create' or pod_status == 'Running':
+                                alive_pod_instances.append(pod_instance_name)
+                replica_config['pod_instances'] = alive_pod_instances
+                print("Replica Set need create {} new instances".format(
+                    str(expected_replica_number - len(alive_pod_instances))))
+                while len(replica_config['pod_instances']) < expected_replica_number:
+                    pod_config = copy.deepcopy(replica_config)
+                    pod_config['kind'] = 'Pod'
+                    pod_config['belong_to'] = replica_set_name
+                    pod_config.pop('spec')
+                    pod_config.pop('pod_instances')
+                    json_data = json.dumps(pod_config)
+                    r = requests.post(url='{}/Pod'.format(api_server_url), json=json_data)
+                    pod_instance_name = json.loads(r.content.decode('UTF-8'))['instance_name']
+                    print("pod_instance_name = {}".format(pod_instance_name))
+                    replica_config['pod_instances'].append(pod_instance_name)
+                while len(replica_config['pod_instances']) > expected_replica_number:
+                    to_delete_pod_instance_name = replica_config['pod_instance'].pop()
+                    r = requests.post(url='{}/Pod/{}/remove'.format(api_server_url, to_delete_pod_instance_name),
+                                      json=json.dumps(dict()))
+                # update the information into replica set config
+                url = "{}/ReplicaSet/{}".format(api_server_url, replica_config['instance_name'])
+                json_data = json.dumps(replica_config)
+                r = requests.post(url=url, json=json_data)
         except Exception as e:
-            print('Connect API Server Failure!')
+            print('Connect API Server Failure!', e)
             continue
-        print("当前的ReplicaSet为：{}".format(replica_set_dict['replica_sets_list']))
-        current_sec = time.time()
-        for replica_set_name in replica_set_dict['replica_sets_list']:
-            replica_config = replica_set_dict[replica_set_name]
-
-            # print("config = ", replica_config['pod_instances'])
-            expected_replica_number = replica_config['spec']['replicas']
-            alive_pod_instances = list()
-            for index, pod_instance_name in enumerate(replica_config['pod_instances']):
-                if replica_set_dict.__contains__(pod_instance_name):
-                    pod_instance_config = replica_set_dict[pod_instance_name]
-                    # todo : check the status of the pod
-                    pod_status = pod_instance_config['status']
-                    if pod_status == 'Wait for Schedule' or pod_status == 'Ready to Create' or pod_status == 'Running':
-                        alive_pod_instances.append(pod_instance_name)
-            replica_config['pod_instances'] = alive_pod_instances
-            print("Replica Set need create {} new instances".format(
-                str(expected_replica_number - len(alive_pod_instances))))
-            while len(replica_config['pod_instances']) < expected_replica_number:
-                pod_config = copy.deepcopy(replica_config)
-                pod_config['kind'] = 'Pod'
-                pod_config.pop('spec')
-                pod_config.pop('pod_instances')
-                json_data = json.dumps(pod_config)
-                r = requests.post(url='{}/Pod'.format(api_server_url), json=json_data)
-                pod_instance_name = json.loads(r.content.decode('UTF-8'))['instance_name']
-                print("pod_instance_name = {}".format(pod_instance_name))
-                replica_config['pod_instances'].append(pod_instance_name)
-            url = "{}/ReplicaSet/{}".format(api_server_url, replica_config['instance_name'])
-            json_data = json.dumps(replica_config)
-            r = requests.post(url=url, json=json_data)
-
-        time.sleep(1)
 
 
 if __name__ == '__main__':

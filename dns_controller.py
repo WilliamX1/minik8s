@@ -103,6 +103,7 @@ def update_nginx_service():
 def main():
     last_time = 0.0
     while True:
+        time.sleep(1)
         dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
         dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
 

@@ -18,44 +18,6 @@ except ImportError:
     from docker.client import APIError
 
 
-class Container:
-    def __init__(self, name, suffix, image, command, memory, cpu, port):
-        self._name = name
-        self._suffix = suffix
-        self._image = image
-        self._command = command
-        self._memory = memory
-        self._cpu = cpu
-        self._port = port
-
-    def name(self):
-        return self._name
-
-    def suffix(self):
-        return self._suffix
-
-    def image(self):
-        return self._image
-
-    def command(self):
-        return self._command
-
-    def memory(self):
-        return self._memory
-
-    def cpu(self):
-        return self._cpu
-
-    def port(self):
-        return self._port
-
-    def set_cpu(self, cpu):
-        self._cpu = cpu
-
-    def set_memory(self, memory):
-        self._memory = memory
-
-
 class Status(Enum):
     STOPPED = 1
     RUNNING = 2
@@ -80,135 +42,92 @@ def parse_bytes(s):
 
 class Pod:
     def __init__(self, config):
-        self.config = config
-        self.instance_name = config.get('instance_name')
-        self._name = config.get('name')
-        self._status = Status.RUNNING
-        self._volume = config.get('volume')
-        # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
-        if self._volume is None:
-            self._volume = list()
-        self._volume = [v.replace("$", os.getcwd()) for v in self._volume]
-        self._containers = []
-        self._pause = None
-        self._mem = config.get('mem')
-        self._cpu = {}
-        self._ipv4addr = None
-        self._cpu_num = config.get('cpu')
-        #            containername:'0,1,2'
+        if config.get('container_names') is None:
+            restart = False
+        else:
+            restart = True
+        if not restart:  # for first create Pod
+            self.instance_name = config.get('instance_name')
+            volume = config.get('volume')
+            # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
+            if volume is None:
+                volume = list()
+            volume = [v.replace("$", os.getcwd()) for v in volume]
+            mem = config.get('mem')
+            cpu_num = config.get('cpu')
+            #            containername:'0,1,2'
+            self.container_names = list()
+            self.client = docker.from_env(version='1.25', timeout=5)
 
-        self._client = docker.from_env(version='1.25', timeout=5)
+            '''
+                    Create a 'pause' container each pod which use a veth,
+                    Other containers attach to this container network, so
+                    they can communicate with each other using `localhost`
+            '''
 
-        '''
-                Create a 'pause' container each pod which use a veth,
-                Other containers attach to this container network, so
-                they can communicate with each other using `localhost`
-        '''
-        pause_container = self._client.containers.run(image='kubernetes/pause', name=self.instance_name,
-                                                      detach=True, auto_remove=True,
-                                                      network_mode="bridge")
+            pause_container = self.client.containers.run(image='kubernetes/pause', name=self.instance_name,
+                                                          detach=True, auto_remove=True,
+                                                          network_mode="bridge")
+            self.container_names.append(self.instance_name)
 
-        ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
-        self._ipv4addr = os.popen(ip_cmd).read().strip()
-        logging.info('Pod %s IP Address: %s ...' % (self.instance_name, self._ipv4addr))
+            ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
+            self.ipv4addr = os.popen(ip_cmd).read().strip()
+            logging.info('Pod %s IP Address: %s ...' % (self.instance_name, self.ipv4addr))
 
-        containercfgs = config.get('containers')
+            containercfgs = config.get('containers')
 
-        # 创建容器配置参数
-        for containercfg in containercfgs:
-            container = Container(containercfg['name'], self.instance_name, containercfg['image'],
-                                  containercfg['command'],
-                                  containercfg['resource']['memory'], containercfg['resource']['cpu'],
-                                  containercfg['port'])
-            self._cpu[containercfg['name']] = containercfg['resource']['cpu']
-            self._containers.append(container)
-            container = self._client.containers.run(image=container.image(), name=container.name() + container.suffix(),
-                                                    volumes=self._volume,
-                                                    # cpuset_cpus=container.cpu(),
-                                                    # mem_limit=parse_bytes(container.memory()),
-                                                    detach=True,
-                                                    # auto_remove=True,
-                                                    command=container.command(),
-                                                    network_mode='container:' + pause_container.name)
-            logging.info("\tcontainer %s run successfully" % container.name)
-        logging.info('Pod %s run successfully ...' % self.instance_name)
-
-    def ipv4addr(self):
-        return self._ipv4addr
-
-    def name(self):
-        return self._name
-
-    def status(self):
-        return self._status
-
-    def volume(self) -> list:
-        return self._volume
-
-    def contains(self):
-        return self._containers
-
-    def client(self):
-        return self._client
-
-    def append(self, container):
-        self._containers.append(container)
+            # 创建容器配置参数
+            for containercfg in containercfgs:
+                container_name = containercfg['name'] + self.instance_name
+                self.container_names.append(container_name)
+                cpu_string = "0-{}".format(containercfg['resource']['cpu'])
+                container = self.client.containers.run(image=containercfg['image'], name=container_name,
+                                                        volumes=volume,
+                                                        cpuset_cpus=cpu_string,
+                                                        mem_limit=parse_bytes(containercfg['resource']['memory']),
+                                                        detach=True,
+                                                        # auto_remove=True,
+                                                        command=containercfg['command'],
+                                                        network_mode='container:' + pause_container.name)
+                logging.info("\tcontainer %s run successfully" % container.name)
+            logging.info('Pod %s run successfully ...' % self.instance_name)
+        else:   # after kubelet crash, we need to recover the structure
+            self.instance_name = config['instance_name']
+            self.container_names = config['container_names']
 
     def start(self):
-        for container in self._containers:
-            name = container.name() + container.suffix()
-            status = self._client.api.inspect_container(name)
-            self._client.api.start(status.get('ID', status.get('Id', None)))
-        self._status = Status.RUNNING
+        for container_name in self.container_names:
+            status = self.client.api.inspect_container(container_name)
+            self.client.api.start(status.get('ID', status.get('Id', None)))
 
     def stop(self):
-        for container in self._containers:
-            name = container.name() + container.suffix()
-            status = self._client.api.inspect_container(name)
-            self._client.api.stop(status.get('ID', status.get('Id', None)))
-        # stop pause container
-        name = self.instance_name
-        status = self._client.api.inspect_container(name)
-        self._client.api.stop(status.get('ID', status.get('Id', None)))
-        self._status = Status.STOPPED
+        for container_name in self.container_names:
+            status = self.client.api.inspect_container(container_name)
+            self.client.api.stop(status.get('ID', status.get('Id', None)))
 
     def kill(self):
-        for container in self._containers:
-            name = container.name() + container.suffix()
-            status = self._client.api.inspect_container(name)
-            self._client.api.kill(status.get('ID', status.get('Id', None)))
-        self._status = Status.KILLED
+        for container_name in self.container_names:
+            status = self.client.api.inspect_container(container_name)
+            self.client.api.kill(status.get('ID', status.get('Id', None)))
 
     def restart(self):
-        for container in self._containers:
-            name = container.name() + container.suffix()
-            status = self._client.api.inspect_container(name)
-            self._client.api.restart(status.get('ID', status.get('Id', None)))
-        self._status = Status.RUNNING
+        for container_name in self.container_names:
+            status = self.client.api.inspect_container(container_name)
+            self.client.api.restart(status.get('ID', status.get('Id', None)))
 
     def remove(self):
-        if self._status == Status.RUNNING:
-            self.stop()
-        for container in self._containers:
-            name = container.name() + container.suffix()
-            status = self._client.api.inspect_container(name)
-            self._client.api.remove_container(status.get('ID', status.get('Id', None)))
-        # remove pause container
-        try:
-            name = self.instance_name
-            status = self._client.api.inspect_container(name)
-            self._client.api.remove_container(status.get('ID', status.get('Id', None)))
-        except Exception as e:
-            print(e.__str__())
+        for container_name in self.container_names:
+            status = self.client.api.inspect_container(container_name)
+            self.client.api.remove_container(status.get('ID', status.get('Id', None)))
 
     def get_status(self):
         pod_status = {'memory_usage_percent': 0, 'cpu_usage_percent': 0, 'status': 'Running'}
         successfully_exit_number = 0
         error_exit_number = 0
         missing_container = 0
-        for container in self._containers:
-            name = container.name() + container.suffix()
-            tmp = os.popen('docker stats --no-stream | grep {}'.format(name)).readlines()
+        for container_name in self.container_names:
+            status = self.client.api.inspect_container(container_name)
+            tmp = os.popen('docker stats --no-stream | grep {}'.format(container_name)).readlines()
             if not tmp or len(tmp) < 1:
                 print("container not found")
                 missing_container += 1
@@ -217,10 +136,10 @@ class Pod:
             # container ID | container Name | CPU USAGE | MEM USAGE | / | MEM LIMIT | MEM PERCENT | NET IO | BLOCK IO | PIDS
             pod_status['cpu_usage_percent'] += float(parameter[2][:-1])
             pod_status['memory_usage_percent'] += float(parameter[6][:-1])
-            a = self._client.api.inspect_container(name)
+            a = self.client.api.inspect_container(container_name)
             filter_dict = dict()
             filter_dict['id'] = a.get('ID', a.get('Id', None))
-            container_stats = self._client.api.containers(filters=filter_dict)[0]
+            container_stats = self.client.api.containers(filters=filter_dict)[0]
             state = container_stats['State']
             status = container_stats['Status'].split()
             if status[0] == 'Up':
@@ -234,12 +153,12 @@ class Pod:
         # k8s Pod状态详解 https://blog.csdn.net/weixin_42516922/article/details/123007149
         if missing_container != 0:
             pod_status['status'] = 'Failed'
-        elif successfully_exit_number == len(self._containers):
+        elif successfully_exit_number == len(self.container_names):
             pod_status['status'] = 'Succeeded'
-        elif (successfully_exit_number + error_exit_number) == len(self._containers) and error_exit_number > 0:
+        elif (successfully_exit_number + error_exit_number) == len(self.container_names) and error_exit_number > 0:
             pod_status['status'] = 'Failed'
         # Get Ipv4 Address
-        pod_status['ip'] = self.ipv4addr()
+        pod_status['ip'] = self.ipv4addr
         return pod_status
 
     def exec_run(self, cmd, container_name=None):
@@ -249,10 +168,9 @@ class Pod:
         :param container_name: None means all
         :return:
         """
-        for container in self._containers:
-            name = container.name() + container.suffix()
+        for name in self.container_names:
             if container_name is None or container_name == name:
-                status = self._client.api.inspect_container(name)
-                exec_id_dict = self._client.api.exec_create(container=status.get('ID', status.get('Id', None)),
+                status = self.client.api.inspect_container(name)
+                exec_id_dict = self.client.api.exec_create(container=status.get('ID', status.get('Id', None)),
                                                             cmd=cmd)
-                self._client.api.exec_start(exec_id_dict['Id'])
+                self.client.api.exec_start(exec_id_dict['Id'])

@@ -32,6 +32,7 @@ if __name__ == '__main__':
     # make sure that the func has a good error handler to avoid exit
     #
     pool.apply_async(func=api_server.main)
+    time.sleep(5)
     pool.apply_async(func=scheduler.main)
     pool.apply_async(func=garbage_collector.main)
     pool.apply_async(func=service_controller.main)

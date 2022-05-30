@@ -333,7 +333,7 @@ def describe_service(service_config: dict, service_instance_name: str, title=Fal
     :return: None
     """
     if title is True:
-        print("{0:10}{1:10}{2:16}{3:8}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
+        print("{0:70}{1:30}{2:30}{3:12}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
                                                                  'type', 'cluster IP', "external IP",
                                                                  'port(s)'))
     service_status = service_config['status']  # todo
@@ -349,7 +349,7 @@ def describe_service(service_config: dict, service_instance_name: str, title=Fal
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
-    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}"
+    print(f"{service_instance_name:70}{service_status:30}{created_time.strip():30}"
           f"{type:12}{clusterIP:15}{externalIP:15}{show_ports:20}")
 
 
@@ -359,9 +359,9 @@ def get_services(service_dict: dict):
     :param service_dict:
     :return: a list of service running state
     """
-    print("{0:10}{1:10}{2:16}{3:8}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
-                                                             'type', 'cluster IP', "external IP",
-                                                             'port(s)'))
+    print("{0:70}{1:30}{2:30}{3:12}{4:15}{5:15}{6:20}".format('name', 'status', 'created time',
+                                                               'type', 'cluster IP', "external IP",
+                                                               'port(s)'))
     for service_instance_name in service_dict['services_list']:
         service_config = service_dict[service_instance_name]
         describe_service(service_config=service_config, service_instance_name=service_instance_name, title=False)
