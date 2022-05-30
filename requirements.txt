@@ -9,3 +9,4 @@ python-memcached
 psutil
 ttkbootstrap
 prettytable
+configparser

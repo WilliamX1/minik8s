@@ -19,6 +19,8 @@ import memcache
 import uuid
 import psutil
 import shutil
+import configparser
+
 
 node_instance_name = uuid.uuid1().__str__()
 
@@ -107,7 +109,7 @@ def init_node():
     for f in os.listdir(dir):
         if f != 'default.conf':
             os.remove(os.path.join(dir, f))
-    utils.exec_command(command="echo "" > /etc/hosts", shell=True)
+    utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
     utils.exec_command(command="iptables-restore < ./sources/iptables", shell=True)
     # todo: add other logic here
     os.system('docker stop $(docker ps -a -q)')
