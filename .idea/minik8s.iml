@@ -4,7 +4,9 @@
     <option name="enabled" value="true" />
   </component>
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/master/default.etcd" />
+    </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (minik8s)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
