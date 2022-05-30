@@ -8,3 +8,4 @@ PyYAML
 python-memcached
 psutil
 ttkbootstrap
+prettytable

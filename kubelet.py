@@ -102,7 +102,7 @@ def send_heart_beat():
 
 
 def init_node():
-    # delete original iptables and restore
+    # delete original iptables and restore, init for service and dns
     dir = const.dns_conf_path
     for f in os.listdir(dir):
         if f != 'default.conf':

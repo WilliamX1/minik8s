@@ -233,6 +233,8 @@ def update_dns(instance_name: str, behavior: str):
         config['status'] = 'Creating'
     elif behavior == 'update':
         config['status'] = 'Updating'
+    elif behavior == 'restart':
+        config['status'] = 'Restarting'
     elif behavior == 'running':
         config['status'] = 'Running'
     elif behavior == 'remove':
@@ -388,7 +390,7 @@ def receive_heartbeat():
 
 
 def main():
-    app.run(port=5050, processes=True)
+    app.run(host='0.0.0.0', port=5050, processes=True)
 
 
 if __name__ == '__main__':

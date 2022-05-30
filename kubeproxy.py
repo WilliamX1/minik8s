@@ -4,6 +4,7 @@ import logging
 import random
 import const
 import time
+import prettytable
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -341,20 +342,21 @@ def restart_service(service_config: dict, pods_dict: dict, simulate=False):
     return
 
 
-def describe_service(service_config: dict, service_instance_name: str, title=False):
+def describe_service(service_config: dict, service_instance_name: str, tb=None, show=False):
     """
     describe a service showing its info
     | name | status | created time | type | cluster IP | external IP | port(s) |
     :param service_config: service config from etcd
     :param service_instance_name: service instance name with its suffix
-    :param title: a flag indicating whether to show the bar
+    :param tb: pretty table used for print beautifully
+    :param show: a flag indicating whether to show the bar
     :return: None
     """
-    if title is True:
-        print("|{0:10}|{1:10}|{2:16}|{3:8}|{4:15}|{5:15}|{6:20}|"
-              .format('name', 'status', 'created time',
-                      'type', 'cluster IP', "external IP",
-                      'port(s)'))
+    if tb is None:
+        tb = prettytable.PrettyTable()
+        tb.field_names = ['name', 'status', 'created time',
+                          'type', 'cluster IP', "external IP",
+                          'port(s)']
     service_status = service_config['status']  # todo
     created_time = int(time.time() - service_config['created_time'])
     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
@@ -368,8 +370,10 @@ def describe_service(service_config: dict, service_instance_name: str, title=Fal
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
-    print(f"{service_instance_name:100}{service_status:30}{created_time.strip():30}"
-          f"{type:12}{clusterIP:15}{externalIP:15}{show_ports:20}")
+    tb.add_row([service_instance_name, service_status, created_time.strip(),
+                type, clusterIP, externalIP, show_ports])
+    if show is True:
+        print(tb)
 
 
 def show_services(service_dict: dict):
@@ -378,12 +382,15 @@ def show_services(service_dict: dict):
     :param service_dict:
     :return: a list of service running state
     """
-    print("|{0:10}|{1:10}|{2:16}|{3:8}|{4:15}|{5:15}|{6:20}".format('name', 'status', 'created time',
-                                                             'type', 'cluster IP', "external IP",
-                                                             'port(s)'))
+    tb = prettytable.PrettyTable()
+    tb.field_names = ['name', 'status', 'created time',
+                      'type', 'cluster IP', "external IP",
+                      'port(s)']
+
     for service_instance_name in service_dict['services_list']:
         service_config = service_dict[service_instance_name]
-        describe_service(service_config=service_config, service_instance_name=service_instance_name, title=False)
+        describe_service(service_config=service_config, service_instance_name=service_instance_name, tb=tb, show=False)
+    print(tb)
 
 
 def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol,

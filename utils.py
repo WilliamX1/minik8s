@@ -20,6 +20,11 @@ def get_pod_dict(api_server_url):
     return get(url)
 
 
+def get_replicaset_dict(api_server_url):
+    url = '{}/ReplicaSet'.format(api_server_url)
+    return get(url)
+
+
 def get_service_dict(api_server_url):
     url = '{}/Service'.format(api_server_url)
     return get(url)

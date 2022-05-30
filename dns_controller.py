@@ -121,6 +121,10 @@ def _update(dns_config: dict, dns_config_dict: dict, service_dict: dict, etc_hos
     _create(dns_config, dns_config_dict, service_dict, etc_hosts_list)
 
 
+def _restart(dns_config: dict, dns_config_dict: dict, service_dict: dict, etc_hosts_list: list):
+    _update(dns_config, dns_config_dict, service_dict, etc_hosts_list)
+
+
 def _running(dns_config: dict, dns_config_dict: dict, etc_hosts_list: list):
     # format /etc/hosts file string
     etc_hosts_list.append('{} {}'.format(dns_config_dict['dns-server-ip'], dns_config['host']))
@@ -176,6 +180,10 @@ def main():
                 update_flag = True
                 _update(dns_config=dns_config, dns_config_dict=dns_config_dict,
                         service_dict=service_dict, etc_hosts_list=etc_hosts_list)
+            elif status == 'Restarting':
+                update_flag = True
+                _restart(dns_config=dns_config, dns_config_dict=dns_config_dict,
+                         service_dict=service_dict, etc_hosts_list=etc_hosts_list)
             elif status == 'Running':
                 _running(dns_config=dns_config, dns_config_dict=dns_config_dict,
                          etc_hosts_list=etc_hosts_list)

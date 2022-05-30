@@ -14,6 +14,7 @@ import utils
 import yaml_loader
 import entities
 import kubeproxy
+import prettytable
 
 
 api_server_url = const.api_server_url
@@ -44,6 +45,7 @@ def main():
         pod_command_match = re.fullmatch(r'(start|remove) * pod *([\w-]*)', cmd.strip(), re.I)
         service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
         dns_command_match = re.fullmatch(r'(update|restart|remove) * dns *([\w-]*)', cmd.strip(), re.I)
+        curl_match = re.fullmatch(r'curl * ([a-zA-Z0-9:/\\_\-.]*)', cmd.strip(), re.I)  # only used for test
 
         if exit_match:
             break
@@ -54,28 +56,30 @@ def main():
         elif show_match:
             object_type = show_match.group(1)
             if object_type == "pods":
-                r = requests.get(url='{}/Pod'.format(api_server_url))
-                pods_dict = json.loads(r.content.decode('UTF-8'))
-                print("{0:100}{1:30}{2:30}".format('name', 'status', 'created time'))
+                pods_dict = utils.get_pod_dict(api_server_url=api_server_url)
+                tb = prettytable.PrettyTable()
+                tb.field_names = ['name', 'status', 'created time']
                 for pod_instance_name in pods_dict['pods_list']:
                     pod_config = pods_dict[pod_instance_name]
                     created_time = int(time.time() - pod_config['created_time'])
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                    print(f"{pod_instance_name:100}{pod_config['status']:30}{created_time.strip():30}")
+                    tb.add_row([pod_instance_name, pod_config['status'], created_time.strip()])
+                print(tb)
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=api_server_url)
                 kubeproxy.show_services(service_dict)
             elif object_type == 'replicasets':
-                r = requests.get(url='{}/ReplicaSet'.format(api_server_url))
-                rc_dict = json.loads(r.content.decode('UTF-8'))
-                print("{0:100}{1:30}{2:30}{3:15}".format('name', 'status', 'created time', 'replicas'))
+                rc_dict = utils.get_replicaset_dict(api_server_url=api_server_url)
+                tb = prettytable.PrettyTable()
+                tb.field_names = ['name', 'status', 'created time', 'replicas']
                 for rc_instance_name in rc_dict['replica_sets_list']:
                     rc_config = rc_dict[rc_instance_name]
                     rc_status = 'TO DO'  # todo
                     created_time = int(time.time() - rc_config['created_time'])
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
                     replicas = str(rc_config['spec']['replicas']).strip()
-                    print(f"{rc_instance_name:100}{rc_status:30}{created_time.strip():30}{replicas:15}")
+                    tb.add_row([rc_instance_name, rc_status, created_time.strip(), replicas])
+                print(tb)
             elif object_type == 'dns':
                 dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
                 kubedns.show_dns(dns_dict)
@@ -138,6 +142,9 @@ def main():
             # else:
             #     print("file content error")
 
+        elif curl_match:
+            ipordns = curl_match.group(1)  # ip or damain name
+            utils.exec_command(command=['curl', ipordns])
         else:
             print("Command does not match any valid command. Try 'help' for more information. ")
 
