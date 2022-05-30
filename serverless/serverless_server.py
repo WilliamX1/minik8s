@@ -13,4 +13,4 @@ def execute_function(module: str, function: str):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=4999, processes=True)
+    app.run(host='0.0.0.0', port=5052, processes=True)

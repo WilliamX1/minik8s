@@ -41,8 +41,11 @@ def get_dns_config_dict(api_server_url):
 
 
 def post(url: str, config: dict):
-    json_data = json.dumps(config)
-    r = requests.post(url=url, json=json_data)
+    try:
+        json_data = json.dumps(config)
+        r = requests.post(url=url, json=json_data)
+    except Exception as e:
+        print('Connect to %s Failure' % url)
 
 
 def generate_random_str(randomlength=16, opts=0):

@@ -20,7 +20,10 @@ import uuid
 import psutil
 import shutil
 
-node_instance_name = uuid.uuid1().__str__()
+# node_instance_name = uuid.uuid1().__str__()
+
+node_instance_name = os.popen(r"ifconfig | grep -oP 'HWaddr \K.*' | sed 's/://g' | sha256sum | awk '{print $1}'")
+node_instance_name = node_instance_name.readlines()[0][:-1]
 
 pods = list()
 
@@ -47,21 +50,30 @@ def hand_pods(ch, method, properties, body):
     if not config.__contains__('node') or config['node'] != node_instance_name\
             or not config.__contains__('behavior'):
         return
+    bahavior = config['behavior']
+    config.pop('behavior')
     instance_name = config['instance_name']
-    if config['behavior'] == 'create':
+    if bahavior == 'create':
         print("接收到调度请求 Pod")
         # 是自己的调度，进行操作
+        if config.__contains__('script_data'):
+            # serverless Pod
+            import const
+            # todo : handle it with different worker url
+            module_name = config['metadata']['labels']['module_name']
+            r = requests.post(url=const.worker0_url + '/ServerlessFunction/{}/upload'.format(module_name), json=json.dumps(config))
+            print("response = ", r.content.decode())
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # share.set('status', str(status))
-    elif config['behavior'] == 'remove':
+    elif bahavior == 'remove':
         print('try to delete Pod {}'.format(instance_name))
         index, pod = get_pod_by_name(instance_name)
         if index == -1:  # pod not found
             return
         pods.pop(index)
         pod.remove()
-    elif config['behavior'] == 'execute':
+    elif bahavior == 'execute':
         # todo: check the logic here
         print('try to execute Pod {} {}'.format(instance_name, config['cmd']))
         index, pod = get_pod_by_name(instance_name)
@@ -78,10 +90,12 @@ def send_heart_beat():
     cpu_use_percent = psutil.cpu_percent(interval=None)
     config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
                     'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
-                    'free_memory': free, 'status': 'RUNNING', 'pod_instances': list()}
+                    'free_memory': free, 'status': 'Running', 'pod_instances': list()}
     for pod in pods:
         pod_status_heartbeat = dict()
         pod_status = pod.get_status()
+        # todo : get status one by one is very slow
+        print("pod_status = ", pod_status)
         pod_status_heartbeat['instance_name'] = pod.instance_name
         pod_status_heartbeat['status'] = pod_status['status']
         pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
@@ -110,14 +124,17 @@ def init_node():
     utils.exec_command(command="echo "" > /etc/hosts", shell=True)
     utils.exec_command(command="iptables-restore < ./sources/iptables", shell=True)
     # todo: add other logic here
-    os.system('docker stop $(docker ps -a -q)')
-    os.system('docker rm $(docker ps -a -q)')
+    # todo: recover pods here
+
+    # os.system('docker stop $(docker ps -a -q)')
+    # os.system('docker rm $(docker ps -a -q)')
     data = psutil.virtual_memory()
     total = data.total  # 总内存,单位为byte
     free = data.available  # 可用内存
     memory_use_percent = (int(round(data.percent)))
     cpu_use_percent = psutil.cpu_percent(interval=1)
     # print(data, total, free, memory, cpu_use_percent)
+
     config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
                     'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                     'free_memory': free}

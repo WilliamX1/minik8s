@@ -29,7 +29,11 @@ def callback(ch, method, properties, body):
         if len(nodes_dict['nodes_list']) == 0:
             print("no node registered !")
         for node_instance_name in nodes_dict['nodes_list']:
+            # todo: check node status here
             current_node = nodes_dict[node_instance_name]
+            print("node status = ", current_node['status'])
+            if current_node['status'] != 'Running':
+                continue
             print("free_memory = {}, need_memory = {}".format(current_node['free_memory'], mem_need))
             if current_node['free_memory'] > mem_need:
                 config['node'] = node_instance_name

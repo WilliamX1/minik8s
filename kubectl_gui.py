@@ -46,21 +46,23 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
-        url = "{}}/Pod/".format(api_server_url)
+        url = "{}/Pod".format(api_server_url)
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):
                 if f.name[i] == '/':
-                    name = f.name[i + 1:]
+                    module_name = f.name[i + 1: -3]
                     break
             content = f.read()
         assert module_name
         config: dict = yaml_loader.load('./serverless/serverless-pod.yaml')
         config['name'] += module_name
         config['metadata']['labels']['module_name'] = module_name
-        config['containers']['name'] = module_name
-        config['containers']['image'] = "{}:latest".format(module_name)
+        config['containers'][0]['name'] = module_name
+        config['containers'][0]['image'] = "{}:latest".format(module_name)
         config['script_data'] = content
+
+        print(config)
         r = requests.post(url=url, json=json.dumps(config))
         text1.insert(ttk.END, r.content.decode('utf-8'))
     except requests.exceptions.ConnectionError:

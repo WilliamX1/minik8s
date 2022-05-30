@@ -1,5 +1,7 @@
 import copy
 import time
+
+import requests
 from flask import Flask, redirect, url_for, request, jsonify, Response
 import json
 import pika
@@ -13,13 +15,53 @@ from serverless import ServerlessFunction, Edge, DAG
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = const.use_etcd
+use_etcd = True
 etcd = etcd3.client()
-etcd_supplant = {'nodes_list': list(), 'pods_list': list(),
-                 'services_list': list(), 'replica_sets_list': list(),
-                 'dns_list': list(),
-                 'dns_config': dict(),  # used for dns
-                 }
+etcd_supplant = dict()
+
+def init_api_server():
+    # for the very first start, init etcd
+    if get('nodes_list', assert_exist=False) is None:
+        put('nodes_list', list())
+    if get('pods_list', assert_exist=False) is None:
+        put('pods_list', list())
+    if get('services_list', assert_exist=False) is None:
+        put('services_list', list())
+    if get('replica_sets_list', assert_exist=False) is None:
+        put('replica_sets_list', list())
+    if get('dns_list', assert_exist=False) is None:
+        put('dns_list', list())
+    if get('dns_config', assert_exist=False) is None:
+        put('dns_config', dict())
+    if get('dns_config_dict', assert_exist=False) is None:
+        put('dns_config_dict', dict())
+
+
+def get(key, assert_exist=True):
+    if use_etcd:
+        value, _ = etcd.get(key)
+        if value:
+            return json.loads(value)
+    else:
+        if etcd_supplant.__contains__(key):
+            return json.loads(etcd_supplant[key])   # force deep copy here
+    # key not exist
+    if assert_exist:
+        raise FileNotFoundError
+    return None
+
+
+def put(key, value):
+    if use_etcd:
+        etcd.put(key, json.dumps(value))
+    else:
+        etcd_supplant[key] = json.dumps(value)  # force deep copy here
+
+def delete_key(key):
+    if use_etcd:
+        etcd.delete(key)
+    else:
+        etcd_supplant.pop(key)
 
 
 api_server_url = const.api_server_url
@@ -37,14 +79,11 @@ def broadcast_message(channel_name: str, message: str):
 
 @app.route('/Node', methods=['GET'])
 def handle_nodes():
-    if use_etcd:
-        return "not implemented"
-    else:
-        result = dict()
-        result['nodes_list'] = etcd_supplant['nodes_list']
-        for node_instance_name in result['nodes_list']:
-            result[node_instance_name] = etcd_supplant[node_instance_name]
-        return json.dumps(result)
+    result = dict()
+    result['nodes_list']: list = get('nodes_list')
+    for node_instance_name in result['nodes_list']:
+        result[node_instance_name] = get(node_instance_name)
+    return json.dumps(result)
 
 
 @app.route('/Node', methods=['POST'])
@@ -56,63 +95,92 @@ def upload_nodes():
     node_config['status'] = 'READY TO START'
 
     print("node_config = ", node_config)
-    etcd_supplant['nodes_list'].append(node_instance_name)
-    etcd_supplant[node_instance_name] = node_config
-    return json.dumps(etcd_supplant['nodes_list']), 200
+    nodes_list: list = get('nodes_list')
+    # node instance name bind with physical mac address
+    flag = 0
+    for name in nodes_list:
+        if name == node_instance_name:
+            flag = 1
+    if not flag:
+        nodes_list.append(node_instance_name)
+    put('nodes_list', nodes_list)
+    put(node_instance_name, node_config)
+    return json.dumps(get('nodes_list')), 200
 
 
-@app.route('/Node/<string:instance_name>', methods=['DELETE'])
-def delete_node(instance_name: str):
-    for i in range(len(etcd_supplant['nodes_list'])):
-        if etcd_supplant['nodes_list'][i] == instance_name:
-            etcd_supplant['nodes_list'].pop(i)
-    etcd_supplant[instance_name]['status'] = 'Not Available'
-    for pod_instance_name in etcd_supplant['pods_list']:
-        if etcd_supplant[pod_instance_name].__contains__('node') and \
-                etcd_supplant[pod_instance_name]['node'] == instance_name:
-            etcd_supplant[pod_instance_name]['status'] = 'Lost Connect'
-    print("Remove node {}".format(instance_name))
-    return json.dumps(etcd_supplant['nodes_list']), 200
+@app.route('/Node/<string:node_instance_name>', methods=['DELETE'])
+def delete_node(node_instance_name: str):
+    # set node to not available
+    node_instance_config = get(node_instance_name)
+    node_instance_config['status'] = 'Not Available'
+    put(node_instance_name, node_instance_config)   # save changed status
+    # set pod to lost connect
+    pods_list = get('pods_list')
+    for pod_instance_name in pods_list:
+        pod_config = get(pod_instance_name)
+        if pod_config.__contains__('node') and pod_config['node'] == node_instance_name:
+            pod_config['status'] = 'Lost Connect'
+            put(pod_instance_name, pod_config)  # save changed status
+    return json.dumps(get('nodes_list')), 200
 
 
 @app.route('/', methods=['GET'])
 def get_all():
-    return json.dumps(etcd_supplant), 200
+    return json.dumps('not good'), 200
 
 
 @app.route('/Pod', methods=['GET'])
 def get_pods():
     result = dict()
-    result['pods_list'] = etcd_supplant['pods_list']
-    for pod_instance_name in etcd_supplant['pods_list']:
-        if etcd_supplant.__contains__(pod_instance_name):
-            result[pod_instance_name] = etcd_supplant[pod_instance_name]
+    result['pods_list'] = get('pods_list')
+    for pod_instance_name in result['pods_list']:
+        pod_config = get(pod_instance_name, assert_exist=False)
+        if pod_config:
+            result[pod_instance_name] = pod_config
     return json.dumps(result), 200
 
 
 @app.route('/Service', methods=['GET'])
 def get_services():
     result = dict()
-    result['services_list'] = etcd_supplant['services_list']
+    result['services_list'] = get('services_list')
     for service_instance_name in result['services_list']:
-        if etcd_supplant.__contains__(service_instance_name):
-            result[service_instance_name] = etcd_supplant[service_instance_name]
+        service_config = get(service_instance_name, assert_exist=False)
+        print("Service = ", service_config)
+        if service_config:
+            result[service_instance_name] = service_config
+    return json.dumps(result), 200
+
+
+@app.route('/ReplicaSet', methods=['GET'])
+def get_replica_set():
+    result = dict()
+    result['replica_sets_list'] = get('replica_sets_list')
+    for replica_set_instance in result['replica_sets_list']:
+        config = get(replica_set_instance)
+        result[replica_set_instance] = config
+        for pod_instance_name in config['pod_instances']:
+            pod_config = get(pod_instance_name, assert_exist=False)
+            if pod_config:
+                result[pod_instance_name] = pod_config
+    print(result)
     return json.dumps(result), 200
 
 
 @app.route('/Dns', methods=['GET'])
 def get_dns():
     result = dict()
-    result['dns_list'] = etcd_supplant['dns_list']
+    result['dns_list'] = get('dns_list')
     for dns_instance_name in result['dns_list']:
-        if etcd_supplant.__contains__(dns_instance_name):
-            result[dns_instance_name] = etcd_supplant[dns_instance_name]
+        dns_instance_config = get(dns_instance_name, assert_exist=False)
+        if dns_instance_config:
+            result[dns_instance_name] = dns_instance_config
     return json.dumps(result), 200
 
 
 @app.route('/Dns/Config', methods=['GET'])
 def get_dns_config():
-    result = etcd_supplant['dns_config']
+    result = get('dns_config')
     return json.dumps(result), 200
 
 
@@ -120,23 +188,8 @@ def get_dns_config():
 def post_dns_config():
     json_data = request.json
     config: dict = json.loads(json_data)
-    for key, item in config.items():
-        etcd_supplant['dns_config'][key] = item
-    return "Successfully changed DNS Config", 200
-
-
-@app.route('/ReplicaSet', methods=['GET'])
-def get_replica_set():
-    result = dict()
-    result['replica_sets_list'] = etcd_supplant['replica_sets_list']
-    for replica_set_instance in result['replica_sets_list']:
-        config = etcd_supplant[replica_set_instance]
-        result[replica_set_instance] = config
-        for pod_instance_name in config['pod_instances']:
-            if etcd_supplant.__contains__(pod_instance_name):
-                result[pod_instance_name] = etcd_supplant[pod_instance_name]
-    print(result)
-    return json.dumps(result), 200
+    put('dns_config', config)
+    return json.dumps(config)
 
 
 @app.route('/Pod', methods=['POST'])
@@ -150,9 +203,10 @@ def post_pods():
     config['status'] = 'Wait for Schedule'
     config['created_time'] = time.time()
     print("create {}".format(instance_name))
-    etcd_supplant['pods_list'].append(instance_name)
-    etcd_supplant[instance_name] = config
-    # print("BroadCast_Message Pod")
+    pods_list: list = get('pods_list')
+    pods_list.append(instance_name)
+    put('pods_list', pods_list)
+    put(instance_name, config)
     broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
@@ -167,8 +221,10 @@ def upload_replica_set():
     config['instance_name'] = replica_set_instance_name
     config['pod_instances'] = list()
     config['created_time'] = time.time()
-    etcd_supplant['replica_sets_list'].append(replica_set_instance_name)
-    etcd_supplant[replica_set_instance_name] = config
+    replica_sets_list: list = get('replica_sets_list')
+    replica_sets_list.append(replica_set_instance_name)
+    put('replica_sets_list', replica_sets_list)
+    put(replica_set_instance_name, config)
     # broadcast_message('ReplicaSet', config.__str__())
     return "Successfully create replica set instance {}".format(replica_set_instance_name), 200
 
@@ -182,8 +238,11 @@ def upload_service():
     config['instance_name'] = service_instance_name
     config['pod_instances'] = list()
     config['created_time'] = time.time()
-    etcd_supplant['services_list'].append(service_instance_name)
-    etcd_supplant[service_instance_name] = config
+    config['status'] = 'Created'
+    services_list: list = get('services_list')
+    services_list.append(service_instance_name)
+    put('services_list', services_list)
+    put(service_instance_name, config)
     url = '{}/Service/{}/{}'.format(api_server_url, service_instance_name, 'create')
     utils.post(url=url, config=config)
     return "Successfully create service instance {}".format(service_instance_name), 200
@@ -205,7 +264,7 @@ def update_service(instance_name: str, behavior: str):
         config['status'] = 'Removing'
     elif behavior == 'none':
         config['status'] = 'None'
-    etcd_supplant[instance_name] = config
+    put(instance_name, config)
     return "Successfully update service instance {}".format(instance_name), 200
 
 
@@ -218,8 +277,10 @@ def upload_dns():
     config['instance_name'] = dns_instance_name
     config['service_instances'] = list()
     config['created_time'] = time.time()
-    etcd_supplant['dns_list'].append(dns_instance_name)
-    etcd_supplant[dns_instance_name] = config
+    dns_list: list = get('dns_list')
+    dns_list.append(dns_instance_name)
+    put('dns_list', dns_list)
+    put(dns_instance_name, config)
     url = "{}/Dns/{}/{}".format(api_server_url, dns_instance_name, 'create')
     utils.post(url=url, config=config)
     return "Successfully create dns instance {}".format(dns_instance_name), 200
@@ -241,7 +302,7 @@ def update_dns(instance_name: str, behavior: str):
         config['status'] = 'Removing'
     elif behavior == 'none':
         config['status'] = 'None'
-    etcd_supplant[instance_name] = config
+    put(instance_name, config)
     return "Successfully update dns instance {}".format(instance_name)
 
 
@@ -249,7 +310,7 @@ def update_dns(instance_name: str, behavior: str):
 def update_replica_set(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)
-    etcd_supplant[instance_name] = config
+    put(instance_name, config)
     return "Successfully update replica set instance {}".format(instance_name), 200
 
 
@@ -258,30 +319,30 @@ def post_pod(instance_name: str, behavior: str):
     if behavior == 'create':
         json_data = request.json
         config: dict = json.loads(json_data)
-        etcd_supplant[instance_name] = copy.deepcopy(config)
+        put(instance_name, config)
         config['behavior'] = 'create'
     elif behavior == 'remove':
-        etcd_supplant[instance_name]['status'] = 'Removed'
-        config = copy.deepcopy(etcd_supplant[instance_name])
+        config = get(instance_name)
+        config['status'] = 'Removed'
+        put(instance_name, config)
         config['behavior'] = 'remove'
     elif behavior == 'execute':
-        config = copy.deepcopy(etcd_supplant[instance_name])
+        config = get(instance_name)
         json_data = request.json
         upload_cmd: dict = json.loads(json_data)
         # if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
         config['behavior'] = 'execute'
         config['cmd'] = upload_cmd['cmd']
     elif behavior == 'delete':
-        # delete the config
+        pods_list: list = get('pods_list')
         index = -1
-        for i in range(len(etcd_supplant['pods_list'])):
-            if instance_name == etcd_supplant['pods_list'][i]:
+        for i, pod_instance_name in enumerate(pods_list):
+            if pod_instance_name == instance_name:
                 index = i
-                break
-        if index != -1:
-            etcd_supplant['pods_list'].pop(index)
-        etcd_supplant.pop(instance_name)
-        return json.dumps(dict()), 200
+        pods_list.pop(index)
+        delete_key(instance_name)
+        put('pods_list', pods_list)
+        return "success", 200
     else:
         return json.dumps(dict()), 404
     broadcast_message('Pod', config.__str__())
@@ -290,13 +351,8 @@ def post_pod(instance_name: str, behavior: str):
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
 def get_dag(dag_name: str):
-    if not use_etcd:
-        if etcd_supplant.__contains__(dag_name):
-            return etcd_supplant[dag_name].__str__(), 200
-        else:
-            return "DAG not found!", 404
-    else:
-        raise NotImplementedError
+    dag = get(dag_name)
+    return json.dumps(dag), 200
 
 
 def run_serverless_function(serverless_function: ServerlessFunction):
@@ -370,22 +426,22 @@ def receive_heartbeat():
     heartbeat: dict = json.loads(json_data)
     heartbeat['last_receive_time'] = time.time()
     node_instance_name = heartbeat['instance_name']
-    if etcd_supplant[node_instance_name]['status'] == 'Not Available':
+    node_config = get(node_instance_name)
+    if node_config['status'] == 'Not Available':
         # we get the heartbeat of a lost node again
-        etcd_supplant['nodes_list'].append(node_instance_name)
-        etcd_supplant[node_instance_name]['status'] = 'Running'
-
+        node_config['status'] = 'Running'
     for pod_instance_name in heartbeat['pod_instances']:
         pod_heartbeat = heartbeat[pod_instance_name]
-        if etcd_supplant[pod_instance_name]['status'] != 'Removed':
-            # if removed before a heartbeat, we do not change the status
-            etcd_supplant[pod_instance_name]['status'] = pod_heartbeat['status']
-        etcd_supplant[pod_instance_name]['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
-        etcd_supplant[pod_instance_name]['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
-        etcd_supplant[pod_instance_name]['ip'] = pod_heartbeat['ip']
-        etcd_supplant[pod_instance_name]['node'] = node_instance_name
-        heartbeat.pop(pod_instance_name)
-    etcd_supplant[node_instance_name] = heartbeat
+        pod_config = get(pod_instance_name)
+        if pod_config['status'] != 'Removed':
+            pod_config['status'] = pod_heartbeat['status']
+        pod_config['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
+        pod_config['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
+        pod_config['ip'] = pod_heartbeat['ip']
+        pod_config['node'] = node_instance_name
+        put(pod_instance_name, pod_config)
+        heartbeat.pop(pod_instance_name)    # the information is of no use
+    put(node_instance_name, heartbeat)
     return json.dumps(heartbeat), 200
 
 
