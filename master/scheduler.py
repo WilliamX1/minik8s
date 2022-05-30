@@ -9,7 +9,9 @@ import sys, os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import utils, const
-from worker.entities import parse_bytes
+
+sys.path.append(os.path.join(BASE_DIR, '../worker'))
+from entities import parse_bytes
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 

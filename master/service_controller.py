@@ -6,11 +6,14 @@ import time
 
 import requests
 
-from worker import kubeproxy
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
+sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import utils, const
+import kubeproxy
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 

@@ -15,29 +15,9 @@ from serverless import ServerlessFunction, Edge, DAG
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = False
+use_etcd = True
 etcd = etcd3.client()
 etcd_supplant = dict()
-
-def init_api_server():
-    # for the very first start, init etcd
-    if get('nodes_list', assert_exist=False) is None:
-        put('nodes_list', list())
-        print("put!")
-    else:
-        print("not put")
-    if get('pods_list', assert_exist=False) is None:
-        put('pods_list', list())
-    if get('services_list', assert_exist=False) is None:
-        put('services_list', list())
-    if get('replica_sets_list', assert_exist=False) is None:
-        put('replica_sets_list', list())
-    if get('dns_list', assert_exist=False) is None:
-        put('dns_list', list())
-    if get('dns_config', assert_exist=False) is None:
-        put('dns_config', dict())
-    if get('dns_config_dict', assert_exist=False) is None:
-        put('dns_config_dict', dict())
 
 
 def get(key, assert_exist=True):
@@ -59,6 +39,27 @@ def put(key, value):
         etcd.put(key, json.dumps(value))
     else:
         etcd_supplant[key] = json.dumps(value)  # force deep copy here
+
+
+def init_api_server():
+    # for the very first start, init etcd
+    if get('nodes_list', assert_exist=False) is None:
+        put('nodes_list', list())
+        print("put!")
+    else:
+        print("not put")
+    if get('pods_list', assert_exist=False) is None:
+        put('pods_list', list())
+    if get('services_list', assert_exist=False) is None:
+        put('services_list', list())
+    if get('replica_sets_list', assert_exist=False) is None:
+        put('replica_sets_list', list())
+    if get('dns_list', assert_exist=False) is None:
+        put('dns_list', list())
+    if get('dns_config', assert_exist=False) is None:
+        put('dns_config', dict())
+    if get('dns_config_dict', assert_exist=False) is None:
+        put('dns_config_dict', dict())
 
 def delete_key(key):
     if use_etcd:

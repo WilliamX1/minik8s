@@ -7,9 +7,10 @@ import json
 import sys, os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
+sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import utils, const
 from werkzeug.utils import secure_filename
-from worker import kubeproxy
+import kubeproxy
 
 app = Flask(__name__)
 

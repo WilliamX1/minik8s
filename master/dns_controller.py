@@ -3,12 +3,14 @@ import os
 import sys
 import time
 
-from userland import kubedns
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(BASE_DIR, '../userland'))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
+sys.path.append(os.path.join(BASE_DIR, '../worker'))
+import kubedns
+
 import yaml_loader, const, utils
-from worker import worker_server
+import worker_server
 
 api_server_url = const.api_server_url
 

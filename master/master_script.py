@@ -6,7 +6,7 @@ sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import utils, const
 import scheduler
 import replica_set_controller
-from master import api_server
+import api_server
 import node_controller
 import service_controller
 import dns_controller
@@ -27,13 +27,14 @@ if __name__ == '__main__':
     pool = Pool()
     # make sure that the func has a good error handler to avoid exit
     #
-    pool.apply_async(func=api_server.main)
-    time.sleep(5)
+    # pool.apply_async(func=api_server.main)
+    # time.sleep(5)
     pool.apply_async(func=scheduler.main)
     pool.apply_async(func=garbage_collector.main)
     pool.apply_async(func=service_controller.main)
     pool.apply_async(func=dns_controller.main)
     pool.apply_async(func=node_controller.main)
     pool.apply_async(func=replica_set_controller.main)
+    api_server.main()
     pool.close()
     pool.join()
