@@ -35,6 +35,7 @@ if __name__ == '__main__':
     pool.apply_async(func=dns_controller.main)
     pool.apply_async(func=node_controller.main)
     pool.apply_async(func=replica_set_controller.main)
+    
     api_server.main()
     pool.close()
     pool.join()

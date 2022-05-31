@@ -5,8 +5,9 @@ import json
 import pika
 import uuid
 import etcd3
-
-import sys, os
+import sys
+import os
+import requests
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import utils, const
@@ -86,6 +87,8 @@ def handle_nodes():
     result['nodes_list']: list = get('nodes_list')
     for node_instance_name in result['nodes_list']:
         result[node_instance_name] = get(node_instance_name)
+        # todo: post pod information to related node
+        r = requests.get(url=const.worker_url_list[0]['url'] + "/heartbeat")
     return json.dumps(result)
 
 
@@ -215,7 +218,7 @@ def post_pods():
     pods_list.append(instance_name)
     put('pods_list', pods_list)
     put(instance_name, config)
-    broadcast_message('Pod', config.__str__())
+    broadcast_message('Pod', config.__str__())  # remain for scheduler.py
     return json.dumps(config), 200
 
 
@@ -233,7 +236,6 @@ def upload_replica_set():
     replica_sets_list.append(replica_set_instance_name)
     put('replica_sets_list', replica_sets_list)
     put(replica_set_instance_name, config)
-    # broadcast_message('ReplicaSet', config.__str__())
     return "Successfully create replica set instance {}".format(replica_set_instance_name), 200
 
 
@@ -353,7 +355,9 @@ def post_pod(instance_name: str, behavior: str):
         return "success", 200
     else:
         return json.dumps(dict()), 404
-    broadcast_message('Pod', config.__str__())
+    # todo: post pod information to related node
+    r = requests.post(url=const.worker_url_list[0]['url'] + "/Pod", json=json.dumps(config))
+    # broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
 

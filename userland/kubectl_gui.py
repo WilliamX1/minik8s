@@ -64,7 +64,7 @@ def upload_python_script():
                     break
             content = f.read()
         assert module_name
-        config: dict = yaml_loader.load('../serverless/my_function.yaml')
+        config: dict = yaml_loader.load('./yaml_defualt/my_function.yaml')
         config['name'] += module_name
         config['metadata']['labels']['module_name'] = module_name
         config['containers'][0]['name'] = module_name
