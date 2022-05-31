@@ -82,11 +82,14 @@ def generate_random_str(randomlength=16, opts=0):
     return random_str
 
 
-def exec_command(command, shell=False):
+def exec_command(command, shell=False, background=False):
     logging.info("Execute Command > " + ' '.join(command))
     p = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE)
-    output, err = p.communicate()
-    if str(output, 'utf-8') != "":
+    if background is False:
+        output, err = p.communicate()
+    else:
+        output, err = 'This command is running in background, so no output will show...', None
+    if str(output) != "":
         logging.info("output: %s" % str(output))
     if err is not None:
         logging.info("err: %s" % str(err))

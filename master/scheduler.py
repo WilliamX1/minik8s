@@ -53,7 +53,7 @@ def callback(ch, method, properties, body):
 
 def main():
     # 创建socket链接,声明管道
-    connect = pika.BlockingConnection(pika.ConnectionParameters('192.168.1.12'))
+    connect = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connect.channel()
     # 声明exchange名字和类型
     channel.exchange_declare(exchange="Pod", exchange_type="fanout")

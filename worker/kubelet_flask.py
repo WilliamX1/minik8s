@@ -8,7 +8,7 @@ import kubeproxy
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
-import utils, const
+import utils, const, yaml_loader
 import psutil
 import requests
 import time
@@ -23,6 +23,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 node_instance_name = os.popen(r"ifconfig | grep -oP 'HWaddr \K.*' | sed 's/://g' | sha256sum | awk '{print $1}'")
 node_instance_name = node_instance_name.readlines()[0][:-1]
+node_instance_name = node_instance_name + utils.getip()
 
 pods = list()
 
@@ -134,6 +135,31 @@ def handle_Pod():
 
 
 def init_node():
+    # load node yaml
+    yaml_name = 'master.yaml'
+    yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
+    nodes_info_config: dict = yaml_loader.load(yaml_path)
+    logging.info(nodes_info_config)
+    ETCD_NAME = nodes_info_config['ETCD_NAME']
+    ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
+    ETCD_INITIAL_CLUSTER = nodes_info_config['ETCD_INITIAL_CLUSTER']
+    ETCD_INITIAL_CLUSTER_STATE = nodes_info_config['ETCD_INITIAL_CLUSTER_STATE']
+
+    cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
+            ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
+    cmd2 = ['bash', const.FLANNEL_SHELL_PATH]
+    cmd3 = ['bash', const.DOCKER_SHELL_PATH]
+    utils.exec_command(cmd1, shell=False, background=True)
+    logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
+    time.sleep(5)
+    utils.exec_command(cmd2, shell=False, background=True)
+    logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
+    time.sleep(3)
+    utils.exec_command(cmd3, shell=False, background=True)
+    logging.warning('Please make sure docker is running sucessfully, waiting for 3 seconds...')
+    time.sleep(3)
+
+
     # delete original iptables and restore, init for service and dns
     dir = const.dns_conf_path
     for f in os.listdir(dir):
@@ -206,6 +232,7 @@ def send_heart_beat():
             print("发送心跳包成功")
         else:
             print("发送心跳包失败")
+
 
 def main():
     init_node()

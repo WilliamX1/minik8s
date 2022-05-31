@@ -1,4 +1,6 @@
 # General
+*.out
+*.etcd
 /.idea/
 /.settings/
 /.vscode/

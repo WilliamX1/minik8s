@@ -3134,3 +3134,45 @@
 2022/05/31 01:37:58 [notice] 1#1: signal 17 (SIGCHLD) received from 24
 2022/05/31 01:37:58 [notice] 1#1: worker process 24 exited with code 0
 2022/05/31 01:37:58 [notice] 1#1: exit
+2022/05/31 04:03:53 [notice] 1#1: using the "epoll" event method
+2022/05/31 04:03:53 [notice] 1#1: nginx/1.21.6
+2022/05/31 04:03:53 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 04:03:53 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 04:03:53 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 04:03:53 [notice] 1#1: start worker processes
+2022/05/31 04:03:53 [notice] 1#1: start worker process 24
+2022/05/31 04:03:53 [notice] 1#1: start worker process 25
+2022/05/31 04:06:12 [notice] 26#26: signal process started
+2022/05/31 04:06:12 [notice] 1#1: signal 1 (SIGHUP) received from 26, reconfiguring
+2022/05/31 04:06:12 [notice] 1#1: reconfiguring
+2022/05/31 04:06:12 [notice] 1#1: using the "epoll" event method
+2022/05/31 04:06:12 [notice] 1#1: start worker processes
+2022/05/31 04:06:12 [notice] 1#1: start worker process 33
+2022/05/31 04:06:12 [notice] 1#1: start worker process 34
+2022/05/31 04:06:12 [notice] 25#25: gracefully shutting down
+2022/05/31 04:06:12 [notice] 24#24: gracefully shutting down
+2022/05/31 04:06:12 [notice] 25#25: exiting
+2022/05/31 04:06:12 [notice] 24#24: exiting
+2022/05/31 04:06:12 [notice] 25#25: exit
+2022/05/31 04:06:12 [notice] 24#24: exit
+2022/05/31 04:06:12 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/05/31 04:06:12 [notice] 1#1: worker process 25 exited with code 0
+2022/05/31 04:06:12 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/31 04:06:12 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/05/31 04:06:12 [notice] 1#1: worker process 24 exited with code 0
+2022/05/31 04:06:12 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/31 04:07:10 [error] 33#33: *10 open() "/etc/nginx/html/zz" failed (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET /zz HTTP/1.1", host: "xhd-dns"
+2022/05/31 04:07:13 [error] 33#33: *13 "/etc/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.1.12, server: xhd-dns, request: "GET / HTTP/1.1", host: "xhd-dns"
+2022/05/31 05:20:09 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/05/31 05:20:09 [notice] 34#34: gracefully shutting down
+2022/05/31 05:20:09 [notice] 34#34: exiting
+2022/05/31 05:20:09 [notice] 34#34: exit
+2022/05/31 05:20:09 [notice] 33#33: gracefully shutting down
+2022/05/31 05:20:09 [notice] 33#33: exiting
+2022/05/31 05:20:09 [notice] 33#33: exit
+2022/05/31 05:20:09 [notice] 1#1: signal 17 (SIGCHLD) received from 34
+2022/05/31 05:20:09 [notice] 1#1: worker process 34 exited with code 0
+2022/05/31 05:20:09 [notice] 1#1: signal 29 (SIGIO) received
+2022/05/31 05:20:09 [notice] 1#1: signal 17 (SIGCHLD) received from 33
+2022/05/31 05:20:09 [notice] 1#1: worker process 33 exited with code 0
+2022/05/31 05:20:09 [notice] 1#1: exit
