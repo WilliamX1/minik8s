@@ -63,7 +63,7 @@ def update_etc_hosts(hosts=True):
     """
     dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
     command = list()
-    clear_command = "echo \"\" > {}".format(dns_config_dict['etc-hosts-path'])
+    clear_command = "echo \"127.0.0.1 localhost\" > {}".format(dns_config_dict['etc-hosts-path'])
     base_echo_command = "echo {} >> {}"
     print(dns_config_dict)
     command.append(clear_command)

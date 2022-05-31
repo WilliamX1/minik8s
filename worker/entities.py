@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from enum import Enum
+from __init__ import root_path
 
 import docker
 import six
@@ -49,7 +50,7 @@ class Pod:
             # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
             if volume is None:
                 volume = list()
-            volume = [v.replace("$", os.getcwd()) for v in volume]
+            volume = [v.replace("$", root_path) for v in volume]
             mem = config.get('mem')
             cpu_num = config.get('cpu')
             #            containername:'0,1,2'

@@ -1,9 +1,9 @@
 kind: Pod
 name: dns-nginx-server-pod
 volume:
-  - $/dns/nginx/conf/:/etc/nginx/conf.d/
-  - $/dns/nginx/html/:/usr/share/nginx/html/
-  - $/dns/nginx/log/:/var/log/nginx/
+  - $/userland/dns/nginx/conf/:/etc/nginx/conf.d/
+  - $/userland/dns/nginx/html/:/usr/share/nginx/html/
+  - $/userland/dns/nginx/log/:/var/log/nginx/
 cpu: 1
 mem: 600m
 metadata:
