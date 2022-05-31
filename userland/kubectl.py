@@ -38,7 +38,7 @@ def main():
         exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
         help_match = re.fullmatch(r'help', cmd.strip(), re.I)
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
-        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns|nodes)', cmd.strip(), re.I)
+        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns|nodes|functions)', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         pod_command_match = re.fullmatch(r'(start|remove) * pod *([\w-]*)', cmd.strip(), re.I)
         service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
@@ -83,6 +83,16 @@ def main():
             elif object_type == 'dns':
                 dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
                 kubedns.show_dns(dns_dict)
+            elif object_type == 'functions':
+                functions_list = utils.get_pod_dict(api_server_url=api_server_url)
+                tb = prettytable.PrettyTable()
+                tb.field_names = ['name', 'status', 'created time']
+                for function_name in functions_list['functions_list']:
+                    function_config = functions_list.get(function_name)
+                    if function_config:
+                        created_time = int(time.time() - function_config['created_time'])
+                        created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+                        tb.add_row([function_name, function_config['status'], created_time.strip()])
             elif object_type == 'nodes':
                 pass
             else:
@@ -124,7 +134,7 @@ def main():
             if not os.path.isfile(python_path):
                 print("file not exist")
                 continue
-            url = "{}/Pod".format(api_server_url)
+            url = "{}/Function".format(api_server_url)
             module_name = None
             with open(python_path) as f:
                 flag = 0
@@ -137,7 +147,7 @@ def main():
                     module_name = f.name[:-3]
                 content = f.read()
             assert module_name
-            config: dict = yaml_loader.load(os.path.join(BASE_DIR, 'yaml_default', 'serverless-pod.yaml'))
+            config: dict = yaml_loader.load(os.path.join(BASE_DIR, 'yaml_default', 'my_function.yaml'))
             config['name'] += module_name
             config['metadata']['labels']['module_name'] = module_name
             config['containers'][0]['name'] = module_name
