@@ -5,6 +5,7 @@
 /bin/
 /target/
 
+
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -35,3 +36,6 @@ Temporary Items
 /etcd_test.py
 /worker/tmp/
 /master/default.etcd/
+/helper/__pycache__
+/master/__pycache__
+/worker/__pycache__
