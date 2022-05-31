@@ -6,7 +6,8 @@ import os
 # if yes, define and get api_server_url and worker_url_list into etcd
 use_etcd: bool = False
 api_server_url: str = 'http://192.168.1.12:5050'  # api server ip address locally
-worker_url_list: list = [{'ip': 'http://192.168.1.12', 'port': '5051', 'url': 'http://192.168.1.12:5051'}]  # worker0 url
+worker_url_list: list = [{'ip': 'http://192.168.1.12', 'port': '5051', 'url': 'http://192.168.1.12:5051'},
+                         {'ip': 'http://192.168.1.5', 'port': '5051', 'url': 'http://192.168.1.5:5051'}]  # worker0 url
 
 service_controller_flush_interval: float = 2.0
 service_clusterIP_prefix: int = 18  # every service's clusterIP must start with 18

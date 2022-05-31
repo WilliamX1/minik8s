@@ -1,4 +1,10 @@
 # General
+/.idea/
+/.settings/
+/.vscode/
+/bin/
+/target/
+
 .DS_Store
 .AppleDouble
 .LSOverride
