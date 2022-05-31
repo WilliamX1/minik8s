@@ -3,6 +3,7 @@ import os
 import sys
 from enum import Enum
 
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import const

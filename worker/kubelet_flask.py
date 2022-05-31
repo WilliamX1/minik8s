@@ -5,7 +5,6 @@ from flask import Flask, request
 import json
 from werkzeug.utils import secure_filename
 import kubeproxy
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
@@ -15,8 +14,10 @@ import requests
 import time
 import entities
 
+
 app = Flask(__name__)
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
 
 # CORS(app, supports_credentials=True)
 
@@ -27,6 +28,7 @@ node_instance_name = node_instance_name + utils.getip()
 pods = list()
 
 api_server_url = const.api_server_url
+
 init: bool = False
 heart_beat_activated = False
 
@@ -103,6 +105,7 @@ def handle_Pod():
 
     print("get broadcast ", config)
     # config中不含node或者node不是自己都丢弃
+
     if not config.__contains__('node') or config['node'] != node_instance_name \
             or not config.__contains__('behavior'):
         return "Not found", 404
@@ -166,7 +169,6 @@ def init_node():
     utils.exec_command(cmd3, shell=False, background=True)
     logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
     time.sleep(3)
-
     # delete original iptables and restore, init for service and dns
     dir = const.dns_conf_path
     for f in os.listdir(dir):
@@ -210,6 +212,7 @@ def send_heart_beat():
         return "Done!", 200
     heart_beat_activated = True
     while True:
+
         time.sleep(5)  # wait for 5 seconds
         data = psutil.virtual_memory()
         total = data.total  # 总内存,单位为byte
@@ -240,6 +243,7 @@ def send_heart_beat():
             print("发送心跳包成功")
         else:
             print("发送心跳包失败")
+
 
 
 def main():
