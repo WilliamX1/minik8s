@@ -2,15 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0b4ed943-bcee-4319-998b-a3d90df6ea44" name="Changes" comment="change dir">
-      <change afterPath="$PROJECT_DIR$/userland/my_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/userland/yaml_default/serverless-pod.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/master/api_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/api_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/garbage_collector.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/garbage_collector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/replica_set_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/replica_set_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/service_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/service_controller.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/userland/kubectl.py" beforeDir="false" afterPath="$PROJECT_DIR$/userland/kubectl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userland/kubectl_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/userland/kubectl_gui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userland/my_module.py" beforeDir="false" afterPath="$PROJECT_DIR$/userland/my_module.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userland/yaml_default/serverless-pod.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/userland/yaml_default/my_function.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -190,7 +187,7 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -214,13 +211,13 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Flask server.Flask (master/api_server.py)" />
       <item itemvalue="Python.minik8s" />
       <item itemvalue="Python.api_server" />
       <item itemvalue="Python.kubelet" />
       <item itemvalue="Python.kubectl" />
-      <item itemvalue="Shell Script.master_etcd_start.sh" />
-      <item itemvalue="Flask server.Flask (master/api_server.py)" />
       <item itemvalue="Python.garbage_collector" />
+      <item itemvalue="Shell Script.master_etcd_start.sh" />
     </list>
     <recent_temporary>
       <list>
@@ -246,7 +243,7 @@
       <workItem from="1653840029671" duration="33000" />
       <workItem from="1653840176756" duration="5769000" />
       <workItem from="1653882842685" duration="9206000" />
-      <workItem from="1653916635477" duration="8278000" />
+      <workItem from="1653916635477" duration="11388000" />
     </task>
     <task id="LOCAL-00001" summary="change dir">
       <created>1653919856767</created>
@@ -269,7 +266,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653922985428</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="change dir">
+      <created>1653925211096</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1653925211096</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -15,7 +15,7 @@ from serverless import ServerlessFunction, Edge, DAG
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = True
+use_etcd = False
 etcd = etcd3.client()
 etcd_supplant = dict()
 
@@ -51,6 +51,8 @@ def init_api_server():
         put('services_list', list())
     if get('replica_sets_list', assert_exist=False) is None:
         put('replica_sets_list', list())
+    if get('functions_list', assert_exist=False) is None:
+        put('functions_list', list())
     if get('dns_list', assert_exist=False) is None:
         put('dns_list', list())
     if get('dns_config', assert_exist=False) is None:
@@ -107,6 +109,8 @@ def upload_nodes():
     put('nodes_list', nodes_list)
     put(node_instance_name, node_config)
     return json.dumps(get('nodes_list')), 200
+
+
 
 
 @app.route('/Node/<string:node_instance_name>', methods=['DELETE'])
@@ -349,6 +353,35 @@ def post_pod(instance_name: str, behavior: str):
     broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
+
+@app.route('/Function', methods=['GET'])
+def get_function():
+    result = dict()
+    result['functions_list'] = get('functions_list')
+    for function_name in result['functions_list']:
+        result[function_name] = get(function_name)
+    return json.dumps(result), 200
+
+@app.route('/Function', methods=['POST'])
+def upload_function():
+    json_data = request.json
+    function_config: dict = json.loads(json_data)
+    function_name = function_config['name']
+    function_config['created_time'] = time.time()
+    function_config['status'] = 'Uploaded'
+
+    # print("node_config = ", node_config)
+    functions_list: list = get('functions_list')
+    # node instance name bind with physical mac address
+    flag = 0
+    for name in functions_list:
+        if name == functions_list:
+            flag = 1
+    if not flag:
+        functions_list.append(function_name)
+    put('functions_list', functions_list)
+    put(function_name, function_config)     # replace the old one if exist
+    return json.dumps(get('functions_list')), 200
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
 def get_dag(dag_name: str):

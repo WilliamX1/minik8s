@@ -1,5 +1,5 @@
-kind: Pod
-name: serverless-pod-
+kind: Function
+name: serverless-
 cpu: 1
 mem: 500m
 metadata:
