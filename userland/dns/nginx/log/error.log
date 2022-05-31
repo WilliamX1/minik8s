@@ -3176,3 +3176,51 @@
 2022/05/31 05:20:09 [notice] 1#1: signal 17 (SIGCHLD) received from 33
 2022/05/31 05:20:09 [notice] 1#1: worker process 33 exited with code 0
 2022/05/31 05:20:09 [notice] 1#1: exit
+2022/05/31 11:58:46 [notice] 1#1: using the "epoll" event method
+2022/05/31 11:58:46 [notice] 1#1: nginx/1.21.6
+2022/05/31 11:58:46 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 11:58:46 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 11:58:46 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 11:58:46 [notice] 1#1: start worker processes
+2022/05/31 11:58:46 [notice] 1#1: start worker process 24
+2022/05/31 11:58:46 [notice] 1#1: start worker process 25
+2022/05/31 11:58:49 [notice] 1#1: using the "epoll" event method
+2022/05/31 11:58:49 [notice] 1#1: nginx/1.21.6
+2022/05/31 11:58:49 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 11:58:49 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 11:58:49 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 11:58:49 [notice] 1#1: start worker processes
+2022/05/31 11:58:49 [notice] 1#1: start worker process 23
+2022/05/31 11:58:49 [notice] 1#1: start worker process 24
+2022/05/31 11:58:51 [notice] 1#1: using the "epoll" event method
+2022/05/31 11:58:51 [notice] 1#1: nginx/1.21.6
+2022/05/31 11:58:51 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 11:58:51 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 11:58:51 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 11:58:51 [notice] 1#1: start worker processes
+2022/05/31 11:58:51 [notice] 1#1: start worker process 24
+2022/05/31 11:58:51 [notice] 1#1: start worker process 25
+2022/05/31 12:21:41 [notice] 1#1: using the "epoll" event method
+2022/05/31 12:21:41 [notice] 1#1: nginx/1.21.6
+2022/05/31 12:21:41 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 12:21:41 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 12:21:41 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 12:21:41 [notice] 1#1: start worker processes
+2022/05/31 12:21:41 [notice] 1#1: start worker process 23
+2022/05/31 12:21:41 [notice] 1#1: start worker process 24
+2022/05/31 12:21:43 [notice] 1#1: using the "epoll" event method
+2022/05/31 12:21:43 [notice] 1#1: nginx/1.21.6
+2022/05/31 12:21:43 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 12:21:43 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 12:21:43 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 12:21:43 [notice] 1#1: start worker processes
+2022/05/31 12:21:43 [notice] 1#1: start worker process 24
+2022/05/31 12:21:43 [notice] 1#1: start worker process 25
+2022/05/31 12:21:46 [notice] 1#1: using the "epoll" event method
+2022/05/31 12:21:46 [notice] 1#1: nginx/1.21.6
+2022/05/31 12:21:46 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/05/31 12:21:46 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/05/31 12:21:46 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/05/31 12:21:46 [notice] 1#1: start worker processes
+2022/05/31 12:21:46 [notice] 1#1: start worker process 23
+2022/05/31 12:21:46 [notice] 1#1: start worker process 24

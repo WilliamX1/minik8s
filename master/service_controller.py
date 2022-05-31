@@ -32,8 +32,10 @@ def update_worker_server(service_config: dict, pods_dict: dict, behavior: str):
     config = dict()
     config['service_config'] = service_config
     config['pods_dict'] = pods_dict
-    for worker_url in const.worker_url_list:
-        url = "{}/update_services/{}".format(worker_url['url'], behavior)
+    worker_url_list = utils.get_worker_url_list(api_server_url=api_server_url)
+    print(worker_url_list)
+    for worker_url in worker_url_list:
+        url = "{}/update_services/{}".format(worker_url, behavior)
         utils.post(url=url, config=config)
 
 

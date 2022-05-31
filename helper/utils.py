@@ -49,6 +49,16 @@ def get_dns_config_dict(api_server_url):
     return get(url)
 
 
+def get_worker_url_list(api_server_url):
+    url = '{}/Node'.format(api_server_url)
+    nodes_dict: dict = get(url)
+    worker_url_list = list()
+    print(nodes_dict)
+    for node_instance in nodes_dict['nodes_list']:
+        worker_url_list.append(nodes_dict[node_instance]['url'])
+    return worker_url_list
+
+
 def post(url: str, config: dict):
     try:
         json_data = json.dumps(config)

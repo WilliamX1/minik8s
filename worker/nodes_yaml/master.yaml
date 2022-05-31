@@ -1,4 +1,6 @@
+STATE: remake  # remake/restart, remake will delete the .etcd
 ETCD_NAME: etcd0
 IP_ADDRESS: http://192.168.1.12
 ETCD_INITIAL_CLUSTER: etcd0=http://192.168.1.12:2380
 ETCD_INITIAL_CLUSTER_STATE: new
+WORKER_PORT: 5051
