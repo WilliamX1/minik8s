@@ -1,9 +1,10 @@
+import logging
 import os
 
 import sys, os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
-import utils, const
+import utils, const, yaml_loader
 import entities
 import pika
 import ast
@@ -15,6 +16,7 @@ import psutil
 
 node_instance_name = os.popen(r"ifconfig | grep -oP 'HWaddr \K.*' | sed 's/://g' | sha256sum | awk '{print $1}'")
 node_instance_name = node_instance_name.readlines()[0][:-1]
+node_instance_name = node_instance_name + utils.getip()
 
 pods = list()
 

@@ -1,15 +1,17 @@
 # General
+*.out
+*.etcd
 /.idea/
 /.settings/
 /.vscode/
 /bin/
 /target/
 
-/.idea
+.idea/
+
 .DS_Store
 .AppleDouble
 .LSOverride
-.idea
 
 # Icon must end with two \r
 Icon
@@ -36,6 +38,9 @@ Temporary Items
 /etcd_test.py
 /worker/tmp/
 /master/default.etcd/
-/helper/__pycache__
-/master/__pycache__
-/worker/__pycache__
+/helper/__pycache__/
+/master/__pycache__/
+/worker/__pycache__/
+helper/__pycache__/
+master/__pycache__/
+worker/__pycache__/

@@ -2,7 +2,11 @@ import logging
 import os
 import sys
 from enum import Enum
-root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(BASE_DIR, '../helper'))
+import const
 
 import docker
 import six
@@ -50,7 +54,7 @@ class Pod:
             # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
             if volume is None:
                 volume = list()
-            volume = [v.replace("$", root_path) for v in volume]
+            volume = [v.replace("$", const.ROOT_DIR) for v in volume]
             mem = config.get('mem')
             cpu_num = config.get('cpu')
             #            containername:'0,1,2'

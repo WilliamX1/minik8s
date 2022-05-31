@@ -15,6 +15,7 @@ from entities import parse_bytes
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
+api_server_ip = const.api_server_ip
 api_server_url = const.api_server_url
 
 
@@ -52,7 +53,7 @@ def callback(ch, method, properties, body):
 
 def main():
     # 创建socket链接,声明管道
-    connect = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+    connect = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connect.channel()
     # 声明exchange名字和类型
     channel.exchange_declare(exchange="Pod", exchange_type="fanout")

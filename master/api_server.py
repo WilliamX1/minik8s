@@ -8,16 +8,20 @@ import etcd3
 import sys
 import os
 import requests
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import utils, const
 from serverless import ServerlessFunction, Edge, DAG
+sys.path.append(os.path.join(BASE_DIR, '../worker'))
+from entities import parse_bytes
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
 
-use_etcd = False # True
+
+use_etcd = False  # True
 # etcd = etcd3.client()
 etcd_supplant = dict()
 
@@ -29,7 +33,7 @@ def get(key, assert_exist=True):
             return json.loads(value)
     else:
         if etcd_supplant.__contains__(key):
-            return json.loads(etcd_supplant[key])   # force deep copy here
+            return json.loads(etcd_supplant[key])  # force deep copy here
     # key not exist
     if assert_exist:
         raise FileNotFoundError
@@ -81,6 +85,7 @@ def broadcast_message(channel_name: str, message: str):
     connect.close()
 
 
+
 @app.route('/Node', methods=['GET'])
 def handle_nodes():
     result = dict()
@@ -88,7 +93,10 @@ def handle_nodes():
     for node_instance_name in result['nodes_list']:
         result[node_instance_name] = get(node_instance_name)
         # todo: post pod information to related node
-        r = requests.get(url=const.worker_url_list[0]['url'] + "/heartbeat")
+        try:    # we accept timeout
+            r = requests.get(url=result[node_instance_name]['url'] + "/heartbeat", timeout=0.01)
+        except Exception as e:
+            pass
     return json.dumps(result)
 
 
@@ -121,7 +129,7 @@ def delete_node(node_instance_name: str):
     # set node to not available
     node_instance_config = get(node_instance_name)
     node_instance_config['status'] = 'Not Available'
-    put(node_instance_name, node_instance_config)   # save changed status
+    put(node_instance_name, node_instance_config)  # save changed status
     # set pod to lost connect
     pods_list = get('pods_list')
     for pod_instance_name in pods_list:
@@ -218,9 +226,38 @@ def post_pods():
     pods_list.append(instance_name)
     put('pods_list', pods_list)
     put(instance_name, config)
-    broadcast_message('Pod', config.__str__())  # remain for scheduler.py
+    schedule(config)
     return json.dumps(config), 200
 
+
+def schedule(config):
+    if config['kind'] == 'Pod' and config['status'] == 'Wait for Schedule':
+        r = requests.get(url='{}/Node'.format(api_server_url))
+        nodes_list = get('nodes_list')
+        instance_name = config['instance_name']
+        mem_need = parse_bytes(config['mem'])
+        config['status'] = 'Schedule Failed'
+        if len(nodes_list) == 0:
+            print("no node registered !")
+        for node_instance_name in nodes_list:
+            # todo: check node status here
+            current_node = get(node_instance_name)
+            print("node status = ", current_node['status'])
+            if current_node['status'] != 'Running':
+                continue
+            print("free_memory = {}, need_memory = {}".format(current_node['free_memory'], mem_need))
+            if current_node['free_memory'] > mem_need:
+                config['node'] = node_instance_name
+                config['status'] = 'Ready to Create'
+                break
+        if config.__contains__('node'):
+            print('把 pod {} 调度到节点 {} 上'.format(instance_name, config['node']))
+        else:
+            print("Schedule failure")
+        url = "{}/Pod/{}/create".format(api_server_url, instance_name)
+        json_data = json.dumps(config)
+        # 向api_server发送调度结果
+        r = requests.post(url=url, json=json_data)
 
 @app.route('/ReplicaSet', methods=['POST'])
 def upload_replica_set():
@@ -356,7 +393,18 @@ def post_pod(instance_name: str, behavior: str):
     else:
         return json.dumps(dict()), 404
     # todo: post pod information to related node
-    r = requests.post(url=const.worker_url_list[0]['url'] + "/Pod", json=json.dumps(config))
+
+    worker_url = None
+    pods_list = get('pods_list')
+    for pod_instance_name in pods_list:
+        if instance_name == pod_instance_name:
+            pod_config = get(pod_instance_name)
+            if pod_config.get('node') is not None:
+                node_instance_name = pod_config['node']
+                node_config = get(node_instance_name)
+                worker_url = node_config['url']
+    if worker_url is not None:  # only scheduler successfully will have a worker_url
+        r = requests.post(url=worker_url + "/Pod", json=json.dumps(config))
     # broadcast_message('Pod', config.__str__())
     return json.dumps(config), 200
 
@@ -368,6 +416,7 @@ def get_function():
     for function_name in result['functions_list']:
         result[function_name] = get(function_name)
     return json.dumps(result), 200
+
 
 @app.route('/Function', methods=['POST'])
 def upload_function():
@@ -387,8 +436,10 @@ def upload_function():
     if not flag:
         functions_list.append(function_name)
     put('functions_list', functions_list)
-    put(function_name, function_config)     # replace the old one if exist
+
+    put(function_name, function_config)  # replace the old one if exist
     return json.dumps(get('functions_list')), 200
+
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
 def get_dag(dag_name: str):
@@ -481,7 +532,7 @@ def receive_heartbeat():
         pod_config['ip'] = pod_heartbeat['ip']
         pod_config['node'] = node_instance_name
         put(pod_instance_name, pod_config)
-        heartbeat.pop(pod_instance_name)    # the information is of no use
+        heartbeat.pop(pod_instance_name)  # the information is of no use
     put(node_instance_name, heartbeat)
     return json.dumps(heartbeat), 200
 

@@ -3,6 +3,15 @@ import random
 import subprocess
 import requests
 import json
+import socket
+
+
+def getip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('8.8.8.8', 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
 
 
 def get(url: str):
@@ -40,6 +49,16 @@ def get_dns_config_dict(api_server_url):
     return get(url)
 
 
+def get_worker_url_list(api_server_url):
+    url = '{}/Node'.format(api_server_url)
+    nodes_dict: dict = get(url)
+    worker_url_list = list()
+    print(nodes_dict)
+    for node_instance in nodes_dict['nodes_list']:
+        worker_url_list.append(nodes_dict[node_instance]['url'])
+    return worker_url_list
+
+
 def post(url: str, config: dict):
     try:
         json_data = json.dumps(config)
@@ -73,11 +92,14 @@ def generate_random_str(randomlength=16, opts=0):
     return random_str
 
 
-def exec_command(command, shell=False):
+def exec_command(command, shell=False, background=False):
     logging.info("Execute Command > " + ' '.join(command))
     p = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE)
-    output, err = p.communicate()
-    if str(output, 'utf-8') != "":
+    if background is False:
+        output, err = p.communicate()
+    else:
+        output, err = 'This command is running in background, so no output will show...', None
+    if str(output) != "":
         logging.info("output: %s" % str(output))
     if err is not None:
         logging.info("err: %s" % str(err))
