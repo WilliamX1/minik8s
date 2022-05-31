@@ -1,0 +1,17 @@
+# apiVersion: v1
+kind: Pod
+name: xhd-pod-6
+volume:
+cpu: 1
+mem: 600m
+metadata:
+  labels:
+    app: another
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 20m
+      cpu: 1
+    port: 80
