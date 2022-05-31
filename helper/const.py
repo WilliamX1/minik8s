@@ -5,6 +5,8 @@ import os
 # if no, define and get api_server_url and worker_url_list from here
 # if yes, define and get api_server_url and worker_url_list into etcd
 use_etcd: bool = False
+api_server_ip: str = 'http://192.168.1.12'
+api_server_port: str = '5050'
 api_server_url: str = 'http://192.168.1.12:5050'  # api server ip address locally
 worker_url_list: list = [{'ip': 'http://192.168.1.12', 'port': '5051', 'url': 'http://192.168.1.12:5051'},
                          {'ip': 'http://192.168.1.5', 'port': '5051', 'url': 'http://192.168.1.5:5051'}]  # worker0 url

@@ -15,6 +15,7 @@ import psutil
 
 node_instance_name = os.popen(r"ifconfig | grep -oP 'HWaddr \K.*' | sed 's/://g' | sha256sum | awk '{print $1}'")
 node_instance_name = node_instance_name.readlines()[0][:-1]
+node_instance_name = node_instance_name + utils.getip()
 
 pods = list()
 
