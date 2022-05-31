@@ -5,7 +5,7 @@
 /bin/
 /target/
 
-
+/.idea
 .DS_Store
 .AppleDouble
 .LSOverride
