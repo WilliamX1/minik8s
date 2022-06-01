@@ -114,7 +114,6 @@ def init_iptables():
                               ormark='0x4000/0x4000'
                           ))
     )
-    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-POSTROUTING', 1,
                           utils.make_rulespec(
@@ -125,7 +124,6 @@ def init_iptables():
                               mark='0x4000/0x4000'
                           ))
     )
-    """
     """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-SERVICES', 1,
@@ -154,17 +152,15 @@ def init_iptables():
         utils.create_chain('filter', 'KUBE-FIREWALL')
     )
     """
-    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FORWARD')
     )
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-SERVICES')
     )
-    """
 
     """ In table `filter`, add some rule into chains """
-    """
+
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 1,
                           utils.make_rulespec(
@@ -176,7 +172,6 @@ def init_iptables():
                           ))
     )
     """
-    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 2,
                           utils.make_rulespec(
@@ -187,6 +182,8 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 3,
                           utils.make_rulespec(
@@ -195,7 +192,7 @@ def init_iptables():
                           utils.make_target_extensions())
     )
     """
-    """
+
     iptables['rules'].append(
         utils.insert_rule('filter', 'FORWARD', 1,
                           utils.make_rulespec(
@@ -224,7 +221,7 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
-    """
+
     """
     iptables['rules'].append(
         utils.insert_rule('filter', 'OUTPUT', 2,
@@ -254,6 +251,7 @@ def init_iptables():
                               ctstate='INVALID'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'KUBE-FORWARD', 2,
                           utils.make_rulespec(
@@ -264,7 +262,6 @@ def init_iptables():
                               mark='0x4000/0x4000'
                           ))
     )
-    """
 
 
 def create_service(service_config: dict, pods_dict: dict, simulate=False):
