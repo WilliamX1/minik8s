@@ -94,6 +94,7 @@ def init_iptables():
                           ),
                           utils.make_target_extensions())
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-MARK-DROP', 1,
                           utils.make_rulespec(
@@ -103,13 +104,14 @@ def init_iptables():
                               ormark='0x8000'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-MARK-MASQ', 1,
                           utils.make_rulespec(
                               jump='MARK'
                           ),
                           utils.make_target_extensions(
-                              ormark='0x4000'
+                              ormark='0x4000/0x4000'
                           ))
     )
     iptables['rules'].append(
@@ -143,9 +145,11 @@ def init_iptables():
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-EXTERNAL-SERVICES')
     )
+    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FIREWALL')
     )
+    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FORWARD')
     )
@@ -174,6 +178,7 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 3,
                           utils.make_rulespec(
@@ -181,6 +186,7 @@ def init_iptables():
                           ),
                           utils.make_target_extensions())
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'FORWARD', 1,
                           utils.make_rulespec(
@@ -209,6 +215,7 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'OUTPUT', 2,
                           utils.make_rulespec(
@@ -216,6 +223,8 @@ def init_iptables():
                           ),
                           utils.make_target_extensions())
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'KUBE-FIREWALL', 1,
                           utils.make_rulespec(
@@ -226,6 +235,7 @@ def init_iptables():
                               mark='0x8000/0x8000'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'KUBE-FORWARD', 1,
                           utils.make_rulespec(
@@ -419,6 +429,10 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     init_iptables is an idempotent function, which means the effect of
     execute several times equals to the effect of execute one time
     """
+    if iptables is None:
+        iptables = dict()
+        iptables['chains']  = list()
+        iptables['rules'] = list()
     kubesvc = 'KUBE-SVC-' + utils.generate_random_str(12, 1)
 
     iptables['chains'].append(
@@ -560,12 +574,13 @@ def clear_iptables():
 
 
 def example():
-    set_iptables_clusterIP(cluster_ip='18.255.255.255',
+    init_iptables()
+    set_iptables_clusterIP(cluster_ip='18.0.77.77',
                            service_name='example-service',
                            port=1111,
-                           target_port=8080,
+                           target_port=80,
                            protocol='tcp',
-                           pod_ip_list=['172.17.0.2', '172.17.0.4'],
+                           pod_ip_list=['20.0.73.2'],
                            strategy='random',
                            ip_prefix_len=32,
                            iptables=None)

@@ -1,29 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b7c58a71-a88e-4b3d-80dc-a6f68d2454e1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/userland/yaml_default/xhd-pod-3.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/worker/multi_machine/scripts/clean-shell.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/worker/nodes_yaml/master.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/worker/nodes_yaml/worker1.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/const.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper/const.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/api_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/api_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/dns_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/dns_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/node_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/node_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/scheduler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/master/service_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/master/service_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/userland/dns/dns-nginx-server-replica-set.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/userland/dns/dns-nginx-server-replica-set.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/userland/dns/nginx/log/access.log" beforeDir="false" afterPath="$PROJECT_DIR$/userland/dns/nginx/log/access.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/userland/dns/nginx/log/error.log" beforeDir="false" afterPath="$PROJECT_DIR$/userland/dns/nginx/log/error.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/worker/entities.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker/entities.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/worker/kubelet.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker/kubelet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/worker/kubelet_flask.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker/kubelet_flask.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/worker/multi_machine/scripts/etcd-shell.sh" beforeDir="false" afterPath="$PROJECT_DIR$/worker/multi_machine/scripts/etcd-shell.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/worker/multi_machine/scripts/flannel-shell.sh" beforeDir="false" afterPath="$PROJECT_DIR$/worker/multi_machine/scripts/flannel-shell.sh" afterDir="false" />
-    </list>
+    <list default="true" id="b7c58a71-a88e-4b3d-80dc-a6f68d2454e1" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,10 +21,12 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.kubectl">
+  <component name="RunManager" selected="Python.kubeproxy">
     <configuration name="dns_controller" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="minik8s" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -61,28 +41,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/master/dns_controller.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="garbage_collector" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="minik8s" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/master" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/master/garbage_collector.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -135,6 +93,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="kubeproxy" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="minik8s" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/worker" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/worker/kubeproxy.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="service_controller" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="minik8s" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -159,11 +139,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.kubeproxy" />
         <item itemvalue="Python.kubectl" />
         <item itemvalue="Python.dns_controller" />
         <item itemvalue="Python.service_controller" />
         <item itemvalue="Python.kubectl_gui" />
-        <item itemvalue="Python.garbage_collector" />
       </list>
     </recent_temporary>
   </component>
@@ -180,6 +160,8 @@
       <workItem from="1654044430700" duration="245000" />
       <workItem from="1654044816554" duration="3393000" />
       <workItem from="1654051082232" duration="8948000" />
+      <workItem from="1654061342193" duration="26000" />
+      <workItem from="1654061430864" duration="5721000" />
     </task>
     <servers />
   </component>
@@ -200,13 +182,14 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/minik8s$scheduler.coverage" NAME="scheduler Coverage Results" MODIFIED="1654015642888" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$kubectl_gui.coverage" NAME="kubectl_gui Coverage Results" MODIFIED="1654054930767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
-    <SUITE FILE_PATH="coverage/minik8s$service_controller.coverage" NAME="service_controller Coverage Results" MODIFIED="1654058219076" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$dns_controller.coverage" NAME="dns_controller Coverage Results" MODIFIED="1654058243964" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$service_controller.coverage" NAME="service_controller Coverage Results" MODIFIED="1654058219076" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$api_server.coverage" NAME="api_server Coverage Results" MODIFIED="1654009057123" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$node_controller.coverage" NAME="node_controller Coverage Results" MODIFIED="1654058198636" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$garbage_collector.coverage" NAME="garbage_collector Coverage Results" MODIFIED="1654054817262" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$kubectl.coverage" NAME="kubectl Coverage Results" MODIFIED="1654058283111" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
     <SUITE FILE_PATH="coverage/minik8s$replica_set_controller.coverage" NAME="replica_set_controller Coverage Results" MODIFIED="1654058208277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$kubelet_flask.coverage" NAME="kubelet_flask Coverage Results" MODIFIED="1654007503585" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/worker" />
+    <SUITE FILE_PATH="coverage/minik8s$kubeproxy.coverage" NAME="kubeproxy Coverage Results" MODIFIED="1654069400759" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/worker" />
   </component>
 </project>
