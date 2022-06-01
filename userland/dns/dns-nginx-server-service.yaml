@@ -1,7 +1,7 @@
 kind: Service
 name: dns-nginx-server-service
 type: ClusterIP
-clusterIP: 18.1.1.1
+clusterIP: 192.168.100.100
 selector:
   app: dns-nginx-server
 ports:

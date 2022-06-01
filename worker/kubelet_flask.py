@@ -180,6 +180,7 @@ def init_node():
         yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
         nodes_info_config: dict = yaml_loader.load(yaml_path)
         logging.info(nodes_info_config)
+        ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
         MASTER_ETCD_CLIENT_URL = nodes_info_config['MASTER_ETCD_CLIENT_URL']
         WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
         cmd2 = ['bash', const.FLANNEL_SHELL_WORKER_PATH, MASTER_ETCD_CLIENT_URL]
