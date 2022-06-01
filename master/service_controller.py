@@ -43,11 +43,6 @@ def _create(service_dict: dict, service_config: dict, pods_dict: dict, update=Fa
     # assign static IP if not assigned according to the config
     if service_config.get('clusterIP') is None:
         service_config['clusterIP'], _ = kubeproxy.alloc_service_clusterIP(service_dict)
-    elif str(service_config['clusterIP']).find(str(kubeproxy.service_clusterIP_prefix)) != 0:
-        logging.warning('Service cluster IP not starts with {}, trying to reallocate...'
-                        .format(kubeproxy.service_clusterIP_prefix))
-        service_config['clusterIP'], _ = kubeproxy.alloc_service_clusterIP(service_dict)
-
     selector: dict = service_config['selector']
     pod_instances = list()
     for pod_instance_name in pods_dict['pods_list']:

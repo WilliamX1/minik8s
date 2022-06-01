@@ -454,7 +454,19 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
         utils.create_chain('nat', kubesvc, simulate=simulate)
     )
     iptables['rules'].append(
-        utils.append_rule('nat', 'KUBE-SERVICES',
+        utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+                          utils.make_rulespec(
+                              jump=kubesvc,
+                              destination='/'.join([cluster_ip, str(ip_prefix_len)]),
+                              protocol=protocol,
+                              comment=service_name + ': cluster IP',
+                              dport=port
+                          ),
+                          utils.make_target_extensions(),
+                          simulate=simulate)
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-SERVICES', 1,
                           utils.make_rulespec(
                               jump='KUBE-MARK-MASQ',
                               protocol=protocol,
@@ -465,18 +477,6 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                           utils.make_target_extensions(),
                           simulate=simulate
                           )
-    )
-    iptables['rules'].append(
-        utils.append_rule('nat', 'KUBE-SERVICES',
-                          utils.make_rulespec(
-                              jump=kubesvc,
-                              destination='/'.join([cluster_ip, str(ip_prefix_len)]),
-                              protocol=protocol,
-                              comment=service_name + ': cluster IP',
-                              dport=port
-                          ),
-                          utils.make_target_extensions(),
-                          simulate=simulate)
     )
 
     pod_num = len(pod_ip_list)

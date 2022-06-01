@@ -1,6 +1,7 @@
 kind: Service
 name: xhd-service
 type: ClusterIP
+clusterIP: 192.168.66.66
 selector:
   app: xhd
   version: major

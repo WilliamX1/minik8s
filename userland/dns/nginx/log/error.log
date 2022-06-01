@@ -4056,3 +4056,35 @@
 2022/06/01 04:46:22 [notice] 1#1: signal 17 (SIGCHLD) received from 24
 2022/06/01 04:46:22 [notice] 1#1: worker process 24 exited with code 0
 2022/06/01 04:46:22 [notice] 1#1: exit
+2022/06/01 15:36:40 [notice] 1#1: using the "epoll" event method
+2022/06/01 15:36:40 [notice] 1#1: nginx/1.21.6
+2022/06/01 15:36:40 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/06/01 15:36:40 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/06/01 15:36:40 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/06/01 15:36:40 [notice] 1#1: start worker processes
+2022/06/01 15:36:40 [notice] 1#1: start worker process 24
+2022/06/01 15:36:40 [notice] 1#1: start worker process 25
+2022/06/01 15:36:46 [notice] 1#1: using the "epoll" event method
+2022/06/01 15:36:46 [notice] 1#1: nginx/1.21.6
+2022/06/01 15:36:46 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/06/01 15:36:46 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/06/01 15:36:46 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/06/01 15:36:46 [notice] 1#1: start worker processes
+2022/06/01 15:36:46 [notice] 1#1: start worker process 24
+2022/06/01 15:36:46 [notice] 1#1: start worker process 25
+2022/06/01 15:36:48 [notice] 1#1: using the "epoll" event method
+2022/06/01 15:36:48 [notice] 1#1: nginx/1.21.6
+2022/06/01 15:36:48 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/06/01 15:36:48 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/06/01 15:36:48 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/06/01 15:36:48 [notice] 1#1: start worker processes
+2022/06/01 15:36:48 [notice] 1#1: start worker process 24
+2022/06/01 15:36:48 [notice] 1#1: start worker process 25
+2022/06/01 15:45:11 [notice] 1#1: using the "epoll" event method
+2022/06/01 15:45:11 [notice] 1#1: nginx/1.21.6
+2022/06/01 15:45:11 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/06/01 15:45:11 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/06/01 15:45:11 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/06/01 15:45:11 [notice] 1#1: start worker processes
+2022/06/01 15:45:11 [notice] 1#1: start worker process 24
+2022/06/01 15:45:11 [notice] 1#1: start worker process 25
