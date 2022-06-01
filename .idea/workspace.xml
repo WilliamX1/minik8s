@@ -113,7 +113,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="node_controller" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="kubectl_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="minik8s" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -121,12 +121,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/master" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/userland" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/master/node_controller.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/userland/kubectl_gui.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -160,10 +160,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.kubectl" />
+        <item itemvalue="Python.kubectl_gui" />
         <item itemvalue="Python.dns_controller" />
         <item itemvalue="Python.garbage_collector" />
         <item itemvalue="Python.service_controller" />
-        <item itemvalue="Python.node_controller" />
       </list>
     </recent_temporary>
   </component>
@@ -179,7 +179,7 @@
       <workItem from="1654014927237" duration="6612000" />
       <workItem from="1654044430700" duration="245000" />
       <workItem from="1654044816554" duration="3393000" />
-      <workItem from="1654051082232" duration="3205000" />
+      <workItem from="1654051082232" duration="6407000" />
     </task>
     <servers />
   </component>
@@ -199,14 +199,14 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/minik8s$scheduler.coverage" NAME="scheduler Coverage Results" MODIFIED="1654015642888" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$kubectl_gui.coverage" NAME="kubectl_gui Coverage Results" MODIFIED="1654019318935" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
-    <SUITE FILE_PATH="coverage/minik8s$service_controller.coverage" NAME="service_controller Coverage Results" MODIFIED="1654045415871" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$dns_controller.coverage" NAME="dns_controller Coverage Results" MODIFIED="1654045618059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$kubectl_gui.coverage" NAME="kubectl_gui Coverage Results" MODIFIED="1654054930767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
+    <SUITE FILE_PATH="coverage/minik8s$service_controller.coverage" NAME="service_controller Coverage Results" MODIFIED="1654054809966" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$dns_controller.coverage" NAME="dns_controller Coverage Results" MODIFIED="1654054821932" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$api_server.coverage" NAME="api_server Coverage Results" MODIFIED="1654009057123" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$node_controller.coverage" NAME="node_controller Coverage Results" MODIFIED="1654045414036" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$garbage_collector.coverage" NAME="garbage_collector Coverage Results" MODIFIED="1654045420429" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$kubectl.coverage" NAME="kubectl Coverage Results" MODIFIED="1654045731210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
-    <SUITE FILE_PATH="coverage/minik8s$replica_set_controller.coverage" NAME="replica_set_controller Coverage Results" MODIFIED="1654045412330" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$node_controller.coverage" NAME="node_controller Coverage Results" MODIFIED="1654054781188" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$garbage_collector.coverage" NAME="garbage_collector Coverage Results" MODIFIED="1654054817262" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$kubectl.coverage" NAME="kubectl Coverage Results" MODIFIED="1654054998408" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
+    <SUITE FILE_PATH="coverage/minik8s$replica_set_controller.coverage" NAME="replica_set_controller Coverage Results" MODIFIED="1654054799241" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$kubelet_flask.coverage" NAME="kubelet_flask Coverage Results" MODIFIED="1654007503585" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/worker" />
   </component>
 </project>
