@@ -1,7 +1,8 @@
 import os
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-FLANNEL_SHELL_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'flannel-shell.sh')
+FLANNEL_SHELL_MASTER_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'flannel-shell-master.sh')
+FLANNEL_SHELL_WORKER_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'flannel-shell-worker.sh')
 ETCD_SHELL_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'etcd-shell.sh')
 DOCKER_SHELL_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'docker-shell.sh')
 

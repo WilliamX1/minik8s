@@ -15,6 +15,9 @@ import time
 import entities
 
 
+isMaster = True
+
+
 app = Flask(__name__)
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -149,29 +152,44 @@ def init_node():
     utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
     global ETCD_NAME, ETCD_IP_ADDRESS, ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE, WORKER_PORT
     # load node yaml
-    yaml_name = 'master.yaml'
-    yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
-    nodes_info_config: dict = yaml_loader.load(yaml_path)
-    logging.info(nodes_info_config)
-    ETCD_NAME = nodes_info_config['ETCD_NAME']
-    ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
-    ETCD_INITIAL_CLUSTER = nodes_info_config['ETCD_INITIAL_CLUSTER']
-    ETCD_INITIAL_CLUSTER_STATE = nodes_info_config['ETCD_INITIAL_CLUSTER_STATE']
-    WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
-
-    cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
-            ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
-    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, 'ens3']
-    cmd3 = ['bash', const.DOCKER_SHELL_PATH]
-    utils.exec_command(cmd1, shell=False, background=True)
-    logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
-    time.sleep(5)
-    utils.exec_command(cmd2, shell=False, background=True)
-    logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
-    time.sleep(3)
-    utils.exec_command(cmd3, shell=False, background=True)
-    logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
-    time.sleep(3)
+    if isMaster is True:
+        yaml_name = 'master.yaml'
+        yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
+        nodes_info_config: dict = yaml_loader.load(yaml_path)
+        logging.info(nodes_info_config)
+        ETCD_NAME = nodes_info_config['ETCD_NAME']
+        ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
+        ETCD_INITIAL_CLUSTER = nodes_info_config['ETCD_INITIAL_CLUSTER']
+        ETCD_INITIAL_CLUSTER_STATE = nodes_info_config['ETCD_INITIAL_CLUSTER_STATE']
+        WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
+        cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
+                ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
+        cmd2 = ['bash', const.FLANNEL_SHELL_MASTER_PATH]
+        cmd3 = ['bash', const.DOCKER_SHELL_PATH]
+        utils.exec_command(cmd1, shell=False, background=True)
+        logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
+        time.sleep(5)
+        utils.exec_command(cmd2, shell=False, background=True)
+        logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
+        time.sleep(3)
+        utils.exec_command(cmd3, shell=False, background=True)
+        logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
+        time.sleep(3)
+    else:
+        yaml_name = 'worker.yaml'
+        yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
+        nodes_info_config: dict = yaml_loader.load(yaml_path)
+        logging.info(nodes_info_config)
+        MASTER_ETCD_CLIENT_URL = nodes_info_config['MASTER_ETCD_CLIENT_URL']
+        WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
+        cmd2 = ['bash', const.FLANNEL_SHELL_WORKER_PATH, MASTER_ETCD_CLIENT_URL]
+        cmd3 = ['bash', const.DOCKER_SHELL_PATH]
+        utils.exec_command(cmd2, shell=False, background=True)
+        logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
+        time.sleep(3)
+        utils.exec_command(cmd3, shell=False, background=True)
+        logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
+        time.sleep(3)
     # delete original iptables and restore, init for service and dns
     dir = const.dns_conf_path
     for f in os.listdir(dir):
