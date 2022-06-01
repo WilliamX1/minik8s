@@ -64,10 +64,10 @@ def init_iptables():
 
     """ In table `nat`, create some new chains """
     iptables['chains'].append(utils.create_chain('nat', 'KUBE-SERVICES'))
-    iptables['chains'].append(utils.create_chain('nat', 'KUBE-NODEPORTS'))
+    # iptables['chains'].append(utils.create_chain('nat', 'KUBE-NODEPORTS'))
     iptables['chains'].append(utils.create_chain('nat', 'KUBE-POSTROUTING'))
     iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-MASQ'))
-    iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-DROP'))
+    # iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-DROP'))
 
     """ In table `nat`, add some rule into chains """
     iptables['rules'].append(
@@ -114,6 +114,7 @@ def init_iptables():
                               ormark='0x4000/0x4000'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-POSTROUTING', 1,
                           utils.make_rulespec(
@@ -124,6 +125,8 @@ def init_iptables():
                               mark='0x4000/0x4000'
                           ))
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-SERVICES', 1,
                           utils.make_rulespec(
@@ -135,6 +138,7 @@ def init_iptables():
                               dst_type="LOCAL"
                           ))
     )
+    """
 
     """ In table `filter`, set policy for some chains """
     utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
@@ -142,10 +146,10 @@ def init_iptables():
     utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
 
     """ In table `filter`, create some chains """
+    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-EXTERNAL-SERVICES')
     )
-    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FIREWALL')
     )
@@ -168,6 +172,7 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 2,
                           utils.make_rulespec(
@@ -178,7 +183,6 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
-    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 3,
                           utils.make_rulespec(
