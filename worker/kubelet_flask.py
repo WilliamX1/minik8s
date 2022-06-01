@@ -161,7 +161,7 @@ def init_node():
 
     cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
             ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
-    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, ETCD_IP_ADDRESS]
+    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, 'ens3']
     cmd3 = ['bash', const.DOCKER_SHELL_PATH]
     utils.exec_command(cmd1, shell=False, background=True)
     logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')

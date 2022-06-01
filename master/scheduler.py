@@ -15,7 +15,6 @@ from entities import parse_bytes
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
-api_server_ip = const.api_server_ip
 api_server_url = const.api_server_url
 
 

@@ -19,7 +19,7 @@ worker_url_list: list = [{'ip': 'http://192.168.1.12', 'port': '5051', 'url': 'h
 service_controller_flush_interval: float = 2.0
 service_clusterIP_prefix: int = 18  # every service's clusterIP must start with 18
 service_iptables_save_path: str = "/".join(
-    [os.getcwd(), 'worker', 'sources', 'iptables-save'])  # save iptables into this file
+    [ROOT_DIR, 'worker', 'sources', 'iptables-save'])  # save iptables into this file
 
 dns_controller_flush_interval: float = 2.0
 dns_port: int = 80
