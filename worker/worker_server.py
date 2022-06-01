@@ -18,9 +18,10 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
 # CORS(app, supports_credentials=True)
+# This FILE has been abandoned
 
-worker_port = const.worker_url_list[0]['port']
-worker_url = const.worker_url_list[0]['url']
+worker_port = None #  const.worker_url_list[0]['port']
+worker_url = None # const.worker_url_list[0]['url']
 init: bool = False
 
 

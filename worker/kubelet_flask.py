@@ -144,6 +144,9 @@ def handle_Pod():
 
 
 def init_node():
+    iptable_path = os.path.dirname(os.path.realpath(__file__)) + "/sources/iptables"
+    # utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
+    utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
     global ETCD_NAME, ETCD_IP_ADDRESS, ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE, WORKER_PORT
     # load node yaml
     yaml_name = 'master.yaml'
@@ -158,7 +161,7 @@ def init_node():
 
     cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
             ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
-    cmd2 = ['bash', const.FLANNEL_SHELL_PATH]
+    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, ETCD_IP_ADDRESS]
     cmd3 = ['bash', const.DOCKER_SHELL_PATH]
     utils.exec_command(cmd1, shell=False, background=True)
     logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
@@ -174,10 +177,6 @@ def init_node():
     for f in os.listdir(dir):
         if f != 'default.conf':
             os.remove(os.path.join(dir, f))
-    iptable_path = os.path.dirname(os.path.realpath(__file__)) + "/sources/iptables"
-    utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
-    utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
-
     # todo: add other logic here
     # todo: recover pods here
 
