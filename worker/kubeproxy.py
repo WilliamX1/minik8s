@@ -454,7 +454,20 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
         utils.create_chain('nat', kubesvc, simulate=simulate)
     )
     iptables['rules'].append(
-        utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+        utils.append_rule('nat', 'KUBE-SERVICES',
+                          utils.make_rulespec(
+                              jump='KUBE-MARK-MASQ',
+                              protocol=protocol,
+                              destination='/'.join([cluster_ip, str(ip_prefix_len)]),
+                              comment=service_name + ': cluster IP',
+                              dport=port
+                          ),
+                          utils.make_target_extensions(),
+                          simulate=simulate
+                          )
+    )
+    iptables['rules'].append(
+        utils.append_rule('nat', 'KUBE-SERVICES',
                           utils.make_rulespec(
                               jump=kubesvc,
                               destination='/'.join([cluster_ip, str(ip_prefix_len)]),
@@ -590,7 +603,7 @@ def clear_iptables():
 
 def example():
     init_iptables()
-    set_iptables_clusterIP(cluster_ip='192.168.40.77',
+    set_iptables_clusterIP(cluster_ip='192.168.60.99',
                            service_name='example-service',
                            port=80,
                            target_port=80,
