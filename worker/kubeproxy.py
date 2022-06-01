@@ -71,7 +71,7 @@ def init_iptables():
 
     """ In table `nat`, add some rule into chains """
     iptables['rules'].append(
-        utils.insert_rule('nat', 'PREROUTING', 1,
+        utils.append_rule('nat', 'PREROUTING',
                           utils.make_rulespec(
                               jump='KUBE-SERVICES',
                               comment='kubernetes service portals'
@@ -79,7 +79,7 @@ def init_iptables():
                           utils.make_target_extensions())
     )
     iptables['rules'].append(
-        utils.insert_rule('nat', 'OUTPUT', 1,
+        utils.append_rule('nat', 'OUTPUT',
                           utils.make_rulespec(
                               jump='KUBE-SERVICES',
                               comment='kubernetes service portals'
@@ -87,7 +87,7 @@ def init_iptables():
                           utils.make_target_extensions())
     )
     iptables['rules'].append(
-        utils.insert_rule('nat', 'POSTROUTING', 1,
+        utils.append_rule('nat', 'POSTROUTING',
                           utils.make_rulespec(
                               jump='KUBE-POSTROUTING',
                               comment='kubernetes postrouting rules'
@@ -111,7 +111,7 @@ def init_iptables():
                               jump='MARK'
                           ),
                           utils.make_target_extensions(
-                              ormark='0x4000/0x4000'
+                              ormark='0x4000'
                           ))
     )
     iptables['rules'].append(
@@ -122,7 +122,8 @@ def init_iptables():
                           ),
                           utils.make_target_extensions(
                               mark='0x4000/0x4000'
-                          ))
+                          )
+                          )
     )
     """
     iptables['rules'].append(
@@ -139,9 +140,9 @@ def init_iptables():
     """
 
     """ In table `filter`, set policy for some chains """
-    utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
-    utils.policy_chain('filter', 'FORWARD', ['ACCEPT'])
-    utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
+    # utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
+    # utils.policy_chain('filter', 'FORWARD', ['ACCEPT'])
+    # utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
 
     """ In table `filter`, create some chains """
     """
@@ -152,15 +153,18 @@ def init_iptables():
         utils.create_chain('filter', 'KUBE-FIREWALL')
     )
     """
+    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FORWARD')
     )
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-SERVICES')
     )
+    """
 
     """ In table `filter`, add some rule into chains """
 
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 1,
                           utils.make_rulespec(
@@ -171,6 +175,7 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
     """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 2,
@@ -192,7 +197,7 @@ def init_iptables():
                           utils.make_target_extensions())
     )
     """
-
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'FORWARD', 1,
                           utils.make_rulespec(
@@ -221,6 +226,7 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
 
     """
     iptables['rules'].append(
@@ -252,6 +258,7 @@ def init_iptables():
                           ))
     )
     """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'KUBE-FORWARD', 2,
                           utils.make_rulespec(
@@ -262,6 +269,7 @@ def init_iptables():
                               mark='0x4000/0x4000'
                           ))
     )
+    """
 
 
 def create_service(service_config: dict, pods_dict: dict, simulate=False):
@@ -582,12 +590,12 @@ def clear_iptables():
 
 def example():
     init_iptables()
-    set_iptables_clusterIP(cluster_ip='18.0.77.77',
+    set_iptables_clusterIP(cluster_ip='192.168.40.77',
                            service_name='example-service',
-                           port=1111,
+                           port=80,
                            target_port=80,
                            protocol='tcp',
-                           pod_ip_list=['20.0.73.2'],
+                           pod_ip_list=['20.20.72.2'],
                            strategy='random',
                            ip_prefix_len=32,
                            iptables=None)

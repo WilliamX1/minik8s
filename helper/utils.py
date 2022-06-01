@@ -309,7 +309,7 @@ def make_target_extensions(to_destination=None, mark=None, match=None, mode=None
         target.append("--ctstate")
         target.append(ctstate)
     if ormark is not None:
-        target.append("--set-xmark")
+        target.append("--or-mark")
         target.append(ormark)
     if addrtype is not None:
         target.append("-m")
