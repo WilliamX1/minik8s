@@ -18,13 +18,13 @@ sleep 1s
 python3 master/dns_controller.py &
 dns_controller_id=$!
 sleep 1s
-python3 worker/kubelet_flask.py &
+python3 worker/kubelet_flask.py worker1.yaml &
 kubelet_flask_id=$!
-sleep 1s
-python3 userland/kubectl.py &
-kubectl_id=$!
+# sleep 1s
+# python3 userland/kubectl.py &
+# kubectl_id=$!
 sleep 4s
-kill -9 $kubectl_id
+# kill -9 $kubectl_id
 kill -9 $kubelet_flask_id
 kill -9 $dns_controller_id
 kill -9 $service_controller_id

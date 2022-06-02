@@ -158,7 +158,7 @@ def init_node():
 
     print('Default File Path is /minik8s/worker/nodes_yaml/...')
     while True:
-        yaml_name = input('Please Enter Node Yaml File Name:')
+        yaml_name = sys.argv[1] if len(sys.argv) > 1 else input('Please Enter Node Yaml File Name:')
         yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
         if os.path.exists(yaml_path) is False:
             logging.warning('Filepath %s Not Exists...' % yaml_path)
