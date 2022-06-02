@@ -1,0 +1,25 @@
+# apiVersion: v1
+kind: Pod
+name: xhd-pod-1
+volume:
+cpu: 1
+mem: 600m
+metadata:
+  labels:
+    app: xhd
+    version: major
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 20m
+      cpu: 1
+    port: 80
+  - name: jetty
+    image: jetty
+    command:
+    resource:
+      memory:
+      cpu:
+    port: 8080

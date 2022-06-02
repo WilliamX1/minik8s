@@ -1,0 +1,9 @@
+kind: Service
+name: service_name
+selector:
+  - app: xhd
+ports:
+  - port: 1111
+    targetPort: 80
+  - port: 2222
+    targetPort: 8080

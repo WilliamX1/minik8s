@@ -1,4 +1,14 @@
 # General
+*.out
+*.etcd
+/.idea/
+/.settings/
+/.vscode/
+/bin/
+/target/
+
+.idea/
+
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -26,4 +36,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 /etcd_test.py
-/tmp/
+/worker/tmp/
+/master/default.etcd/
+/helper/__pycache__/
+/master/__pycache__/
+/worker/__pycache__/
+helper/__pycache__/
+master/__pycache__/
+worker/__pycache__/

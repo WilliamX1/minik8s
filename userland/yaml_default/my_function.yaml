@@ -1,0 +1,16 @@
+kind: Function
+name: serverless-
+cpu: 1
+mem: 500m
+metadata:
+  labels:
+    app: serverless
+    module_name: placeholder
+containers:
+  - name: placeholder
+    image: placeholder:latest
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 4999

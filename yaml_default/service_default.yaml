@@ -1,6 +1,0 @@
-kind: service
-name: service_name
-selector:
-ports:
-  port:
-  targetPort:

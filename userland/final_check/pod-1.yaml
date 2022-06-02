@@ -1,0 +1,32 @@
+kind: Pod
+name: pod-1
+volume:
+  - $/userland/final_check/pod-1/html/:/usr/share/nginx/html/
+cpu: 1
+mem: 300m
+metadata:
+  labels:
+    app: xhd
+    version: major
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      cpu: 1
+      memory: 100m
+    port: 80
+  - name: jetty
+    image: jetty
+    command:
+    resource:
+      cpu: 1
+      memory: 100m
+    port: 8080
+  - name: busybox
+    image: busybox
+    command: ['sh', '-c', 'sleep 36000000']
+    resource:
+      cpu: 1
+      memory: 100m
+    port:

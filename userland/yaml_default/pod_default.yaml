@@ -1,0 +1,25 @@
+# apiVersion: v1
+kind: Pod
+name: xhd-pod
+volume: '/home/liuyixiang/docker_volume'
+cpu: 2
+mem: 1500m
+metadata:
+  labels:
+    - app: xhd
+      version: major
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 80
+  - name: jetty
+    image: jetty
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 8080

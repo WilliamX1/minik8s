@@ -1,0 +1,7 @@
+kind: Dns
+name: xhd-dns
+host: xhd-dns
+paths:
+  - path: yy
+    service_name: xhd-service
+    service_port: 801

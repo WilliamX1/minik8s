@@ -1,0 +1,25 @@
+kind: ReplicaSet
+name: example-replica-set
+volumn: '/home/liuyixiang/docker_volumn'
+metadata:
+  namespace: pod-network
+cpu: 2
+mem: 150m
+spec:
+  replicas: 3
+  selector:
+containers:
+  - image: zookeeper:3.4.10
+    name: zookeeper
+    command:
+    resource:
+      memory: 100m
+      cpu: 1
+    port: {'2181/tcp': 2181}
+  - image: busybox
+    name: busybox
+    command: ['sh', '-c', 'sleep 3600']
+    resource:
+      memory: 50m
+      cpu: 1
+    port: {'2182/tcp': 2182}

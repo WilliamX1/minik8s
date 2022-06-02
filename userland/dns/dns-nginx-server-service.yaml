@@ -1,0 +1,10 @@
+kind: Service
+name: dns-nginx-server-service
+type: ClusterIP
+clusterIP: 192.168.100.100
+selector:
+  app: dns-nginx-server
+ports:
+  - protocol: tcp
+    port: 80
+    targetPort: 80
