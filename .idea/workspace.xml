@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6e656f6e-c198-4d93-b24d-bda203ac8924" name="Changes" comment="" />
+    <list default="true" id="6e656f6e-c198-4d93-b24d-bda203ac8924" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.workflow/BranchPipeline.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.workflow/BranchPipeline.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.workflow/MasterPipeline.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.workflow/MasterPipeline.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.workflow/PRPipeline.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.workflow/PRPipeline.yml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -19,14 +24,11 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "nodejs_package_manager_path": "npm"
-  }
-}]]></component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+  </component>
   <component name="RunManager" selected="Python.kubectl">
     <configuration name="dns_controller" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="minik8s" />
@@ -164,6 +166,7 @@
       <workItem from="1654096678481" duration="2037000" />
       <workItem from="1654098822663" duration="437000" />
       <workItem from="1654105486111" duration="8036000" />
+      <workItem from="1654160462335" duration="241000" />
     </task>
     <servers />
   </component>
@@ -182,12 +185,12 @@
     </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/minik8s$kubectl_gui.coverage" NAME="kubectl_gui Coverage Results" MODIFIED="1654098283289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
-    <SUITE FILE_PATH="coverage/minik8s$service_controller.coverage" NAME="service_controller Coverage Results" MODIFIED="1654105543669" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$dns_controller.coverage" NAME="dns_controller Coverage Results" MODIFIED="1654105548872" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$node_controller.coverage" NAME="node_controller Coverage Results" MODIFIED="1654138812662" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
-    <SUITE FILE_PATH="coverage/minik8s$kubectl.coverage" NAME="kubectl Coverage Results" MODIFIED="1654140479277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
     <SUITE FILE_PATH="coverage/minik8s$replica_set_controller.coverage" NAME="replica_set_controller Coverage Results" MODIFIED="1654105522704" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
     <SUITE FILE_PATH="coverage/minik8s$kubeproxy.coverage" NAME="kubeproxy Coverage Results" MODIFIED="1654095985366" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/worker" />
+    <SUITE FILE_PATH="coverage/minik8s$service_controller.coverage" NAME="service_controller Coverage Results" MODIFIED="1654105543669" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$node_controller.coverage" NAME="node_controller Coverage Results" MODIFIED="1654138812662" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/master" />
+    <SUITE FILE_PATH="coverage/minik8s$kubectl_gui.coverage" NAME="kubectl_gui Coverage Results" MODIFIED="1654098283289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
+    <SUITE FILE_PATH="coverage/minik8s$kubectl.coverage" NAME="kubectl Coverage Results" MODIFIED="1654140479277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/userland" />
   </component>
 </project>
