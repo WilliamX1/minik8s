@@ -10,7 +10,6 @@ sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import kubedns
 
 import yaml_loader, const, utils
-import worker_server
 
 api_server_url = const.api_server_url
 
@@ -71,7 +70,7 @@ def update_etc_hosts(hosts=True):
         # Let Host Machine to execute this command
         command1 = "sudo systemctl restart network-manager"
         command.append(command1)
-        url = "{}/cmd".format(worker_server.worker_url)  # TODO: need to change
+        url = "{}/cmd".format("")  # TODO: need to change
         upload_cmd = dict()
         upload_cmd['cmd'] = ';'.join(command)
         print(upload_cmd)
