@@ -368,6 +368,11 @@ def post_pod(instance_name: str, behavior: str):
         config: dict = json.loads(json_data)
         put(instance_name, config)
         config['behavior'] = 'create'
+    elif behavior == 'update': #  update pods information such as ip
+        json_data = request.json
+        config: dict = json.loads(json_data)
+        put(instance_name, config)
+        return 'success', 200
     elif behavior == 'remove':
         config = get(instance_name)
         config['status'] = 'Removed'

@@ -128,6 +128,9 @@ def handle_Pod():
             print("response = ", r.content.decode())
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
+        # update pod information such as ip, volume and ports
+        url = '{}/{}/{}/{}'.format(api_server_url, 'Pod', instance_name, 'update')
+        utils.post(url=url, config=config)
         # share.set('status', str(status))
     elif bahavior == 'remove':
         print('try to delete Pod {}'.format(instance_name))

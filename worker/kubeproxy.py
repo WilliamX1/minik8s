@@ -47,10 +47,9 @@ def init_iptables():
     """
     init iptables for minik8s, create some necessary chains and insert some necessary rules
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
-    :param simulate: if true, then all the commands will not execute actually
     :return: None
     """
-    utils.exec_command(command="iptables-save < ./sources/iptables", shell=True)
+    # utils.exec_command(command="iptables-save < ./sources/iptables", shell=True)
 
     """ In table `nat`, set policy for some chains """
     iptables = dict()

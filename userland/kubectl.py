@@ -7,6 +7,7 @@ import requests
 import sys
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import kubedns
@@ -30,6 +31,18 @@ def print_info():
     print("remove pod/service/dns name          remove pod/service/dns")
 
 
+def upload(yaml_path):
+    print('the yaml path is：', yaml_path)
+    try:
+        config: dict = yaml_loader.load(yaml_path)
+        object_name = config['name']
+    except Exception as e:
+        print(e.__str__())
+        return
+    url = "{}/{}".format(api_server_url, config['kind'])
+    utils.post(url=url, config=config)
+
+
 def main():
     version = '1.0.0'
     while True:
@@ -38,8 +51,8 @@ def main():
         exit_match = re.fullmatch(r'exit', cmd.strip(), re.I)
         help_match = re.fullmatch(r'help', cmd.strip(), re.I)
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
+        start_file_match = re.fullmatch(r'start *-f *([$a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         show_match = re.fullmatch(r'show *(pods|services|replicasets|dns|nodes|functions)', cmd.strip(), re.I)
-        start_file_match = re.fullmatch(r'start *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         pod_command_match = re.fullmatch(r'(start|remove) * pod *([\w-]*)', cmd.strip(), re.I)
         service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
         dns_command_match = re.fullmatch(r'(update|restart|remove) * dns *([\w-]*)', cmd.strip(), re.I)
@@ -52,18 +65,28 @@ def main():
             print_info()
         elif version_match:
             print("{} v{}".format('minik8s'.title(), version))
+        elif start_file_match:
+            yaml_path = start_file_match.group(1)
+            if yaml_path is None or yaml_path == '':
+                print('filepath is empty')
+            else:
+                if yaml_path[0] == '$':
+                    yaml_path = ROOT_DIR + yaml_path[1:]
+                upload(yaml_path=yaml_path)
+                print('upload yaml %s successfully' % yaml_path)
         elif show_match:
             object_type = show_match.group(1)
             if object_type == "pods":
                 pods_dict = utils.get_pod_dict(api_server_url=api_server_url)
                 tb = prettytable.PrettyTable()
-                tb.field_names = ['name', 'status', 'created time']
+                tb.field_names = ['name', 'status', 'created time', 'ip', 'volume', 'ports']
                 for pod_instance_name in pods_dict['pods_list']:
                     pod_config = pods_dict.get(pod_instance_name)
                     if pod_config:
                         created_time = int(time.time() - pod_config['created_time'])
                         created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                        tb.add_row([pod_instance_name, pod_config['status'], created_time.strip()])
+                        tb.add_row([pod_instance_name, pod_config['status'], created_time.strip(),
+                                    pod_config['ip'], pod_config['volume'], pod_config['ports']])
                 print(tb)
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=api_server_url)
@@ -94,7 +117,22 @@ def main():
                         created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
                         tb.add_row([function_name, function_config['status'], created_time.strip()])
             elif object_type == 'nodes':
-                pass
+                node_dict = utils.get_node_dict(api_server_url=api_server_url)
+                tb = prettytable.PrettyTable()
+                tb.field_names = ['name', 'status', 'working_url',
+                                  'total_memory(bytes)', 'memory_use_percent(%)',
+                                  'cpu_use_percent(%)']
+                for instance_name in node_dict['nodes_list']:
+                    node_config = node_dict[instance_name]
+                    node_instance_name = node_config['instance_name']
+                    node_status = node_config['status']
+                    working_url = node_config['url']
+                    total_memory = node_config['total_memory']
+                    memory_use_percent = node_config['memory_use_percent']
+                    cpu_use_percent = node_config['cpu_use_percent']
+                    tb.add_row([node_instance_name, node_status, working_url,
+                                total_memory, memory_use_percent, cpu_use_percent])
+                print(tb)
             else:
                 # todo : handle other types
                 pass
