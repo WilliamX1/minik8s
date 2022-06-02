@@ -9,7 +9,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import utils, const
 
-api_server_url = const.api_server_url
+from api_server import get_api_server_url
+api_server_url = get_api_server_url()
 
 
 # def callback(ch, method, properties, body):

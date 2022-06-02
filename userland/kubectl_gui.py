@@ -19,7 +19,7 @@ import kubeproxy
 import prettytable
 
 
-api_server_url = const.api_server_url
+API_SERVER_URL = None # get update when kubelet starts
 
 
 def choose_file():
@@ -39,7 +39,7 @@ def upload_yaml():
     except Exception as e:
         print(e.__str__())
         return
-    url = "{}/{}".format(api_server_url, config['kind'])
+    url = "{}/{}".format(API_SERVER_URL, config['kind'])
     try:
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
@@ -55,7 +55,7 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
-        url = "{}/Pod".format(api_server_url)
+        url = "{}/Pod".format(API_SERVER_URL)
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):

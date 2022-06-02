@@ -5,6 +5,7 @@ from flask import Flask, request
 import json
 from werkzeug.utils import secure_filename
 import kubeproxy
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
@@ -14,13 +15,10 @@ import requests
 import time
 import entities
 
-
 isMaster = True
-
 
 app = Flask(__name__)
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-
 
 # CORS(app, supports_credentials=True)
 
@@ -30,16 +28,10 @@ node_instance_name = node_instance_name + utils.getip()
 
 pods = list()
 
-api_server_url = const.api_server_url
-
 init: bool = False
 heart_beat_activated = False
 
-ETCD_NAME = None
-ETCD_IP_ADDRESS = None
-ETCD_INITIAL_CLUSTER = None
-ETCD_INITIAL_CLUSTER_STATE = None
-WORKER_PORT = None
+worker_info = dict()
 
 
 def get_pod_by_name(instance_name: str):
@@ -130,7 +122,7 @@ def handle_Pod():
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # update pod information such as ip, volume and ports
         config['status'] = 'Running'
-        url = '{}/{}/{}/{}'.format(api_server_url, 'Pod', instance_name, 'update')
+        url = '{}/{}/{}/{}'.format(worker_info['API_SERVER_URL'], 'Pod', instance_name, 'update')
         utils.post(url=url, config=config)
         # share.set('status', str(status))
     elif bahavior == 'remove':
@@ -154,7 +146,6 @@ def init_node():
     iptable_path = os.path.dirname(os.path.realpath(__file__)) + "/sources/iptables"
     # utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
     utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
-    global ETCD_NAME, ETCD_IP_ADDRESS, ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE, WORKER_PORT
 
     print('Default File Path is /minik8s/worker/nodes_yaml/...')
     while True:
@@ -166,10 +157,16 @@ def init_node():
             break
     nodes_info_config: dict = yaml_loader.load(yaml_path)
     logging.info(nodes_info_config)
-    ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
-    MASTER_ETCD_CLIENT_URL = nodes_info_config['MASTER_ETCD_CLIENT_URL']
-    WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
-    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, MASTER_ETCD_CLIENT_URL]
+    worker_info['IP_ADDRESS'] = nodes_info_config['IP_ADDRESS']
+    worker_info['MASTER_ETCD_CLIENT_URL'] = nodes_info_config['MASTER_ETCD_CLIENT_URL']
+    # write api_server_url into a file
+    worker_info['API_SERVER_URL'] = nodes_info_config['API_SERVER_URL']
+    f = open(const.api_server_file_path, 'w')
+    f.write(worker_info['API_SERVER_URL'])
+    f.close()
+
+    worker_info['WORKER_PORT'] = int(nodes_info_config['WORKER_PORT'])
+    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, worker_info['MASTER_ETCD_CLIENT_URL']]
     cmd3 = ['bash', const.DOCKER_SHELL_PATH]
     utils.exec_command(cmd2, shell=False, background=True)
     logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
@@ -197,8 +194,9 @@ def init_node():
     config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
                     'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                     'free_memory': free,
-                    'ip': ETCD_IP_ADDRESS, 'port': WORKER_PORT, 'url': ':'.join([ETCD_IP_ADDRESS, str(WORKER_PORT)])}
-    url = "{}/Node".format(api_server_url)
+                    'ip': worker_info['IP_ADDRESS'], 'port': worker_info['WORKER_PORT'],
+                    'url': ':'.join([worker_info['IP_ADDRESS'], str(worker_info['WORKER_PORT'])])}
+    url = "{}/Node".format(worker_info['API_SERVER_URL'])
     json_data = json.dumps(config)
     r = requests.post(url=url, json=json_data)
     if r.status_code == 200:
@@ -226,7 +224,8 @@ def send_heart_beat():
         config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
                         'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                         'free_memory': free, 'status': 'Running', 'pod_instances': list(),
-                        'ip': ETCD_IP_ADDRESS, 'port': WORKER_PORT, 'url': ':'.join([ETCD_IP_ADDRESS, str(WORKER_PORT)])}
+                        'ip': worker_info['IP_ADDRESS'], 'port': worker_info['WORKER_PORT'],
+                        'url': ':'.join([worker_info['IP_ADDRESS'], str(worker_info['WORKER_PORT'])])}
         for pod in pods:
             pod_status_heartbeat = dict()
             pod_status = pod.get_status()
@@ -242,7 +241,7 @@ def send_heart_beat():
             config['pod_instances'].append(pod.instance_name)
             config[pod.instance_name] = pod_status_heartbeat
 
-        url = "{}/heartbeat".format(api_server_url)
+        url = "{}/heartbeat".format(worker_info['API_SERVER_URL'])
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
         if r.status_code == 200:
@@ -251,10 +250,9 @@ def send_heart_beat():
             print("发送心跳包失败")
 
 
-
 def main():
     init_node()
-    app.run(host='0.0.0.0', port=WORKER_PORT, processes=True)
+    app.run(host='0.0.0.0', port=worker_info['WORKER_PORT'], processes=True)
 
 
 if __name__ == '__main__':

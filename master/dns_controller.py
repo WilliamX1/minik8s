@@ -10,8 +10,9 @@ sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import kubedns
 
 import yaml_loader, const, utils
+from api_server import get_api_server_url
+api_server_url = get_api_server_url()
 
-api_server_url = const.api_server_url
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -27,8 +28,6 @@ def init_dns_server():
     """
     config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-replica-set.yaml")
     url = "{}/ReplicaSet".format(api_server_url)
-    # config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-pod.yaml")
-    # url = "{}/Pod".format(api_server_url)
     utils.post(url=url, config=config)
 
     config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-service.yaml")
@@ -40,12 +39,6 @@ def init_dns_server():
     dns_config_dict['dns-server-ip'] = config['clusterIP']
     url = "{}/Dns/Config".format(api_server_url)
     utils.post(url=url, config=dns_config_dict)
-
-    """
-    config: dict = yaml_loader.load('./dns/dns-nginx-server-dns.yaml')
-    url = "{}/Dns".format(api_server_url)
-    helper.post(url=url, config=config)
-    """
 
 
 def update_etc_hosts(hosts=True):

@@ -15,17 +15,17 @@ ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import utils, const, yaml_loader
 from serverless import ServerlessFunction, Edge, DAG
+
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
 from entities import parse_bytes
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-
-
-use_etcd = False  # True
-# etcd = etcd3.client(port=2379)
+use_etcd = True
+etcd = etcd3.client(port=2379)
 etcd_supplant = dict()
+api_server_url = None
 
 
 def get(key, assert_exist=True):
@@ -49,8 +49,29 @@ def put(key, value):
         etcd_supplant[key] = json.dumps(value)  # force deep copy here
 
 
+def get_api_server_url():
+    return get('api_server_url')
+
+
 def init_api_server():
+    global api_server_url
+    # start etcd
+    yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+    etcd_info_config: dict = yaml_loader.load(yaml_path)
+    API_SERVER_URL = etcd_info_config['API_SERVER_URL']
+    ETCD_NAME = etcd_info_config['ETCD_NAME']
+    ETCD_IP_ADDRESS = etcd_info_config['IP_ADDRESS']
+    ETCD_INITIAL_CLUSTER = etcd_info_config['ETCD_INITIAL_CLUSTER']
+    ETCD_INITIAL_CLUSTER_STATE = etcd_info_config['ETCD_INITIAL_CLUSTER_STATE']
+    cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
+            ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
+    utils.exec_command(cmd1, shell=False, background=True)
+    logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
+    time.sleep(5)
+
     # for the very first start, init etcd
+    put('api_server_url', API_SERVER_URL)
+    api_server_url = get('api_server_url')
     if get('nodes_list', assert_exist=False) is None:
         put('nodes_list', list())
     if get('pods_list', assert_exist=False) is None:
@@ -66,29 +87,12 @@ def init_api_server():
     if get('dns_config', assert_exist=False) is None:
         put('dns_config', dict())
 
-    # start etcd
-    yaml_name = 'master.yaml'
-    yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
-    etcd_info_config: dict = yaml_loader.load(yaml_path)
-    ETCD_NAME = etcd_info_config['ETCD_NAME']
-    ETCD_IP_ADDRESS = etcd_info_config['IP_ADDRESS']
-    ETCD_INITIAL_CLUSTER = etcd_info_config['ETCD_INITIAL_CLUSTER']
-    ETCD_INITIAL_CLUSTER_STATE = etcd_info_config['ETCD_INITIAL_CLUSTER_STATE']
-    cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
-            ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
-    utils.exec_command(cmd1, shell=False, background=True)
-    logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
-    time.sleep(5)
-
 
 def delete_key(key):
     if use_etcd:
         etcd.delete(key)
     else:
         etcd_supplant.pop(key)
-
-
-api_server_url = const.api_server_url
 
 
 def broadcast_message(channel_name: str, message: str):
@@ -101,7 +105,6 @@ def broadcast_message(channel_name: str, message: str):
     connect.close()
 
 
-
 @app.route('/Node', methods=['GET'])
 def handle_nodes():
     result = dict()
@@ -109,7 +112,7 @@ def handle_nodes():
     for node_instance_name in result['nodes_list']:
         result[node_instance_name] = get(node_instance_name)
         # todo: post pod information to related node
-        try:    # we accept timeout
+        try:  # we accept timeout
             r = requests.get(url=result[node_instance_name]['url'] + "/heartbeat", timeout=0.01)
         except Exception as e:
             pass
@@ -136,8 +139,6 @@ def upload_nodes():
     put('nodes_list', nodes_list)
     put(node_instance_name, node_config)
     return json.dumps(get('nodes_list')), 200
-
-
 
 
 @app.route('/Node/<string:node_instance_name>', methods=['DELETE'])
@@ -385,7 +386,7 @@ def post_pod(instance_name: str, behavior: str):
         config: dict = json.loads(json_data)
         put(instance_name, config)
         config['behavior'] = 'create'
-    elif behavior == 'update': #  update pods information such as ip
+    elif behavior == 'update':  # update pods information such as ip
         json_data = request.json
         config: dict = json.loads(json_data)
         put(instance_name, config)
