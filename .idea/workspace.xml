@@ -3,9 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6e656f6e-c198-4d93-b24d-bda203ac8924" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.workflow/BranchPipeline.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.workflow/BranchPipeline.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.workflow/MasterPipeline.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.workflow/MasterPipeline.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.workflow/PRPipeline.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.workflow/PRPipeline.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -166,7 +163,7 @@
       <workItem from="1654096678481" duration="2037000" />
       <workItem from="1654098822663" duration="437000" />
       <workItem from="1654105486111" duration="8036000" />
-      <workItem from="1654160462335" duration="241000" />
+      <workItem from="1654160462335" duration="907000" />
     </task>
     <servers />
   </component>
