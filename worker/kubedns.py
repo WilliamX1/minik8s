@@ -10,7 +10,7 @@ import utils, const
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 dns_port = const.dns_port
-conf_path = const.dns_conf_path
+conf_path = const.DNS_CONF_PATH
 
 
 def format_conf(listen_port: int, host_name: str, paths: list):

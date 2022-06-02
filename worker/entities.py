@@ -92,7 +92,7 @@ class Pod:
             logging.info('Pod %s run successfully ...' % self.instance_name)
             config['ip'] = self.ipv4addr
             config['volume'] = self.volume
-            config['ports'] = ';'.join(self.ports) if len(self.ports) > 0 else '<none>'
+            config['ports'] = self.ports if len(self.ports) > 0 else '[]'
         else:  # after kubelet crash, we need to recover the structure
             self.instance_name = config['instance_name']
             self.container_names = config['container_names']

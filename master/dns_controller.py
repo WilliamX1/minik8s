@@ -26,11 +26,11 @@ def init_dns_server():
     - start a dns for this service, default is 1`ns-nginx-server-service`
     :return: None
     """
-    config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-replica-set.yaml")
+    config: dict = yaml_loader.load(const.DNS_REPLICASET_PATH)
     url = "{}/ReplicaSet".format(api_server_url)
     utils.post(url=url, config=config)
 
-    config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-service.yaml")
+    config: dict = yaml_loader.load(const.DNS_SERVICE_PATH)
     url = "{}/Service".format(api_server_url)
     utils.post(url=url, config=config)
 

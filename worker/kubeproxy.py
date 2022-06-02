@@ -30,10 +30,11 @@ def alloc_service_clusterIP(service_dict: dict):
 
     while max_alloc_num > 0:
         max_alloc_num -= 1
-        num0 = service_clusterIP_prefix  # service ip should be like '18.xx.xx.xx'
-        num1 = random.randint(0, 255)
-        num2 = random.randint(0, 255)
-        num3 = random.randint(0, 255)
+        # service ip should be like '192.168.xx.xx'
+        num0 = service_clusterIP_prefix[0] if len(service_clusterIP_prefix) >= 1 else random.randint(0, 255)
+        num1 = service_clusterIP_prefix[1] if len(service_clusterIP_prefix) >= 2 else random.randint(0, 255)
+        num2 = service_clusterIP_prefix[2] if len(service_clusterIP_prefix) >= 3 else random.randint(0, 255)
+        num3 = service_clusterIP_prefix[3] if len(service_clusterIP_prefix) >= 4 else random.randint(0, 255)
         ip = '.'.join([str(num0), str(num1), str(num2), str(num3)])
         if ip not in ip_allocated:
             break

@@ -28,7 +28,7 @@ def print_info():
     print("remove pod/service/dns name          remove pod/service/dns")
 
 
-def upload(yaml_path):
+def upload(yaml_path, API_SERVER_URL):
     print('the yaml path is：', yaml_path)
     try:
         config: dict = yaml_loader.load(yaml_path)
@@ -42,7 +42,7 @@ def upload(yaml_path):
 
 def main():
     # get api_server_url from .api_server_url file
-    f = open(const.api_server_file_path, 'r')
+    f = open(const.API_SERVER_URL_PATH, 'r')
     API_SERVER_URL = f.read()
     f.close()
 
@@ -73,8 +73,8 @@ def main():
             else:
                 if yaml_path[0] == '$':
                     yaml_path = ROOT_DIR + yaml_path[1:]
-                upload(yaml_path=yaml_path)
-                print('upload yaml %s successfully' % yaml_path)
+                upload(yaml_path=yaml_path, API_SERVER_URL=API_SERVER_URL)
+                print('create yaml %s successfully' % yaml_path)
         elif show_match:
             object_type = show_match.group(1)
             if object_type == "pods":

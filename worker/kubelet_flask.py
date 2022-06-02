@@ -161,7 +161,7 @@ def init_node():
     worker_info['MASTER_ETCD_CLIENT_URL'] = nodes_info_config['MASTER_ETCD_CLIENT_URL']
     # write api_server_url into a file
     worker_info['API_SERVER_URL'] = nodes_info_config['API_SERVER_URL']
-    f = open(const.api_server_file_path, 'w')
+    f = open(const.API_SERVER_URL_PATH, 'w')
     f.write(worker_info['API_SERVER_URL'])
     f.close()
 
@@ -175,7 +175,7 @@ def init_node():
     logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
     time.sleep(3)
     # delete original iptables and restore, init for service and dns
-    dir = const.dns_conf_path
+    dir = const.DNS_CONF_PATH
     for f in os.listdir(dir):
         if f != 'default.conf':
             os.remove(os.path.join(dir, f))
@@ -214,7 +214,6 @@ def send_heart_beat():
         return "Done!", 200
     heart_beat_activated = True
     while True:
-
         time.sleep(5)  # wait for 5 seconds
         data = psutil.virtual_memory()
         total = data.total  # 总内存,单位为byte

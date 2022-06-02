@@ -3,8 +3,8 @@ name: pod-1
 volume:
   - $/userland/final_check/pod-1/:/usr/share/nginx/html/
   - $/userland/final_check/pod-1/:/var/lib/jetty/webapps
-cpu: 1
-mem: 300m
+cpu: 4
+mem: 50m
 metadata:
   labels:
     app: xhd
@@ -15,26 +15,26 @@ containers:
     command:
     resource:
       cpu: 1
-      memory: 100m
+      memory: 20m
     port: 80
   - name: jetty
     image: jetty
     command:
     resource:
       cpu: 1
-      memory: 80m
+      memory: 20m
     port: 8080
   - name: busybox
     image: busybox
     command: ['sh', '-c', 'sleep 36000000']
     resource:
       cpu: 1
-      memory: 20m
+      memory: 5m
     port:
   - name: echoserver
     image: soketi/echo-server:latest-lts-alpine
     command:
     resource:
       cpu: 1
-      memory: 20m
+      memory: 5m
     port: 6001

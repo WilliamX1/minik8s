@@ -3,7 +3,7 @@ name: pod-4
 volume:
   - $/userland/final_check/pod-4/:/usr/share/nginx/html/
 cpu: 1
-mem: 300m
+mem: 30m
 metadata:
   labels:
     usage: isolation
@@ -13,5 +13,5 @@ containers:
     command:
     resource:
       cpu: 1
-      memory: 100m
+      memory: 10m
     port: 80
