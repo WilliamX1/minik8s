@@ -189,7 +189,7 @@ def init_node():
             os.remove(os.path.join(dir, f))
     # todo: add other logic here
     global pods
-    url = "{}/Node/{}".format(api_server_url, node_instance_name)
+    url = "{}/Node/{}".format(worker_info['API_SERVER_URL'], node_instance_name)
     r = requests.get(url)
     node_config: dict = json.loads(r.content.decode())
     if node_config.get('pod_instances'):
@@ -243,13 +243,9 @@ def send_heart_beat():
         config: dict = {'instance_name': node_instance_name, 'kind': 'Node', 'total_memory': total,
                         'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                         'free_memory': free, 'status': 'Running', 'pod_instances': list(),
-<<<<<<< HEAD
                         'ip': worker_info['IP_ADDRESS'], 'port': worker_info['WORKER_PORT'],
                         'url': ':'.join([worker_info['IP_ADDRESS'], str(worker_info['WORKER_PORT'])])}
-=======
-                        'ip': ETCD_IP_ADDRESS, 'port': WORKER_PORT, 'url': ':'.join([ETCD_IP_ADDRESS, str(WORKER_PORT)])}
         containers_status = entities.get_containers_status()
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
         for pod in pods:
             pod_status_heartbeat = dict()
             pod_status = pod.get_status(containers_status)
@@ -258,14 +254,11 @@ def send_heart_beat():
             pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
             pod_status_heartbeat['memory_usage_percent'] = pod_status['memory_usage_percent']
             pod_status_heartbeat['ip'] = pod_status['ip']
-<<<<<<< HEAD
             pod_status_heartbeat['volume'] = pod_status['volume']
             pod_status_heartbeat['ports'] = pod_status['ports']
-=======
             pod_status_heartbeat['container_names'] = pod.container_names
 
             print("pod_status_heartbeat = ", pod_status_heartbeat)
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
             config['pod_instances'].append(pod.instance_name)
             config[pod.instance_name] = pod_status_heartbeat
 

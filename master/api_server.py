@@ -262,7 +262,24 @@ def schedule(config):
         config['status'] = 'Schedule Failed'
         if len(nodes_list) == 0:
             print("no node registered !")
-        for node_instance_name in nodes_list:
+
+        schedule_counts = get('schedule_counts', assert_exist=False)
+        if schedule_counts is None or schedule_counts > 10:
+            put('schedule_counts', 0)
+        else:
+            put('schedule_counts', schedule_counts + 1)
+        schedule_counts = get('schedule_counts', assert_exist=True)
+
+        index = schedule_counts % len(nodes_list) if len(nodes_list) > 0 else 0
+        index_list = list()
+        for i in range(index, len(nodes_list)):
+            index_list.append(i)
+        for i in range(0, index):
+            index_list.append(i)
+        print("index list")
+        print(index_list)
+        for i in index_list:
+            node_instance_name = nodes_list[i]
             # todo: check node status here
             current_node = get(node_instance_name)
             print("node status = ", current_node['status'])

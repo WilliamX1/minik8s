@@ -2,6 +2,7 @@ kind: Service
 name: pod-1-2-service
 type: ClusterIP
 clusterIP: 192.168.88.88
+strategy: random
 selector:
   app: xhd
   version: major

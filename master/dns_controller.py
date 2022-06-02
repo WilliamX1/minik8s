@@ -73,7 +73,8 @@ def update_etc_hosts(hosts=True):
             utils.post(url=url, config=upload_cmd)
     else:
         # Let Every Container of Every Pod to execute this command
-        command = "/bin/sh -c \"{}\"".format(";".join(command))
+        command = ';'.join(command)
+        # command = "/bin/sh -c \"{}\"".format(";".join(command))
         pod_dict = utils.get_pod_dict(api_server_url=api_server_url)
         for pod_instance in pod_dict:
             url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')

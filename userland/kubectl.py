@@ -116,12 +116,8 @@ def main():
                 dns_dict = utils.get_dns_dict(api_server_url=API_SERVER_URL)
                 kubedns.show_dns(dns_dict)
             elif object_type == 'functions':
-<<<<<<< HEAD
-                functions_list = utils.get_pod_dict(api_server_url=API_SERVER_URL)
-=======
                 # todo: test logic here
-                functions_dict = utils.get_function_dict(api_server_url=api_server_url)
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
+                functions_dict = utils.get_function_dict(api_server_url=API_SERVER_URL)
                 tb = prettytable.PrettyTable()
                 tb.field_names = ['name', 'status', 'requirement_status', 'created time']
                 for function_name in functions_dict['functions_list']:
@@ -132,7 +128,6 @@ def main():
                         tb.add_row([function_name, function_config['status'], function_config['requirement_status'], created_time.strip()])
                 print(tb)
             elif object_type == 'nodes':
-<<<<<<< HEAD
                 node_dict = utils.get_node_dict(api_server_url=API_SERVER_URL)
                 tb = prettytable.PrettyTable()
                 tb.field_names = ['name', 'status', 'working_url',
@@ -140,6 +135,9 @@ def main():
                                   'cpu_use_percent(%)']
                 for instance_name in node_dict['nodes_list']:
                     node_config = node_dict[instance_name]
+                    if node_config:
+                        last_receive_time = int(time.time() - node_config['last_receive_time'])
+                        last_receive_time = str(last_receive_time // 60) + "m" + str(last_receive_time % 60) + 's'
                     node_instance_name = node_config['instance_name']
                     node_status = node_config['status']
                     working_url = node_config['url']
@@ -148,17 +146,6 @@ def main():
                     cpu_use_percent = node_config['cpu_use_percent']
                     tb.add_row([node_instance_name, node_status, working_url,
                                 total_memory, memory_use_percent, cpu_use_percent])
-=======
-                nodes_dict = utils.get_node_dict(api_server_url=api_server_url)
-                tb = prettytable.PrettyTable()
-                tb.field_names = ['name', 'status', 'last_receive_time']
-                for node_instance_name in nodes_dict['nodes_list']:
-                    node_config = nodes_dict.get(node_instance_name)
-                    if node_config:
-                        last_receive_time = int(time.time() - node_config['last_receive_time'])
-                        last_receive_time = str(last_receive_time // 60) + "m" + str(last_receive_time % 60) + 's'
-                        tb.add_row([node_instance_name, node_config['status'], last_receive_time.strip()])
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
                 print(tb)
             else:
                 # todo : handle other types

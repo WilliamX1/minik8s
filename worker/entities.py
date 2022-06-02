@@ -5,7 +5,7 @@ from enum import Enum
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
-import const
+import const, utils
 
 import docker
 import six
@@ -133,25 +133,11 @@ class Pod:
             container_status = containers_status.get(container_name)
             if container_status is None:
                 missing_container += 1
-<<<<<<< HEAD
-                break
-            parameter = tmp[0].split()
-            # container ID | container Name | CPU USAGE | MEM USAGE | / | MEM LIMIT | MEM PERCENT | NET IO | BLOCK IO | PIDS
-            pod_status['cpu_usage_percent'] += float(parameter[2][:-1])
-            pod_status['memory_usage_percent'] += float(parameter[6][:-1])
-            a = self.client.api.inspect_container(container_name)
-            filter_dict = dict()
-            filter_dict['id'] = a.get('ID', a.get('Id', None))
-            container_stats = self.client.api.containers(filters=filter_dict)[0]
-            status = container_stats['Status'].split()
-=======
-
                 print("missing container_name = ", container_name)
                 continue
             pod_status['cpu_usage_percent'] += container_status['cpu_usage_percent']
             pod_status['memory_usage_percent'] += container_status['memory_usage_percent']
             status = container_status['status']
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
             if status[0] == 'Up':
                 pass
             elif status[0] == 'Exited':
@@ -181,9 +167,16 @@ class Pod:
         :return:
         """
         for name in self.container_names:
+            if name == self.instance_name:  # pause container will not exec
+                continue
             if container_name is None or container_name == name:
                 ct = self.client.containers.get(name)
-                ct.exec_run(cmd=cmd)
+                cmd = str(cmd).split(';')
+                for c in cmd:
+                    # TO DO
+                    print(c)
+                    print('------------------')
+                    ct.exec_run(cmd=c)
 
 
 def get_containers_status():

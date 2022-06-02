@@ -291,7 +291,7 @@ def create_service(service_config: dict, pods_dict: dict, simulate=False):
     pod_ip_list = list()
     for pod_instance in service_config['pod_instances']:
         pod_ip_list.append(pods_dict[pod_instance]['ip'])
-    strategy = 'random'  # 'random' or 'roundrobin'
+    strategy = service_config['strategy'] if service_config.get('strategy') is not None else 'random'  # 'random' or 'roundrobin'
 
     for eachports in ports:
         port = eachports['port']
