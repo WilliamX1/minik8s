@@ -96,6 +96,7 @@ class Pod:
         else:   # after kubelet crash, we need to recover the structure
             self.instance_name = config['instance_name']
             self.container_names = config['container_names']
+            self.ipv4addr = config['ip']
 
     def start(self):
         for container_name in self.container_names:
@@ -122,28 +123,22 @@ class Pod:
             status = self.client.api.inspect_container(container_name)
             self.client.api.remove_container(status.get('ID', status.get('Id', None)))
 
-    def get_status(self):
+    def get_status(self, containers_status: dict):
         pod_status = {'memory_usage_percent': 0, 'cpu_usage_percent': 0, 'status': 'Running'}
         successfully_exit_number = 0
         error_exit_number = 0
         missing_container = 0
         for container_name in self.container_names:
-            status = self.client.api.inspect_container(container_name)
-            tmp = os.popen('docker stats --no-stream | grep {}'.format(container_name)).readlines()
-            if not tmp or len(tmp) < 1:
-                print("container not found")
+            print("container_name = ", container_name)
+            container_status = containers_status.get(container_name)
+            if container_status is None:
                 missing_container += 1
-                break
-            parameter = tmp[0].split()
-            # container ID | container Name | CPU USAGE | MEM USAGE | / | MEM LIMIT | MEM PERCENT | NET IO | BLOCK IO | PIDS
-            pod_status['cpu_usage_percent'] += float(parameter[2][:-1])
-            pod_status['memory_usage_percent'] += float(parameter[6][:-1])
-            a = self.client.api.inspect_container(container_name)
-            filter_dict = dict()
-            filter_dict['id'] = a.get('ID', a.get('Id', None))
-            container_stats = self.client.api.containers(filters=filter_dict)[0]
-            state = container_stats['State']
-            status = container_stats['Status'].split()
+
+                print("missing container_name = ", container_name)
+                continue
+            pod_status['cpu_usage_percent'] += container_status['cpu_usage_percent']
+            pod_status['memory_usage_percent'] += container_status['memory_usage_percent']
+            status = container_status['status']
             if status[0] == 'Up':
                 pass
             elif status[0] == 'Exited':
@@ -174,3 +169,30 @@ class Pod:
             if container_name is None or container_name == name:
                 ct = self.client.containers.get(name)
                 ct.exec_run(cmd=cmd)
+
+
+def get_containers_status():
+    container_status_list = dict()
+    tmp = os.popen('docker stats --no-stream').readlines()
+    for i in range(1, len(tmp)):
+        try:
+            parameter = tmp[i].split()
+            container_status = dict()
+            container_status['id'] = parameter[0]
+            container_status['name'] = parameter[1]
+            container_status['cpu_usage_percent'] = float(parameter[2][:-1])
+            container_status['memory_usage_percent'] = float(parameter[6][:-1])
+
+            client = docker.from_env(version='1.25', timeout=5)
+
+            a = client.api.inspect_container(container_status['id'])
+            filter_dict = dict()
+            filter_dict['id'] = a.get('ID', a.get('Id', None))
+            container_stats = client.api.containers(filters=filter_dict)[0]
+            state = container_stats['State']
+            status = container_stats['Status'].split()
+            container_status['status'] = status
+            container_status_list[container_status['name']] = container_status
+        except Exception as e:
+            pass
+    return container_status_list

@@ -148,6 +148,8 @@ def main():
         dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
         service_dict = utils.get_service_dict(api_server_url=api_server_url)
         # this should only execute once
+        if dns_config_dict is None:
+            continue
         if dns_config_dict.get('dns-server-ip') is None:
             init_dns_server()
 

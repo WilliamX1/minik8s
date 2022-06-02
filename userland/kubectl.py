@@ -44,7 +44,9 @@ def main():
         service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
         dns_command_match = re.fullmatch(r'(update|restart|remove) * dns *([\w-]*)', cmd.strip(), re.I)
         curl_match = re.fullmatch(r'curl * ([a-zA-Z0-9:/\\_\-.]*)', cmd.strip(), re.I)  # only used for test
-        upload_match = re.fullmatch(r'upload *-f *([a-zA-Z0-9:/\\_\-.]*py)', cmd.strip(), re.I)  # only used for test
+        upload_python_match = re.fullmatch(r'upload *function *-f *([a-zA-Z0-9:/\\_\-.]*py)', cmd.strip(), re.I)
+        upload_requirement_match = re.fullmatch(r'upload *function *([\w-]*) *-r *([a-zA-Z0-9:/\\_\-.]*txt)', cmd.strip(), re.I)
+        start_function_match = re.fullmatch(r'start *function *([\w-]*)', cmd.strip(), re.I)
 
         if exit_match:
             break
@@ -84,17 +86,28 @@ def main():
                 dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
                 kubedns.show_dns(dns_dict)
             elif object_type == 'functions':
-                functions_list = utils.get_pod_dict(api_server_url=api_server_url)
+                # todo: test logic here
+                functions_dict = utils.get_function_dict(api_server_url=api_server_url)
                 tb = prettytable.PrettyTable()
-                tb.field_names = ['name', 'status', 'created time']
-                for function_name in functions_list['functions_list']:
-                    function_config = functions_list.get(function_name)
+                tb.field_names = ['name', 'status', 'requirement_status', 'created time']
+                for function_name in functions_dict['functions_list']:
+                    function_config = functions_dict.get(function_name)
                     if function_config:
                         created_time = int(time.time() - function_config['created_time'])
                         created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                        tb.add_row([function_name, function_config['status'], created_time.strip()])
+                        tb.add_row([function_name, function_config['status'], function_config['requirement_status'], created_time.strip()])
+                print(tb)
             elif object_type == 'nodes':
-                pass
+                nodes_dict = utils.get_node_dict(api_server_url=api_server_url)
+                tb = prettytable.PrettyTable()
+                tb.field_names = ['name', 'status', 'last_receive_time']
+                for node_instance_name in nodes_dict['nodes_list']:
+                    node_config = nodes_dict.get(node_instance_name)
+                    if node_config:
+                        last_receive_time = int(time.time() - node_config['last_receive_time'])
+                        last_receive_time = str(last_receive_time // 60) + "m" + str(last_receive_time % 60) + 's'
+                        tb.add_row([node_instance_name, node_config['status'], last_receive_time.strip()])
+                print(tb)
             else:
                 # todo : handle other types
                 pass
@@ -129,8 +142,8 @@ def main():
                 url = "{}/Dns/{}/{}".format(api_server_url, instance_name, cmd_type)
                 config = dns_dict[instance_name]
                 utils.post(url=url, config=config)
-        elif upload_match:
-            python_path = upload_match.group(1)
+        elif upload_python_match:
+            python_path = upload_python_match.group(1)
             if not os.path.isfile(python_path):
                 print("file not exist")
                 continue
@@ -156,7 +169,26 @@ def main():
 
             print(config)
             r = requests.post(url=url, json=json.dumps(config))
-
+        elif upload_requirement_match:
+            module_name = upload_requirement_match.group(1)
+            requirement_path = upload_requirement_match.group(2)
+            if not os.path.isfile(requirement_path):
+                print("file not exist")
+                continue
+            url = "{}/Function/{}/upload_requirement".format(api_server_url, module_name)
+            with open(requirement_path) as f:
+                content = f.read()
+            r = requests.post(url=url, json=json.dumps({'requirement': content}))
+            if r.status_code != 200:
+                print("Function instance not found!")
+        elif start_function_match:
+            module_name = start_function_match.group(1)
+            url = "{}/Function/{}/start".format(api_server_url, module_name)
+            r = requests.post(url=url, json=json.dumps(dict()))
+            if r.status_code != 200:
+                print("Function instance not found!")
+            else:
+                print("Start successfully!")
         elif curl_match:
             ipordns = curl_match.group(1)  # ip or damain name
             utils.exec_command(command=['curl', ipordns])

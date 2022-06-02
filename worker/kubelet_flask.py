@@ -102,10 +102,8 @@ def upload_script(instance_name: str):
 @app.route('/Pod', methods=['POST'])
 def handle_Pod():
     config: dict = json.loads(request.json)
-
     print("get broadcast ", config)
     # config中不含node或者node不是自己都丢弃
-
     if not config.__contains__('node') or config['node'] != node_instance_name \
             or not config.__contains__('behavior'):
         return "Not found", 404
@@ -117,12 +115,22 @@ def handle_Pod():
         # 是自己的调度，进行操作
         if config.__contains__('script_data'):
             # serverless Pod
-            import helper.const
             # todo : handle it with different worker url
             module_name = config['metadata']['labels']['module_name']
-            r = requests.post(url=const.worker0_url + '/ServerlessFunction/{}/upload'.format(module_name),
-                              json=json.dumps(config))
-            print("response = ", r.content.decode())
+            pod_dir = os.path.join(BASE_DIR, instance_name + '/')
+            print("handle serverless pod")
+            if not os.path.exists(pod_dir):
+                print("pod dir = ", pod_dir)
+                os.mkdir(pod_dir)
+            data = config['script_data']
+            f = open(os.path.join(pod_dir, secure_filename('{}.py'.format(module_name))), 'w')
+            f.write(data)
+            f.close()
+            if config.__contains__('requirement'):
+                f = open(os.path.join(pod_dir, 'requirement.txt'), 'w')
+                f.write(data)
+                f.close()
+            os.system("cd {} && docker build . -t {}".format(instance_name, module_name))
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # share.set('status', str(status))
@@ -179,6 +187,18 @@ def init_node():
     utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
 
     # todo: add other logic here
+    global pods
+    url = "{}/Node/{}".format(api_server_url, node_instance_name)
+    r = requests.get(url)
+    node_config: dict = json.loads(r.content.decode())
+    if node_config.get('pod_instances'):
+        for pod_instance_name in node_config['pod_instances']:
+            pod_config = node_config[pod_instance_name]
+            if pod_config.__contains__("container_names"):
+                pods.append(entities.Pod(pod_config))
+                print("cover pod {}".format(pod_instance_name))
+    # print("node config = ", node_config)
+
     # todo: recover pods here
 
     # os.system('docker stop $(docker ps -a -q)')
@@ -223,25 +243,30 @@ def send_heart_beat():
                         'cpu_use_percent': cpu_use_percent, 'memory_use_percent': memory_use_percent,
                         'free_memory': free, 'status': 'Running', 'pod_instances': list(),
                         'ip': ETCD_IP_ADDRESS, 'port': WORKER_PORT, 'url': ':'.join([ETCD_IP_ADDRESS, str(WORKER_PORT)])}
+        containers_status = entities.get_containers_status()
         for pod in pods:
             pod_status_heartbeat = dict()
-            pod_status = pod.get_status()
-            # todo : get status one by one is very slow
-            print("pod_status = ", pod_status)
+            pod_status = pod.get_status(containers_status)
             pod_status_heartbeat['instance_name'] = pod.instance_name
             pod_status_heartbeat['status'] = pod_status['status']
             pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
             pod_status_heartbeat['memory_usage_percent'] = pod_status['memory_usage_percent']
             pod_status_heartbeat['ip'] = pod_status['ip']
+            pod_status_heartbeat['container_names'] = pod.container_names
+
+            print("pod_status_heartbeat = ", pod_status_heartbeat)
             config['pod_instances'].append(pod.instance_name)
             config[pod.instance_name] = pod_status_heartbeat
 
         url = "{}/heartbeat".format(api_server_url)
         json_data = json.dumps(config)
-        r = requests.post(url=url, json=json_data)
-        if r.status_code == 200:
-            print("发送心跳包成功")
-        else:
+        try:
+            r = requests.post(url=url, json=json_data, timeout=1)
+            if r.status_code == 200:
+                print("发送心跳包成功")
+            else:
+                print("发送心跳包失败")
+        except Exception as e:
             print("发送心跳包失败")
 
 
