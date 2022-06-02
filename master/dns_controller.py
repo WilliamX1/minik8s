@@ -146,6 +146,8 @@ def main():
             print('Connect API Server Failure!', e)
             continue
         # this should only execute once
+        if dns_config_dict is None:
+            continue
         if dns_config_dict.get('dns-server-ip') is None:
             init_dns_server()
 

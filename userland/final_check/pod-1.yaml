@@ -31,10 +31,3 @@ containers:
       cpu: 1
       memory: 5m
     port:
-  - name: echoserver
-    image: soketi/echo-server:latest-lts-alpine
-    command:
-    resource:
-      cpu: 1
-      memory: 5m
-    port: 6001

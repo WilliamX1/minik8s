@@ -2,7 +2,6 @@ import time
 
 from flask import Flask, request
 import json
-import pika
 import uuid
 import etcd3
 import sys
@@ -82,6 +81,8 @@ def init_api_server():
         put('replica_sets_list', list())
     if get('functions_list', assert_exist=False) is None:
         put('functions_list', list())
+    if get('jobs_list', assert_exist=False) is None:
+        put('jobs_list', list())
     if get('dns_list', assert_exist=False) is None:
         put('dns_list', list())
     if get('dns_config', assert_exist=False) is None:
@@ -95,14 +96,6 @@ def delete_key(key):
         etcd_supplant.pop(key)
 
 
-def broadcast_message(channel_name: str, message: str):
-    connect = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
-    channel = connect.channel()
-    # declare the name and type of the channel
-    channel.exchange_declare(exchange=channel_name, exchange_type="fanout")
-    # broadcast the message
-    channel.basic_publish(exchange=channel_name, routing_key='', body=message.encode())
-    connect.close()
 
 
 @app.route('/Node', methods=['GET'])
@@ -111,8 +104,7 @@ def handle_nodes():
     result['nodes_list']: list = get('nodes_list')
     for node_instance_name in result['nodes_list']:
         result[node_instance_name] = get(node_instance_name)
-        # todo: post pod information to related node
-        try:  # we accept timeout
+        try:    # we allow timeout
             r = requests.get(url=result[node_instance_name]['url'] + "/heartbeat", timeout=0.01)
         except Exception as e:
             pass
@@ -155,6 +147,20 @@ def delete_node(node_instance_name: str):
             pod_config['status'] = 'Lost Connect'
             put(pod_instance_name, pod_config)  # save changed status
     return json.dumps(get('nodes_list')), 200
+
+
+@app.route('/Node/<string:node_instance_name>', methods=['GET'])
+def get_node_instance(node_instance_name: str):
+    # set node to not available
+    node_instance_config = get(node_instance_name, assert_exist=False)
+    if node_instance_config:
+        if node_instance_config.get('pod_instances'):
+            for pod_instance_name in node_instance_config['pod_instances']:
+                node_instance_config[pod_instance_name] = get(pod_instance_name)
+        return json.dumps(node_instance_config), 200
+    else:
+        return json.dumps(dict()), 200
+
 
 
 @app.route('/', methods=['GET'])
@@ -448,21 +454,41 @@ def upload_function():
     function_name = function_config['name']
     function_config['created_time'] = time.time()
     function_config['status'] = 'Uploaded'
-
+    function_config['requirement_status'] = 'Not Found'
     # print("node_config = ", node_config)
     functions_list: list = get('functions_list')
     # node instance name bind with physical mac address
     flag = 0
     for name in functions_list:
-        if name == functions_list:
+        if name == function_name:
             flag = 1
     if not flag:
         functions_list.append(function_name)
     put('functions_list', functions_list)
-
     put(function_name, function_config)  # replace the old one if exist
     return json.dumps(get('functions_list')), 200
 
+@app.route('/Function/<string:instance_name>/<string:behavior>', methods=['POST'])
+def handle_function(instance_name: str, behavior: str):
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    if behavior == 'upload_requirement':
+        function_config = get(instance_name, assert_exist=False)
+        if function_config is None:
+            return "Not found", 404
+        function_config['requirement'] = config['requirement']
+        function_config['status'] = 'Uploaded'
+        function_config['requirement_status'] = 'Uploaded'
+        put(instance_name, function_config)  # replace the old one if exist
+    elif behavior == 'start':
+        function_config = get(instance_name, assert_exist=False)
+        if function_config is None:
+            return "Not found", 404
+        function_config['kind'] = 'Pod'
+        r = requests.post("{}/Pod".format(api_server_url), json=json.dumps(function_config))
+        return json.dumps(config), 200
+
+    return "Success", 200
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
 def get_dag(dag_name: str):
@@ -541,23 +567,33 @@ def receive_heartbeat():
     heartbeat: dict = json.loads(json_data)
     heartbeat['last_receive_time'] = time.time()
     node_instance_name = heartbeat['instance_name']
-    node_config = get(node_instance_name)
-    if node_config['status'] == 'Not Available':
-        # we get the heartbeat of a lost node again
-        node_config['status'] = 'Running'
+    # node_config = get(node_instance_name)
+    # if node_config['status'] == 'Not Available':
+    #     # we get the heartbeat of a lost node again
+    #     node_config['status'] = 'Running'
     for pod_instance_name in heartbeat['pod_instances']:
         pod_heartbeat = heartbeat[pod_instance_name]
-        pod_config = get(pod_instance_name)
-        if pod_config['status'] != 'Removed':
-            pod_config['status'] = pod_heartbeat['status']
-        pod_config['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
-        pod_config['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
-        pod_config['ip'] = pod_heartbeat['ip']
-        pod_config['volume'] = pod_heartbeat['volume']
-        pod_config['ports'] = pod_heartbeat['ports']
-        pod_config['node'] = node_instance_name
-        put(pod_instance_name, pod_config)
+        pod_config = get(pod_instance_name, assert_exist=False)
+        if pod_config:
+            if pod_config['status'] != 'Removed':
+                pod_config['status'] = pod_heartbeat['status']
+            pod_config['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
+            pod_config['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
+            pod_config['ip'] = pod_heartbeat['ip']
+            pod_config['volume'] = pod_heartbeat['volume']
+            pod_config['ports'] = pod_heartbeat['ports']
+            pod_config['node'] = node_instance_name
+            pod_config['container_names'] = pod_heartbeat['container_names']
+            put(pod_instance_name, pod_config)
         heartbeat.pop(pod_instance_name)  # the information is of no use
+    nodes_list = get('nodes_list')
+    flag = 0
+    for name in nodes_list:
+        if name == node_instance_name:
+            flag = 1
+    if not flag:
+        nodes_list.append(node_instance_name)
+    put('nodes_list', nodes_list)
     put(node_instance_name, heartbeat)
     return json.dumps(heartbeat), 200
 

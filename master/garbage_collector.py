@@ -27,6 +27,12 @@ def main():
             if pods_dict.get(pod_instance_name) and pods_dict[pod_instance_name].get('status') == 'Schedule Failed':
                 r = requests.post(url='{}/Pod/{}/delete'.format(api_server_url, pod_instance_name),
                                   json=json.dumps(dict()))
+            if pods_dict.get(pod_instance_name) and pods_dict[pod_instance_name].get('status') == 'Ready to Create':
+                time_period = int(time.time() - pods_dict[pod_instance_name]['created_time'])
+                # print(time_period)
+                if time_period > 20:
+                    r = requests.post(url='{}/Pod/{}/delete'.format(api_server_url, pod_instance_name),
+                                      json=json.dumps(dict()))
 
 
 if __name__ == '__main__':

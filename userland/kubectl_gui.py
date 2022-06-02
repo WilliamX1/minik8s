@@ -55,7 +55,11 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
+<<<<<<< HEAD
         url = "{}/Pod".format(API_SERVER_URL)
+=======
+        url = "{}/Function".format(api_server_url)
+>>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):
@@ -64,7 +68,8 @@ def upload_python_script():
                     break
             content = f.read()
         assert module_name
-        config: dict = yaml_loader.load('./yaml_defualt/my_function.yaml')
+        function_yaml_template = os.path.join(BASE_DIR, './yaml_default/my_function.yaml')
+        config: dict = yaml_loader.load(function_yaml_template)
         config['name'] += module_name
         config['metadata']['labels']['module_name'] = module_name
         config['containers'][0]['name'] = module_name

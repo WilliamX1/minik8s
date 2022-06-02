@@ -39,6 +39,14 @@ def get_service_dict(api_server_url):
     return get(url)
 
 
+def get_node_dict(api_server_url):
+    url = '{}/Node'.format(api_server_url)
+    return get(url)
+
+def get_function_dict(api_server_url):
+    url = '{}/Function'.format(api_server_url)
+    return get(url)
+
 def get_dns_dict(api_server_url):
     url = '{}/Dns'.format(api_server_url)
     return get(url)
