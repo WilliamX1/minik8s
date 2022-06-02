@@ -5,7 +5,7 @@ volume:
   - $/userland/dns/nginx/html/:/usr/share/nginx/html/
   - $/userland/dns/nginx/log/:/var/log/nginx/
 cpu: 1
-mem: 600m
+mem: 100m
 spec:
   replicas: 3
 metadata:

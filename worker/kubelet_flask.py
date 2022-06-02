@@ -129,6 +129,7 @@ def handle_Pod():
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # update pod information such as ip, volume and ports
+        config['status'] = 'Running'
         url = '{}/{}/{}/{}'.format(api_server_url, 'Pod', instance_name, 'update')
         utils.post(url=url, config=config)
         # share.set('status', str(status))
@@ -154,46 +155,28 @@ def init_node():
     # utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
     utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
     global ETCD_NAME, ETCD_IP_ADDRESS, ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE, WORKER_PORT
-    # load node yaml
-    if isMaster is True:
-        yaml_name = 'master.yaml'
+
+    print('Default File Path is /minik8s/worker/nodes_yaml/...')
+    while True:
+        yaml_name = input('Please Enter Node Yaml File Name:')
         yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
-        nodes_info_config: dict = yaml_loader.load(yaml_path)
-        logging.info(nodes_info_config)
-        ETCD_NAME = nodes_info_config['ETCD_NAME']
-        ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
-        ETCD_INITIAL_CLUSTER = nodes_info_config['ETCD_INITIAL_CLUSTER']
-        ETCD_INITIAL_CLUSTER_STATE = nodes_info_config['ETCD_INITIAL_CLUSTER_STATE']
-        WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
-        cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
-                ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
-        cmd2 = ['bash', const.FLANNEL_SHELL_MASTER_PATH]
-        cmd3 = ['bash', const.DOCKER_SHELL_PATH]
-        utils.exec_command(cmd1, shell=False, background=True)
-        logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
-        time.sleep(5)
-        utils.exec_command(cmd2, shell=False, background=True)
-        logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
-        time.sleep(3)
-        utils.exec_command(cmd3, shell=False, background=True)
-        logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
-        time.sleep(3)
-    else:
-        yaml_name = 'worker.yaml'
-        yaml_path = '/'.join([BASE_DIR, 'nodes_yaml', yaml_name])
-        nodes_info_config: dict = yaml_loader.load(yaml_path)
-        logging.info(nodes_info_config)
-        ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
-        MASTER_ETCD_CLIENT_URL = nodes_info_config['MASTER_ETCD_CLIENT_URL']
-        WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
-        cmd2 = ['bash', const.FLANNEL_SHELL_WORKER_PATH, MASTER_ETCD_CLIENT_URL]
-        cmd3 = ['bash', const.DOCKER_SHELL_PATH]
-        utils.exec_command(cmd2, shell=False, background=True)
-        logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
-        time.sleep(3)
-        utils.exec_command(cmd3, shell=False, background=True)
-        logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
-        time.sleep(3)
+        if os.path.exists(yaml_path) is False:
+            logging.warning('Filepath %s Not Exists...' % yaml_path)
+        else:
+            break
+    nodes_info_config: dict = yaml_loader.load(yaml_path)
+    logging.info(nodes_info_config)
+    ETCD_IP_ADDRESS = nodes_info_config['IP_ADDRESS']
+    MASTER_ETCD_CLIENT_URL = nodes_info_config['MASTER_ETCD_CLIENT_URL']
+    WORKER_PORT = int(nodes_info_config['WORKER_PORT'])
+    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, MASTER_ETCD_CLIENT_URL]
+    cmd3 = ['bash', const.DOCKER_SHELL_PATH]
+    utils.exec_command(cmd2, shell=False, background=True)
+    logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
+    time.sleep(3)
+    utils.exec_command(cmd3, shell=False, background=True)
+    logging.warning('Please make sure docker is running successfully, waiting for 3 seconds...')
+    time.sleep(3)
     # delete original iptables and restore, init for service and dns
     dir = const.dns_conf_path
     for f in os.listdir(dir):
@@ -254,6 +237,8 @@ def send_heart_beat():
             pod_status_heartbeat['cpu_usage_percent'] = pod_status['cpu_usage_percent']
             pod_status_heartbeat['memory_usage_percent'] = pod_status['memory_usage_percent']
             pod_status_heartbeat['ip'] = pod_status['ip']
+            pod_status_heartbeat['volume'] = pod_status['volume']
+            pod_status_heartbeat['ports'] = pod_status['ports']
             config['pod_instances'].append(pod.instance_name)
             config[pod.instance_name] = pod_status_heartbeat
 

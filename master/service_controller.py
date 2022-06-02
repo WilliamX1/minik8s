@@ -106,13 +106,14 @@ def _none():
 
 def main():
     while True:
+        time.sleep(const.service_controller_flush_interval)
         try:
             r = requests.get(url='{}/Service'.format(api_server_url))
             service_dict = json.loads(r.content.decode('UTF-8'))
             r = requests.get(url='{}/Pod'.format(api_server_url))
             pods_dict = json.loads(r.content.decode('UTF-8'))
         except Exception as e:
-            logging.warning('Connect API Server Failure!')
+            print('Connect API Server Failure!', e)
             continue
         for service_name in service_dict['services_list']:
             service_config: dict = service_dict[service_name]
@@ -136,7 +137,6 @@ def main():
             elif status == 'None':
                 _none()
         print("Current Services are：{}".format(service_dict['services_list']))
-        time.sleep(const.service_controller_flush_interval)
 
 
 if __name__ == '__main__':

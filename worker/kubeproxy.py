@@ -380,12 +380,13 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
     """
     if tb is None:
         tb = prettytable.PrettyTable()
-        tb.field_names = ['name', 'status', 'created time',
+        tb.field_names = ['name', 'instance_name', 'status', 'created time',
                           'type', 'cluster IP', "external IP",
                           'port(s)']
-    service_status = service_config['status']  # todo
     created_time = int(time.time() - service_config['created_time'])
     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+    name = service_config['name'] if service_config.get('name') is not None else '-'
+    service_status = service_config['status'] if service_config.get('status') is not None else '-'
     type = '<none>' if service_config.get('type') is None else service_config['type']
     clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
     externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
@@ -396,7 +397,7 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
-    tb.add_row([service_instance_name, service_status, created_time.strip(),
+    tb.add_row([name, service_instance_name, service_status, created_time.strip(),
                 type, clusterIP, externalIP, show_ports])
     if show is True:
         print(tb)
@@ -409,7 +410,7 @@ def show_services(service_dict: dict):
     :return: a list of service running state
     """
     tb = prettytable.PrettyTable()
-    tb.field_names = ['name', 'status', 'created time',
+    tb.field_names = ['name', 'instance_name', 'status', 'created time',
                       'type', 'cluster IP', "external IP",
                       'port(s)']
 

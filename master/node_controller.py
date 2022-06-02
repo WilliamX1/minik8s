@@ -30,6 +30,7 @@ def main():
                 if current_sec - last_receive_time > 20:
                     print("Node {} timeout!".format(node_instance_name))
                     r = requests.delete(url='{}/Node/{}'.format(api_server_url, node_instance_name))
+
             print("当前注册的Node为：{}".format(valid_nodes_list))
         except Exception as e:
             print('Connect API Server Failure!', e)

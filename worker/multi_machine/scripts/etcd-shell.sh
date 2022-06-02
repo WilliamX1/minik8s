@@ -19,3 +19,8 @@ sudo ${BASE_DIR}/../etcd/etcd \
   -initial-cluster-token etcd-cluster \
   -initial-cluster ${ETCD_INITIAL_CLUSTER} \
   -initial-cluster-state ${ETCD_INITIAL_CLUSTER_STATE}
+
+sleep 3
+
+# config flannel
+${BASE_DIR}/../etcd/etcdctl put /coreos.com/network/config < ${BASE_DIR}/../configs/flannel-network-config.json

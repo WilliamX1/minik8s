@@ -71,7 +71,6 @@ class Pod:
 
             ip_cmd = "docker inspect --format '{{ .NetworkSettings.IPAddress }}' %s" % pause_container.name
             self.ipv4addr = os.popen(ip_cmd).read().strip()
-            print(self.ipv4addr)
             containercfgs = config.get('containers')
 
             # 创建容器配置参数
@@ -143,7 +142,6 @@ class Pod:
             filter_dict = dict()
             filter_dict['id'] = a.get('ID', a.get('Id', None))
             container_stats = self.client.api.containers(filters=filter_dict)[0]
-            state = container_stats['State']
             status = container_stats['Status'].split()
             if status[0] == 'Up':
                 pass
@@ -162,6 +160,8 @@ class Pod:
             pod_status['status'] = 'Failed'
         # Get Ipv4 Address
         pod_status['ip'] = self.ipv4addr
+        pod_status['volume'] = self.volume
+        pod_status['ports'] = self.ports
         return pod_status
 
     def exec_run(self, cmd, container_name=None):

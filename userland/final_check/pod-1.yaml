@@ -1,7 +1,8 @@
 kind: Pod
 name: pod-1
 volume:
-  - $/userland/final_check/pod-1/html/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-1/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-1/:/var/lib/jetty/webapps
 cpu: 1
 mem: 300m
 metadata:
@@ -21,12 +22,19 @@ containers:
     command:
     resource:
       cpu: 1
-      memory: 100m
+      memory: 80m
     port: 8080
   - name: busybox
     image: busybox
     command: ['sh', '-c', 'sleep 36000000']
     resource:
       cpu: 1
-      memory: 100m
+      memory: 20m
     port:
+  - name: echoserver
+    image: soketi/echo-server:latest-lts-alpine
+    command:
+    resource:
+      cpu: 1
+      memory: 20m
+    port: 6001

@@ -8,10 +8,12 @@ import etcd3
 import sys
 import os
 import requests
+import logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
-import utils, const
+import utils, const, yaml_loader
 from serverless import ServerlessFunction, Edge, DAG
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
 from entities import parse_bytes
@@ -22,7 +24,7 @@ app = Flask(__name__)
 
 
 use_etcd = False  # True
-# etcd = etcd3.client()
+# etcd = etcd3.client(port=2379)
 etcd_supplant = dict()
 
 
@@ -63,6 +65,20 @@ def init_api_server():
         put('dns_list', list())
     if get('dns_config', assert_exist=False) is None:
         put('dns_config', dict())
+
+    # start etcd
+    yaml_name = 'master.yaml'
+    yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+    etcd_info_config: dict = yaml_loader.load(yaml_path)
+    ETCD_NAME = etcd_info_config['ETCD_NAME']
+    ETCD_IP_ADDRESS = etcd_info_config['IP_ADDRESS']
+    ETCD_INITIAL_CLUSTER = etcd_info_config['ETCD_INITIAL_CLUSTER']
+    ETCD_INITIAL_CLUSTER_STATE = etcd_info_config['ETCD_INITIAL_CLUSTER_STATE']
+    cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
+            ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
+    utils.exec_command(cmd1, shell=False, background=True)
+    logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
+    time.sleep(5)
 
 
 def delete_key(key):
@@ -258,6 +274,7 @@ def schedule(config):
         json_data = json.dumps(config)
         # 向api_server发送调度结果
         r = requests.post(url=url, json=json_data)
+
 
 @app.route('/ReplicaSet', methods=['POST'])
 def upload_replica_set():
@@ -535,6 +552,8 @@ def receive_heartbeat():
         pod_config['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
         pod_config['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
         pod_config['ip'] = pod_heartbeat['ip']
+        pod_config['volume'] = pod_heartbeat['volume']
+        pod_config['ports'] = pod_heartbeat['ports']
         pod_config['node'] = node_instance_name
         put(pod_instance_name, pod_config)
         heartbeat.pop(pod_instance_name)  # the information is of no use

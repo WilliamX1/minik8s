@@ -79,14 +79,19 @@ def main():
             if object_type == "pods":
                 pods_dict = utils.get_pod_dict(api_server_url=api_server_url)
                 tb = prettytable.PrettyTable()
-                tb.field_names = ['name', 'status', 'created time', 'ip', 'volume', 'ports']
+                tb.field_names = ['name', 'instance_name', 'status', 'created time', 'ip', 'volume', 'ports']
                 for pod_instance_name in pods_dict['pods_list']:
                     pod_config = pods_dict.get(pod_instance_name)
                     if pod_config:
                         created_time = int(time.time() - pod_config['created_time'])
                         created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
-                        tb.add_row([pod_instance_name, pod_config['status'], created_time.strip(),
-                                    pod_config['ip'], pod_config['volume'], pod_config['ports']])
+                        name = pod_config['name'] if pod_config.get('name') is not None else '-'
+                        status = pod_config['status'] if pod_config.get('status') is not None else '-'
+                        ip = pod_config['ip'] if pod_config.get('ip') is not None else '-'
+                        volume = pod_config['volume'] if pod_config.get('volume') is not None else '-'
+                        ports = pod_config['ports'] if pod_config.get('ports') is not None else '-'
+                        tb.add_row([name, pod_instance_name, status, created_time.strip(),
+                                    ip, volume, ports])
                 print(tb)
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=api_server_url)
@@ -94,14 +99,15 @@ def main():
             elif object_type == 'replicasets':
                 rc_dict = utils.get_replicaset_dict(api_server_url=api_server_url)
                 tb = prettytable.PrettyTable()
-                tb.field_names = ['name', 'status', 'created time', 'replicas']
+                tb.field_names = ['name', 'instance_name', 'status', 'created time', 'replicas']
                 for rc_instance_name in rc_dict['replica_sets_list']:
                     rc_config = rc_dict[rc_instance_name]
                     rc_status = 'TO DO'  # todo
                     created_time = int(time.time() - rc_config['created_time'])
                     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+                    name = rc_config['name'] if rc_config.get('name') is not None else '-'
                     replicas = str(rc_config['spec']['replicas']).strip()
-                    tb.add_row([rc_instance_name, rc_status, created_time.strip(), replicas])
+                    tb.add_row([name, rc_instance_name, rc_status, created_time.strip(), replicas])
                 print(tb)
             elif object_type == 'dns':
                 dns_dict = utils.get_dns_dict(api_server_url=api_server_url)

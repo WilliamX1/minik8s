@@ -10,7 +10,6 @@ sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import kubedns
 
 import yaml_loader, const, utils
-import worker_server
 
 api_server_url = const.api_server_url
 
@@ -71,11 +70,14 @@ def update_etc_hosts(hosts=True):
         # Let Host Machine to execute this command
         command1 = "sudo systemctl restart network-manager"
         command.append(command1)
-        url = "{}/cmd".format(worker_server.worker_url)  # TODO: need to change
-        upload_cmd = dict()
-        upload_cmd['cmd'] = ';'.join(command)
-        print(upload_cmd)
-        utils.post(url=url, config=upload_cmd)
+        worker_url_list = utils.get_worker_url_list(api_server_url=api_server_url)
+        for worker_url in worker_url_list:
+            url = "{}/cmd".format(worker_url)  # TODO: need to change
+            upload_cmd = dict()
+            upload_cmd['cmd'] = ';'.join(command)
+            print(worker_url)
+            print(upload_cmd)
+            utils.post(url=url, config=upload_cmd)
     else:
         # Let Every Container of Every Pod to execute this command
         command = "/bin/sh -c \"{}\"".format(";".join(command))
@@ -141,12 +143,15 @@ def _none():
 
 
 def main():
-    last_time = 0.0
     while True:
-        time.sleep(1)
-        dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
-        dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
-        service_dict = utils.get_service_dict(api_server_url=api_server_url)
+        time.sleep(const.dns_controller_flush_interval)
+        try:
+            dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
+            dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
+            service_dict = utils.get_service_dict(api_server_url=api_server_url)
+        except Exception as e:
+            print('Connect API Server Failure!', e)
+            continue
         # this should only execute once
         if dns_config_dict.get('dns-server-ip') is None:
             init_dns_server()
@@ -205,7 +210,6 @@ def main():
             update_etc_hosts(hosts=True)
 
         logging.info("Current DNS are: {}".format(dns_dict['dns_list']))
-        time.sleep(const.dns_controller_flush_interval)
 
 
 if __name__ == '__main__':
