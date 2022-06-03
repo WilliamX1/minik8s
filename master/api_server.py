@@ -66,8 +66,10 @@ def init_api_server():
             ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
     utils.exec_command(cmd1, shell=False, background=True)
     logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
-    time.sleep(5)
-
+    time.sleep(6)
+    cmd2 = '%s/worker/multi_machine/etcd/etcdctl put /coreos.com/network/config < ' \
+           '%s/worker/multi_machine/configs/flannel-network-config.json' % (ROOT_DIR, ROOT_DIR)
+    utils.exec_command(cmd2, shell=True)
     # for the very first start, init etcd
     put('api_server_url', API_SERVER_URL)
     api_server_url = get('api_server_url')

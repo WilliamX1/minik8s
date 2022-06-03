@@ -175,9 +175,9 @@ def init_node():
     f.close()
 
     worker_info['WORKER_PORT'] = int(nodes_info_config['WORKER_PORT'])
-    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, worker_info['MASTER_ETCD_CLIENT_URL']]
+    cmd2 = const.FLANNEL_PATH + ' -etcd-endpoints=' + worker_info['MASTER_ETCD_CLIENT_URL']
     cmd3 = ['bash', const.DOCKER_SHELL_PATH]
-    utils.exec_command(cmd2, shell=False, background=True)
+    utils.exec_command(cmd2, shell=True, background=True)
     logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
     time.sleep(3)
     utils.exec_command(cmd3, shell=False, background=True)
