@@ -106,6 +106,9 @@ def handle_Pod():
                 f = open(os.path.join(pod_dir, 'requirements.txt'), 'w')
                 f.write(config['requirement'])
                 f.close()
+            else:
+                f = open(os.path.join(pod_dir, 'requirements.txt'), 'w')
+                f.close()
             os.system('cp ./tmp/Dockerfile ./{}'.format(instance_name))
             os.system('cp ./tmp/serverless_server.py ./{}'.format(instance_name))
             os.system("cd {} && docker build . -t {}".format(instance_name, module_name))

@@ -1,3 +1,4 @@
+import random
 import time
 
 from flask import Flask, request
@@ -472,6 +473,7 @@ def upload_function():
     function_config['created_time'] = time.time()
     function_config['status'] = 'Uploaded'
     function_config['requirement_status'] = 'Not Found'
+    function_config['pod_instances'] = list()
     # print("node_config = ", node_config)
     functions_list: list = get('functions_list')
     # node instance name bind with physical mac address
@@ -497,15 +499,52 @@ def handle_function(instance_name: str, behavior: str):
         function_config['status'] = 'Uploaded'
         function_config['requirement_status'] = 'Uploaded'
         put(instance_name, function_config)  # replace the old one if exist
-    elif behavior == 'start':
+    elif behavior == 'start':   # debug only
         function_config = get(instance_name, assert_exist=False)
         if function_config is None:
             return "Not found", 404
         function_config['kind'] = 'Pod'
         r = requests.post("{}/Pod".format(api_server_url), json=json.dumps(function_config))
         return json.dumps(config), 200
+    elif behavior == 'activate':
+        function_config = get(instance_name, assert_exist=False)
+        if function_config is None:
+            return 'Not found ', 404
+        pod_instances: list = function_config['pod_instances']
+        valid_pod_instance_names = list()
+        for pod_instance_name in pod_instances:
+            pod_instance_config = get(pod_instance_name, assert_exist=False)
+            if pod_instance_config:
+                if pod_instance_config['status'] == 'Running' and pod_instance_config.__contains__('ip'):
+                    valid_pod_instance_names.append(pod_instance_name)
+        if len(valid_pod_instance_names) == 0:
+            # if no instance exist, cold start
+            upload_config:dict = function_config.copy()
+            upload_config['kind'] = 'Pod'
+            upload_config.pop('pod_instances')
+            r = requests.post("{}/Pod".format(api_server_url), json=json.dumps(upload_config))
+            if r.status_code == 200:
+                pod_config = json.loads(r.content.decode())
+                pod_instance_name = pod_config['instance_name']
+                function_config['pod_instances'].append(pod_instance_name)
+                # add the pod into the pod_instances list
+                return "Wait for Cold Start", 300
+            else:
+                return "Error!", r.status_code
+        else:   # hot activate
+            # config is the parameter yaml, which is the context dict
+            # random pick
+            pod_instance_name = valid_pod_instance_names[random.randint(0, len(valid_pod_instance_names) - 1)]
+            pod_ip = pod_instance_name['ip']
+            context = config
+            function_name = context['function_name']
+            pod_url = pod_ip + '/function/module/{}'.format(function_name)
+            r = requests.post(pod_url, json=context)
+            if r.status_code == 200:
+                return json.dumps(json.loads(r.content.decode())), 200
+            else:
+                return "Activate error", 400
 
-    return "Success", 200
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
 def get_dag(dag_name: str):
@@ -513,33 +552,15 @@ def get_dag(dag_name: str):
     return json.dumps(dag), 200
 
 
-def run_serverless_function(serverless_function: ServerlessFunction):
-    pass
-
-
-@app.route('/DAG/run/<string:dag_name>', methods=['GET'])
-def run_DAG(dag_name: str):
-    my_dag: DAG = etcd_supplant[dag_name]
-    current_node = start_node = my_dag.start_node
-    end_node: ServerlessFunction = my_dag.end_node
-    while current_node != end_node:
-        # result = current_
-        pass
-    return "not"
-
-
-@app.route('/DAG/<string:DAG_name>', methods=['POST'])
-def upload(dag_name: str):
-    elements = json.loads(request.form.get('elements'))
-    branch_condition = json.loads(request.form.get('localStorage'))
-    name_data = json.loads(request.form.get("flowData"))['value']
-    # print("elements = {}".format(elements))
-    # print("branch_condition = {}".format(branch_condition))
-    # print("name_data = {}".format(name_data))
+def build_DAG_from_dict(dag_dict: dict):
+    if not dag_dict.__contains__('elements') or not dag_dict.__contains__('branch_condition') or not dag_dict.__contains__('name_data'):
+        return None
+    elements = dag_dict['elements']
+    branch_condition = dag_dict['branch_condition']
+    name_data = dag_dict['name_data']
     name_dict = dict()
     for name in name_data:
         name_dict[name[0]] = name[1]['label']
-        # print("name_dict[{}] = {}".format(name[0], name[1]['label']))
 
     node_list = list()
     node_dict = dict()
@@ -553,28 +574,46 @@ def upload(dag_name: str):
                 node_list.append(serverless_function)
                 node_dict[element_id] = serverless_function
             else:
-                return "Node match error", 404
+                return None
         elif element.__contains__('source'):  # edge
             edge = Edge.from_dict(element, node_dict)
             if edge:
                 edge_list.append(edge)
                 edge_dict[element_id] = edge
         else:
-            return "error", 404
+            return None
     for edge in edge_list:
         edge_index = edge.index
         if branch_condition.__contains__(edge_index):
             edge.update_condition(branch_condition[edge_index])
     my_dag = DAG.from_node_list_and_edge_list(node_list, edge_list)
-    if my_dag:
-        if not use_etcd:
-            print("Save DAG {}".format(dag_name))
-            etcd_supplant[dag_name] = my_dag
+    return my_dag
+
+
+@app.route('/DAG/<string:dag_name>/<string:behavior>', methods=['POST'])
+def handle_DAG(dag_name: str, behavior: str):
+    if behavior == 'upload':
+        elements = json.loads(request.form.get('elements'))
+        branch_condition = json.loads(request.form.get('localStorage'))
+        name_data = json.loads(request.form.get("flowData"))['value']
+        dag_dict = {'elements': elements, 'branch_condition': branch_condition, 'name_data':name_data}
+        my_dag = build_DAG_from_dict(dag_dict)
+        if my_dag:
+            put(dag_name, dag_dict)
+            return "Successfully save dag", 200
         else:
-            raise NotImplementedError
-        return "Successfully built a DAG with {} nodes and {} edges".format(my_dag.node_size(), my_dag.edge_size()), 200
-    else:
-        return "Built DAG failure", 404
+            return "Save DAG Error", 500
+    elif behavior == 'run':
+        my_dag: DAG = etcd_supplant[dag_name]
+        start_node = my_dag.start_node
+        end_node: ServerlessFunction = my_dag.end_node
+        current_node = start_node.out_edge[0].target
+
+        while current_node != end_node:
+            current_out_edge = current_node.out_edge
+            if current_out_edge == 1:   #
+
+        return "not"
 
 
 @app.route('/heartbeat', methods=['POST'])

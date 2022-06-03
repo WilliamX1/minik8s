@@ -9,7 +9,7 @@ class ServerlessFunction(object):
         self.node_type = node_type
         self.module_name = module_name
         self.function_name = function_name
-        self.out_edge = list()
+        self.out_edge: List[Edge] = list()
         print(self.__str__())
 
     @staticmethod
@@ -38,10 +38,10 @@ class ServerlessFunction(object):
         return {'index': self.index, 'name': self.name, 'node_type': self.node_type, 'module_name': self.module_name, 'function_name': self.function_name, 'out_edge': self.out_edge}.__str__()
 
 class Edge(object):
-    def __init__(self, index, source, target, condition="True"):
+    def __init__(self, index, source: ServerlessFunction, target: ServerlessFunction, condition="True"):
         self.index = index
-        self.source = source
-        self.target = target
+        self.source: ServerlessFunction = source
+        self.target: ServerlessFunction = target
         self.condition = condition
 
     @staticmethod

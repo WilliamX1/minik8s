@@ -61,6 +61,8 @@ def main():
         upload_python_match = re.fullmatch(r'upload *function *-f *([a-zA-Z0-9:/\\_\-.]*py)', cmd.strip(), re.I)
         upload_requirement_match = re.fullmatch(r'upload *function *([\w-]*) *-r *([a-zA-Z0-9:/\\_\-.]*txt)', cmd.strip(), re.I)
         start_function_match = re.fullmatch(r'start *function *([\w-]*)', cmd.strip(), re.I)
+        activate_function_match = re.fullmatch(r'activate *function *([\w-]*) *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
+        # activate function <function_name> -f <parameter_path>
 
         if exit_match:
             break
@@ -214,20 +216,39 @@ def main():
             if not os.path.isfile(requirement_path):
                 print("file not exist")
                 continue
-            url = "{}/Function/{}/upload_requirement".format(api_server_url, module_name)
+            url = "{}/Function/{}/upload_requirement".format(API_SERVER_URL, module_name)
             with open(requirement_path) as f:
                 content = f.read()
             r = requests.post(url=url, json=json.dumps({'requirement': content}))
             if r.status_code != 200:
                 print("Function instance not found!")
-        elif start_function_match:
+        elif start_function_match:  # debug only
             module_name = start_function_match.group(1)
-            url = "{}/Function/{}/start".format(api_server_url, module_name)
+            url = "{}/Function/{}/start".format(API_SERVER_URL, module_name)
             r = requests.post(url=url, json=json.dumps(dict()))
             if r.status_code != 200:
                 print("Function instance not found!")
             else:
                 print("Start successfully!")
+        elif activate_function_match:
+            # activate function <function_name> -f <parameter_path>
+            module_name = upload_requirement_match.group(1)
+            parameter_yaml_path = upload_requirement_match.group(2)
+            if not os.path.isfile(parameter_yaml_path):
+                print("file not exist")
+                continue
+            parameter_config: dict = yaml_loader.load(parameter_yaml_path)
+            url = "{}/Function/{}/activate".format(API_SERVER_URL, module_name)
+            r = requests.post(url=url, json=json.dumps(parameter_config))
+            if r.status_code == 404:
+                print("Function instance not found!")
+            elif r.status_code == 300:
+                print("Wait for Cold Start! Activate later!")
+            elif r.status_code == 400:
+                print("Activation Error!")
+            elif r.status_code == 200:
+                result: dict = json.loads(r.content.decode())
+                print("the result is ", result['result'])
         elif curl_match:
             ipordns = curl_match.group(1)  # ip or damain name
             utils.exec_command(command=['curl', ipordns])

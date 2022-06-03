@@ -97,6 +97,17 @@ class Pod:
             self.instance_name = config['instance_name']
             self.container_names = config['container_names']
             self.ipv4addr = config['ip']
+            self.volume = config.get('volume')
+            # if volume start with $PWD, change it to cur absolute path: /xx/xx/minik8s/
+            if self.volume is None:
+                self.volume = list()
+            self.volume = [v.replace("$", const.ROOT_DIR) for v in self.volume]
+            self.ports = list()
+            containercfgs = config.get('containers')
+            # 创建容器配置参数
+            for containercfg in containercfgs:
+                if containercfg.get('port') and containercfg['port'] != '':
+                    self.ports.append(str(containercfg['port']))
 
     def start(self):
         for container_name in self.container_names:
