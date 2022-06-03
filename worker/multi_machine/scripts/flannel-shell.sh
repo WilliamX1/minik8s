@@ -1,9 +1,7 @@
 #!/bin/bash
 
 BASE_DIR=$(cd $(dirname $0); pwd)
-
-# config flannel
-${BASE_DIR}/../etcd/etcdctl set /coreos.com/network/config < ${BASE_DIR}/../configs/flannel-network-config.json
+ETCD_ENDPOINTS=$1
 
 # start flanneld
-sudo ${BASE_DIR}/../flanneld
+sudo ${BASE_DIR}/../flanneld -etcd-endpoints=ETCD_ENDPOINTS

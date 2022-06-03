@@ -10,9 +10,9 @@ sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import kubedns
 
 import yaml_loader, const, utils
-import worker_server
+from api_server import get_api_server_url
+api_server_url = get_api_server_url()
 
-api_server_url = const.api_server_url
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -26,13 +26,11 @@ def init_dns_server():
     - start a dns for this service, default is 1`ns-nginx-server-service`
     :return: None
     """
-    config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-replica-set.yaml")
+    config: dict = yaml_loader.load(const.DNS_REPLICASET_PATH)
     url = "{}/ReplicaSet".format(api_server_url)
-    # config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-pod.yaml")
-    # url = "{}/Pod".format(api_server_url)
     utils.post(url=url, config=config)
 
-    config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-service.yaml")
+    config: dict = yaml_loader.load(const.DNS_SERVICE_PATH)
     url = "{}/Service".format(api_server_url)
     utils.post(url=url, config=config)
 
@@ -41,12 +39,6 @@ def init_dns_server():
     dns_config_dict['dns-server-ip'] = config['clusterIP']
     url = "{}/Dns/Config".format(api_server_url)
     utils.post(url=url, config=dns_config_dict)
-
-    """
-    config: dict = yaml_loader.load('./dns/dns-nginx-server-dns.yaml')
-    url = "{}/Dns".format(api_server_url)
-    helper.post(url=url, config=config)
-    """
 
 
 def update_etc_hosts(hosts=True):
@@ -71,14 +63,18 @@ def update_etc_hosts(hosts=True):
         # Let Host Machine to execute this command
         command1 = "sudo systemctl restart network-manager"
         command.append(command1)
-        url = "{}/cmd".format(worker_server.worker_url)  # TODO: need to change
-        upload_cmd = dict()
-        upload_cmd['cmd'] = ';'.join(command)
-        print(upload_cmd)
-        utils.post(url=url, config=upload_cmd)
+        worker_url_list = utils.get_worker_url_list(api_server_url=api_server_url)
+        for worker_url in worker_url_list:
+            url = "{}/cmd".format(worker_url)  # TODO: need to change
+            upload_cmd = dict()
+            upload_cmd['cmd'] = ';'.join(command)
+            print(worker_url)
+            print(upload_cmd)
+            utils.post(url=url, config=upload_cmd)
     else:
         # Let Every Container of Every Pod to execute this command
-        command = "/bin/sh -c \"{}\"".format(";".join(command))
+        command = ';'.join(command)
+        # command = "/bin/sh -c \"{}\"".format(";".join(command))
         pod_dict = utils.get_pod_dict(api_server_url=api_server_url)
         for pod_instance in pod_dict:
             url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')
@@ -141,12 +137,15 @@ def _none():
 
 
 def main():
-    last_time = 0.0
     while True:
-        time.sleep(1)
-        dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
-        dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
-        service_dict = utils.get_service_dict(api_server_url=api_server_url)
+        time.sleep(const.dns_controller_flush_interval)
+        try:
+            dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
+            dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
+            service_dict = utils.get_service_dict(api_server_url=api_server_url)
+        except Exception as e:
+            print('Connect API Server Failure!', e)
+            continue
         # this should only execute once
         if dns_config_dict is None:
             continue
@@ -207,7 +206,6 @@ def main():
             update_etc_hosts(hosts=True)
 
         logging.info("Current DNS are: {}".format(dns_dict['dns_list']))
-        time.sleep(const.dns_controller_flush_interval)
 
 
 if __name__ == '__main__':

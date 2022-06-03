@@ -30,10 +30,11 @@ def alloc_service_clusterIP(service_dict: dict):
 
     while max_alloc_num > 0:
         max_alloc_num -= 1
-        num0 = service_clusterIP_prefix  # service ip should be like '18.xx.xx.xx'
-        num1 = random.randint(0, 255)
-        num2 = random.randint(0, 255)
-        num3 = random.randint(0, 255)
+        # service ip should be like '192.168.xx.xx'
+        num0 = service_clusterIP_prefix[0] if len(service_clusterIP_prefix) >= 1 else random.randint(0, 255)
+        num1 = service_clusterIP_prefix[1] if len(service_clusterIP_prefix) >= 2 else random.randint(0, 255)
+        num2 = service_clusterIP_prefix[2] if len(service_clusterIP_prefix) >= 3 else random.randint(0, 255)
+        num3 = service_clusterIP_prefix[3] if len(service_clusterIP_prefix) >= 4 else random.randint(0, 255)
         ip = '.'.join([str(num0), str(num1), str(num2), str(num3)])
         if ip not in ip_allocated:
             break
@@ -47,10 +48,9 @@ def init_iptables():
     """
     init iptables for minik8s, create some necessary chains and insert some necessary rules
     reference to: https://www.bookstack.cn/read/source-code-reading-notes/kubernetes-kube_proxy_iptables.md
-    :param simulate: if true, then all the commands will not execute actually
     :return: None
     """
-    utils.exec_command(command="iptables-save < ./sources/iptables", shell=True)
+    # utils.exec_command(command="iptables-save < ./sources/iptables", shell=True)
 
     """ In table `nat`, set policy for some chains """
     iptables = dict()
@@ -64,14 +64,14 @@ def init_iptables():
 
     """ In table `nat`, create some new chains """
     iptables['chains'].append(utils.create_chain('nat', 'KUBE-SERVICES'))
-    iptables['chains'].append(utils.create_chain('nat', 'KUBE-NODEPORTS'))
+    # iptables['chains'].append(utils.create_chain('nat', 'KUBE-NODEPORTS'))
     iptables['chains'].append(utils.create_chain('nat', 'KUBE-POSTROUTING'))
     iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-MASQ'))
-    iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-DROP'))
+    # iptables['chains'].append(utils.create_chain('nat', 'KUBE-MARK-DROP'))
 
     """ In table `nat`, add some rule into chains """
     iptables['rules'].append(
-        utils.insert_rule('nat', 'PREROUTING', 1,
+        utils.append_rule('nat', 'PREROUTING',
                           utils.make_rulespec(
                               jump='KUBE-SERVICES',
                               comment='kubernetes service portals'
@@ -79,7 +79,7 @@ def init_iptables():
                           utils.make_target_extensions())
     )
     iptables['rules'].append(
-        utils.insert_rule('nat', 'OUTPUT', 1,
+        utils.append_rule('nat', 'OUTPUT',
                           utils.make_rulespec(
                               jump='KUBE-SERVICES',
                               comment='kubernetes service portals'
@@ -87,13 +87,14 @@ def init_iptables():
                           utils.make_target_extensions())
     )
     iptables['rules'].append(
-        utils.insert_rule('nat', 'POSTROUTING', 1,
+        utils.append_rule('nat', 'POSTROUTING',
                           utils.make_rulespec(
                               jump='KUBE-POSTROUTING',
                               comment='kubernetes postrouting rules'
                           ),
                           utils.make_target_extensions())
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-MARK-DROP', 1,
                           utils.make_rulespec(
@@ -103,6 +104,7 @@ def init_iptables():
                               ormark='0x8000'
                           ))
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-MARK-MASQ', 1,
                           utils.make_rulespec(
@@ -120,8 +122,10 @@ def init_iptables():
                           ),
                           utils.make_target_extensions(
                               mark='0x4000/0x4000'
-                          ))
+                          )
+                          )
     )
+    """
     iptables['rules'].append(
         utils.insert_rule('nat', 'KUBE-SERVICES', 1,
                           utils.make_rulespec(
@@ -133,27 +137,34 @@ def init_iptables():
                               dst_type="LOCAL"
                           ))
     )
+    """
 
     """ In table `filter`, set policy for some chains """
-    utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
-    utils.policy_chain('filter', 'FORWARD', ['ACCEPT'])
-    utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
+    # utils.policy_chain('filter', 'INPUT', ['ACCEPT'])
+    # utils.policy_chain('filter', 'FORWARD', ['ACCEPT'])
+    # utils.policy_chain('filter', 'OUTPUT', ['ACCEPT'])
 
     """ In table `filter`, create some chains """
+    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-EXTERNAL-SERVICES')
     )
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FIREWALL')
     )
+    """
+    """
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-FORWARD')
     )
     iptables['chains'].append(
         utils.create_chain('filter', 'KUBE-SERVICES')
     )
+    """
 
     """ In table `filter`, add some rule into chains """
+
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 1,
                           utils.make_rulespec(
@@ -164,6 +175,8 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 2,
                           utils.make_rulespec(
@@ -174,6 +187,8 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'INPUT', 3,
                           utils.make_rulespec(
@@ -181,6 +196,8 @@ def init_iptables():
                           ),
                           utils.make_target_extensions())
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'FORWARD', 1,
                           utils.make_rulespec(
@@ -209,6 +226,9 @@ def init_iptables():
                               ctstate='NEW'
                           ))
     )
+    """
+
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'OUTPUT', 2,
                           utils.make_rulespec(
@@ -216,6 +236,8 @@ def init_iptables():
                           ),
                           utils.make_target_extensions())
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'KUBE-FIREWALL', 1,
                           utils.make_rulespec(
@@ -235,6 +257,8 @@ def init_iptables():
                               ctstate='INVALID'
                           ))
     )
+    """
+    """
     iptables['rules'].append(
         utils.insert_rule('filter', 'KUBE-FORWARD', 2,
                           utils.make_rulespec(
@@ -245,6 +269,7 @@ def init_iptables():
                               mark='0x4000/0x4000'
                           ))
     )
+    """
 
 
 def create_service(service_config: dict, pods_dict: dict, simulate=False):
@@ -266,7 +291,7 @@ def create_service(service_config: dict, pods_dict: dict, simulate=False):
     pod_ip_list = list()
     for pod_instance in service_config['pod_instances']:
         pod_ip_list.append(pods_dict[pod_instance]['ip'])
-    strategy = 'random'  # 'random' or 'roundrobin'
+    strategy = service_config['strategy'] if service_config.get('strategy') is not None else 'random'  # 'random' or 'roundrobin'
 
     for eachports in ports:
         port = eachports['port']
@@ -356,12 +381,13 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
     """
     if tb is None:
         tb = prettytable.PrettyTable()
-        tb.field_names = ['name', 'status', 'created time',
+        tb.field_names = ['name', 'instance_name', 'status', 'created time',
                           'type', 'cluster IP', "external IP",
                           'port(s)']
-    service_status = service_config['status']  # todo
     created_time = int(time.time() - service_config['created_time'])
     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+    name = service_config['name'] if service_config.get('name') is not None else '-'
+    service_status = service_config['status'] if service_config.get('status') is not None else '-'
     type = '<none>' if service_config.get('type') is None else service_config['type']
     clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
     externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
@@ -372,7 +398,7 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
-    tb.add_row([service_instance_name, service_status, created_time.strip(),
+    tb.add_row([name, service_instance_name, service_status, created_time.strip(),
                 type, clusterIP, externalIP, show_ports])
     if show is True:
         print(tb)
@@ -385,7 +411,7 @@ def show_services(service_dict: dict):
     :return: a list of service running state
     """
     tb = prettytable.PrettyTable()
-    tb.field_names = ['name', 'status', 'created time',
+    tb.field_names = ['name', 'instance_name', 'status', 'created time',
                       'type', 'cluster IP', "external IP",
                       'port(s)']
 
@@ -419,6 +445,10 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     init_iptables is an idempotent function, which means the effect of
     execute several times equals to the effect of execute one time
     """
+    if iptables is None:
+        iptables = dict()
+        iptables['chains']  = list()
+        iptables['rules'] = list()
     kubesvc = 'KUBE-SVC-' + utils.generate_random_str(12, 1)
 
     iptables['chains'].append(
@@ -435,6 +465,19 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                           ),
                           utils.make_target_extensions(),
                           simulate=simulate)
+    )
+    iptables['rules'].append(
+        utils.insert_rule('nat', 'KUBE-SERVICES', 1,
+                          utils.make_rulespec(
+                              jump='KUBE-MARK-MASQ',
+                              protocol=protocol,
+                              destination='/'.join([cluster_ip, str(ip_prefix_len)]),
+                              comment=service_name + ': cluster IP',
+                              dport=port
+                          ),
+                          utils.make_target_extensions(),
+                          simulate=simulate
+                          )
     )
 
     pod_num = len(pod_ip_list)
@@ -560,12 +603,13 @@ def clear_iptables():
 
 
 def example():
-    set_iptables_clusterIP(cluster_ip='18.255.255.255',
+    init_iptables()
+    set_iptables_clusterIP(cluster_ip='192.168.60.99',
                            service_name='example-service',
-                           port=1111,
-                           target_port=8080,
+                           port=80,
+                           target_port=80,
                            protocol='tcp',
-                           pod_ip_list=['172.17.0.2', '172.17.0.4'],
+                           pod_ip_list=['20.20.72.2'],
                            strategy='random',
                            ip_prefix_len=32,
                            iptables=None)

@@ -1,0 +1,38 @@
+spawn scp -r /data/ stu639@data.hpc.sjtu.edu.cn:/lustre/home/acct-stu/stu639/
+Password: 
+spawn ssh stu639@login.hpc.sjtu.edu.cn
+Password: 
+Last login: Wed Jun  1 23:10:24 2022 from 59.78.7.51
+[33mslurm常用指令：[m
+    [34msinfo [m查看队列状态和信息
+    [34msacct [m显示用户作业历史
+    [34msqueue [m显示当前作业状态
+    [34msbatch [m提交作业
+    [34mscancel [m取消指定作业
+
+[33m集群设置以下队列，使用限制与说明如下：[m
+    [35mcpu [m允许单作业CPU核数为40~24000，每核配比4G内存，节点需独占使用；单节点配置为40核，192G内存
+    [35mhuge [m允许单作业CPU核数为1~80，每核配比35G内存，节点可共享使用；单节点配置为80核，3T内存
+    [35m192c6t [m允许单作业CPU核数为1~192，每核配比31G内存，节点可共享使用；单节点配置为192核，6T内存 
+    [35msmall [m允许单作业CPU核数为1~35，每核配比4G内存，节点可共享使用；单节点配置为40核，192G内存
+    [35mdgx2 [m允许单作业GPU卡数为1~128，每卡最高配比6核，每核配比15G内存；单节点配置为96核，1.45T内存，16块32G显存的V100卡
+    [35mcpu，small和dgx2队列作业运行时间最长7天，huge和192c6t最长2天。作业延长需发邮件申请，附上用户名和作业ID，延长后的作业最长运行时间不超过14天。
+    [35mdebug [m仅用于短时间测试，请勿批量投递作业进行完整计算。队列每节点配置为40核，节点可共享使用，作业允许节点数1~2，每核配比4G内存，最长运行时间为20分钟
+
+[33m用户帮助文档：[mhttps://docs.hpc.sjtu.edu.cn/
+
+[33m登陆节点禁止运行作业和并行编译，如需交互操作，请申请计算资源：[m $ srun -p small -n 4 --pty /bin/bash
+
+[33m登录节点不适合进行大批量数据传输，请通过传输节点data.hpc.sjtu.edu.cn进行数据拷贝，参考 [mhttps://docs.hpc.sjtu.edu.cn/transport
+
+[33m邮件支持：[mhpc@sjtu.edu.cn
+教学账户
+
+[?1034h[stu639@login2 ~]$ module load gcc/8.3.0 cuda/10.1.243-gcc-8.3.0
+[stu639@login2 ~]$ cd data
+[stu639@login2 data]$ nvcc add.cu -o add -lcublas
+[stu639@login2 data]$ sbatch add.slurm
+Submitted batch job 14295653
+[stu639@login2 data]$ exit
+登出
+Connection to login.hpc.sjtu.edu.cn closed.

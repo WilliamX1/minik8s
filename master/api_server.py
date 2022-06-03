@@ -7,22 +7,24 @@ import etcd3
 import sys
 import os
 import requests
+import logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
-import utils, const
+import utils, const, yaml_loader
 from serverless import ServerlessFunction, Edge, DAG
+
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
 from entities import parse_bytes
 
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-
-
-use_etcd = False  # True
-# etcd = etcd3.client()
+use_etcd = True
+etcd = etcd3.client(port=2379)
 etcd_supplant = dict()
+api_server_url = None
 
 
 def get(key, assert_exist=True):
@@ -46,8 +48,29 @@ def put(key, value):
         etcd_supplant[key] = json.dumps(value)  # force deep copy here
 
 
+def get_api_server_url():
+    return get('api_server_url')
+
+
 def init_api_server():
+    global api_server_url
+    # start etcd
+    yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+    etcd_info_config: dict = yaml_loader.load(yaml_path)
+    API_SERVER_URL = etcd_info_config['API_SERVER_URL']
+    ETCD_NAME = etcd_info_config['ETCD_NAME']
+    ETCD_IP_ADDRESS = etcd_info_config['IP_ADDRESS']
+    ETCD_INITIAL_CLUSTER = etcd_info_config['ETCD_INITIAL_CLUSTER']
+    ETCD_INITIAL_CLUSTER_STATE = etcd_info_config['ETCD_INITIAL_CLUSTER_STATE']
+    cmd1 = ['bash', const.ETCD_SHELL_PATH, ETCD_NAME, ETCD_IP_ADDRESS,
+            ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
+    utils.exec_command(cmd1, shell=False, background=True)
+    logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
+    time.sleep(5)
+
     # for the very first start, init etcd
+    put('api_server_url', API_SERVER_URL)
+    api_server_url = get('api_server_url')
     if get('nodes_list', assert_exist=False) is None:
         put('nodes_list', list())
     if get('pods_list', assert_exist=False) is None:
@@ -73,7 +96,6 @@ def delete_key(key):
         etcd_supplant.pop(key)
 
 
-api_server_url = const.api_server_url
 
 
 @app.route('/Node', methods=['GET'])
@@ -240,7 +262,24 @@ def schedule(config):
         config['status'] = 'Schedule Failed'
         if len(nodes_list) == 0:
             print("no node registered !")
-        for node_instance_name in nodes_list:
+
+        schedule_counts = get('schedule_counts', assert_exist=False)
+        if schedule_counts is None or schedule_counts > 10:
+            put('schedule_counts', 0)
+        else:
+            put('schedule_counts', schedule_counts + 1)
+        schedule_counts = get('schedule_counts', assert_exist=True)
+
+        index = schedule_counts % len(nodes_list) if len(nodes_list) > 0 else 0
+        index_list = list()
+        for i in range(index, len(nodes_list)):
+            index_list.append(i)
+        for i in range(0, index):
+            index_list.append(i)
+        print("index list")
+        print(index_list)
+        for i in index_list:
+            node_instance_name = nodes_list[i]
             # todo: check node status here
             current_node = get(node_instance_name)
             print("node status = ", current_node['status'])
@@ -259,6 +298,7 @@ def schedule(config):
         json_data = json.dumps(config)
         # 向api_server发送调度结果
         r = requests.post(url=url, json=json_data)
+
 
 @app.route('/ReplicaSet', methods=['POST'])
 def upload_replica_set():
@@ -369,6 +409,11 @@ def post_pod(instance_name: str, behavior: str):
         config: dict = json.loads(json_data)
         put(instance_name, config)
         config['behavior'] = 'create'
+    elif behavior == 'update':  # update pods information such as ip
+        json_data = request.json
+        config: dict = json.loads(json_data)
+        put(instance_name, config)
+        return 'success', 200
     elif behavior == 'remove':
         config = get(instance_name)
         config['status'] = 'Removed'
@@ -552,6 +597,8 @@ def receive_heartbeat():
             pod_config['cpu_usage_percent'] = pod_heartbeat['cpu_usage_percent']
             pod_config['memory_usage_percent'] = pod_heartbeat['memory_usage_percent']
             pod_config['ip'] = pod_heartbeat['ip']
+            pod_config['volume'] = pod_heartbeat['volume']
+            pod_config['ports'] = pod_heartbeat['ports']
             pod_config['node'] = node_instance_name
             pod_config['container_names'] = pod_heartbeat['container_names']
             put(pod_instance_name, pod_config)

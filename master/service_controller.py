@@ -6,8 +6,6 @@ import time
 
 import requests
 
-
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
@@ -17,7 +15,8 @@ import kubeproxy
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
-api_server_url = const.api_server_url
+from api_server import get_api_server_url
+api_server_url = get_api_server_url()
 
 
 def update_worker_server(service_config: dict, pods_dict: dict, behavior: str):
@@ -43,11 +42,6 @@ def _create(service_dict: dict, service_config: dict, pods_dict: dict, update=Fa
     # assign static IP if not assigned according to the config
     if service_config.get('clusterIP') is None:
         service_config['clusterIP'], _ = kubeproxy.alloc_service_clusterIP(service_dict)
-    elif str(service_config['clusterIP']).find(str(kubeproxy.service_clusterIP_prefix)) != 0:
-        logging.warning('Service cluster IP not starts with {}, trying to reallocate...'
-                        .format(kubeproxy.service_clusterIP_prefix))
-        service_config['clusterIP'], _ = kubeproxy.alloc_service_clusterIP(service_dict)
-
     selector: dict = service_config['selector']
     pod_instances = list()
     for pod_instance_name in pods_dict['pods_list']:
@@ -111,13 +105,14 @@ def _none():
 
 def main():
     while True:
+        time.sleep(const.service_controller_flush_interval)
         try:
             r = requests.get(url='{}/Service'.format(api_server_url))
             service_dict = json.loads(r.content.decode('UTF-8'))
             r = requests.get(url='{}/Pod'.format(api_server_url))
             pods_dict = json.loads(r.content.decode('UTF-8'))
         except Exception as e:
-            logging.warning('Connect API Server Failure!')
+            print('Connect API Server Failure!', e)
             continue
         for service_name in service_dict['services_list']:
             service_config: dict = service_dict[service_name]
@@ -141,7 +136,6 @@ def main():
             elif status == 'None':
                 _none()
         print("Current Services are：{}".format(service_dict['services_list']))
-        time.sleep(const.service_controller_flush_interval)
 
 
 if __name__ == '__main__':

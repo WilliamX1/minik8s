@@ -67,6 +67,11 @@ def get_worker_url_list(api_server_url):
     return worker_url_list
 
 
+def get_node_dict(api_server_url):
+    url = '{}/Node'.format(api_server_url)
+    return get(url)
+
+
 def post(url: str, config: dict):
     try:
         json_data = json.dumps(config)

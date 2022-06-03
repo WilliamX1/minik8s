@@ -9,7 +9,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 import const
 
-api_server_url = const.api_server_url
+from api_server import get_api_server_url
+api_server_url = get_api_server_url()
 
 
 def main():
@@ -27,7 +28,8 @@ def main():
                     continue
                 valid_nodes_list.append(node_instance_name)
                 last_receive_time = current_node['last_receive_time']
-                if current_sec - last_receive_time > 20:
+                print(current_sec, last_receive_time)
+                if current_sec - last_receive_time > 200:
                     print("Node {} timeout!".format(node_instance_name))
                     r = requests.delete(url='{}/Node/{}'.format(api_server_url, node_instance_name))
             print("当前注册的Node为：{}".format(valid_nodes_list))
