@@ -113,6 +113,26 @@ def handle_Pod():
             os.system('cp ./tmp/serverless_server.py ./{}'.format(instance_name))
             os.system("cd {} && docker build . -t {}".format(instance_name, instance_name))
             config['containers'][0]['image'] = "{}:latest".format(instance_name)
+        elif config.__contains__('isGPU'):
+            pod_dir = os.path.join(BASE_DIR, instance_name + '/')
+            print("handle gpu pod")
+            if not os.path.exists(pod_dir):
+                print("pod dir = ", pod_dir)
+                os.mkdir(pod_dir)
+            data_dir = os.path.join(pod_dir, 'data')
+            if not os.path.exists(data_dir):
+                os.mkdir(data_dir)
+            files_list = config['files_list']
+            for file_name in files_list:
+                f = open(os.path.join(data_dir, file_name), 'w')
+                f.write(config[file_name])
+                f.close()
+            os.system('cp ./gpu/Dockerfile ./{}'.format(instance_name))
+            os.system('cp ./gpu/gpu_server.py ./{}'.format(instance_name))
+            os.system('cp ./gpu/upload.sh ./{}'.format(instance_name))
+            os.system('cp ./gpu/download.sh ./{}'.format(instance_name))
+            os.system("cd {} && docker build . -t {}".format(instance_name, instance_name))
+            config['containers'][0]['image'] = "{}:latest".format(instance_name)
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # update pod information such as ip, volume and ports

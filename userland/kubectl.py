@@ -53,7 +53,7 @@ def main():
         help_match = re.fullmatch(r'help', cmd.strip(), re.I)
         version_match = re.fullmatch(r'version', cmd.strip(), re.I)
         start_file_match = re.fullmatch(r'start *-f *([$a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
-        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns|nodes|functions|dags)', cmd.strip(), re.I)
+        show_match = re.fullmatch(r'show *(pods|services|replicasets|dns|nodes|functions|dags|jobs)', cmd.strip(), re.I)
         pod_command_match = re.fullmatch(r'(start|remove) * pod *([\w-]*)', cmd.strip(), re.I)
         service_command_match = re.fullmatch(r'(update|restart|remove) * service *([\w-]*)', cmd.strip(), re.I)
         dns_command_match = re.fullmatch(r'(update|restart|remove) * dns *([\w-]*)', cmd.strip(), re.I)
@@ -65,6 +65,12 @@ def main():
         delete_function_match = re.fullmatch(r'delete *function *([\w-]*)', cmd.strip(), re.I)
         upload_dag_initial_parameter_match = re.fullmatch(r'upload *dag *([\w-]*) *-p *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
         run_dag_match = re.fullmatch(r'run *dag *([\w-]*)', cmd.strip(), re.I)
+
+        upload_job_yaml_match = re.fullmatch(r'upload *job *-f *([a-zA-Z0-9:/\\_\-.]*yaml|yml)', cmd.strip(), re.I)
+        upload_job_file_match = re.fullmatch(r'upload *job *([\w-]*) *-f *([a-zA-Z0-9:/\\_\-.]*)', cmd.strip(), re.I)
+        start_job_match = re.fullmatch(r'start *job *([\w-]*)', cmd.strip(), re.I)
+        submit_job_match = re.fullmatch(r'submit *job *([\w-]*)', cmd.strip(), re.I)
+        download_job_match = re.fullmatch(r'download *job *([\w-]*) *-f *([a-zA-Z0-9:/\\_\-.]*)', cmd.strip(), re.I)
         # activate function <function_name> -f <parameter_path>
         try:
             if exit_match:
@@ -167,6 +173,16 @@ def main():
                         dag_status = dag_config['status']
                         dag_initial_parameter_status = dag_config['initial_parameter_status']
                         tb.add_row([dag_name, dag_status, dag_initial_parameter_status])
+                    print(tb)
+                elif object_type == 'jobs':
+                    job_dict = utils.get_job_dict(api_server_url=API_SERVER_URL)
+                    tb = prettytable.PrettyTable()
+                    tb.field_names = ['name', 'status', 'files_list']
+                    for job_name in job_dict['jobs_list']:
+                        job_config = job_dict[job_name]
+                        job_status = job_config['status']
+                        job_files_list = job_config['files_list']
+                        tb.add_row([job_name, job_status, job_files_list.__str__()])
                     print(tb)
                 else:
                     # todo : handle other types
@@ -287,6 +303,78 @@ def main():
                 print("return = ", r.content.decode())
                 if r.status_code == 404:
                     print("DAG instance not found!")
+            elif upload_job_yaml_match:
+                job_yaml_path = upload_job_yaml_match.group(1)
+                if not os.path.isfile(job_yaml_path):
+                    print("file not exist")
+                    continue
+                url = "{}/Job".format(API_SERVER_URL)
+                job_config: dict = yaml_loader.load(job_yaml_path)
+                r = requests.post(url=url, json=json.dumps(job_config))
+            elif upload_job_file_match:
+                job_name = upload_job_file_match.group(1)
+                file_path = upload_job_file_match.group(2)
+                file_path = os.path.join(BASE_DIR, file_path)
+                print("file_path = ", file_path)
+                with open(file_path) as f:
+                    flag = 0
+                    for i in range(len(f.name) - 1, 0, -1):
+                        if f.name[i] == '/':
+                            file_name = f.name[i + 1:]
+                            flag = 1
+                            break
+                    if flag == 0:
+                        file_name = f.name[:]
+                    file_data = f.read()
+                    print("file_name = ", file_name)
+                assert file_name
+                upload_config = {'file_name': file_name, 'file_data': file_data}
+                url = "{}/Job/{}/upload_file".format(API_SERVER_URL, job_name)
+                r = requests.post(url=url, json=json.dumps(upload_config))
+            elif start_job_match:
+                job_name = start_job_match.group(1)
+                url = "{}/Job/{}/start".format(API_SERVER_URL, job_name)
+                r = requests.post(url=url, json=json.dumps(dict()))
+                if r.status_code == 404:
+                    print("Job not found !")
+                elif r.status_code == 300:
+                    print("Job wait for build container!")
+                elif r.status_code == 200:
+                    print("Successfully start!")
+            elif submit_job_match:
+                job_name = submit_job_match.group(1)
+                url = "{}/Job/{}/submit".format(API_SERVER_URL, job_name)
+                r = requests.post(url=url, json=json.dumps(dict()))
+                if r.status_code == 404:
+                    print("Job not found !")
+                elif r.status_code == 300:
+                    print("Job wait for build container!")
+                elif r.status_code == 400:
+                    print("Submit Error!")
+                elif r.status_code == 200:
+                    print("Successfully submit!")
+            elif download_job_match:
+                job_name = download_job_match.group(1)
+                save_dir = download_job_match.group(2)
+                save_dir = os.path.join(BASE_DIR, save_dir)
+                url = "{}/Job/{}/download".format(API_SERVER_URL, job_name)
+                r = requests.post(url=url, json=json.dumps(dict()))
+                if r.status_code == 404:
+                    print("Job not found !")
+                elif r.status_code == 300:
+                    print("Job wait for build container!")
+                elif r.status_code == 400:
+                    print("Download Error!")
+                elif r.status_code == 200:
+                    download_config: dict = json.loads(r.content.decode())
+                    files_list = download_config['files_list']
+                    if not os.path.exists(save_dir):
+                        os.mkdir(save_dir)
+                    for file_name in files_list:
+                        f = open(os.path.join(save_dir, file_name), 'w')
+                        f.write(download_config[file_name])
+                        f.close()
+                    print("Successfully download!")
             elif curl_match:
                 ipordns = curl_match.group(1)  # ip or damain name
                 utils.exec_command(command=['curl', ipordns])
