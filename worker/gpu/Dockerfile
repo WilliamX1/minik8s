@@ -11,7 +11,7 @@ RUN pip install flask
 
 # define a mount point
 #RUN #ssh-keygen -q -t rsa -N '' -f /id_rsa
-ADD a.sh a.sh
+ADD upload.sh upload.sh
 ADD instance_name/data/ /data/
 
 EXPOSE 5052

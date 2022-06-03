@@ -19,7 +19,10 @@ import kubeproxy
 import prettytable
 
 
-API_SERVER_URL = None # get update when kubelet starts
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
+yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+etcd_info_config: dict = yaml_loader.load(yaml_path)
+API_SERVER_URL = etcd_info_config['API_SERVER_URL']
 
 
 def choose_file():
@@ -55,11 +58,7 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
-<<<<<<< HEAD
-        url = "{}/Pod".format(API_SERVER_URL)
-=======
-        url = "{}/Function".format(api_server_url)
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
+        url = "{}/Function".format(API_SERVER_URL)
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):

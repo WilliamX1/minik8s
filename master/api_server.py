@@ -22,7 +22,7 @@ from entities import parse_bytes
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = True
+use_etcd = False
 etcd = etcd3.client(port=2379)
 etcd_supplant = dict()
 api_server_url = None
@@ -67,8 +67,10 @@ def init_api_server():
             ETCD_INITIAL_CLUSTER, ETCD_INITIAL_CLUSTER_STATE]
     utils.exec_command(cmd1, shell=False, background=True)
     logging.warning('Please make sure etcd is running successfully, waiting for 5 seconds...')
-    time.sleep(5)
-
+    time.sleep(6)
+    cmd2 = '%s/worker/multi_machine/etcd/etcdctl put /coreos.com/network/config < ' \
+           '%s/worker/multi_machine/configs/flannel-network-config.json' % (ROOT_DIR, ROOT_DIR)
+    utils.exec_command(cmd2, shell=True)
     # for the very first start, init etcd
     put('api_server_url', API_SERVER_URL)
     api_server_url = get('api_server_url')
@@ -80,8 +82,12 @@ def init_api_server():
         put('services_list', list())
     if get('replica_sets_list', assert_exist=False) is None:
         put('replica_sets_list', list())
+    if get('dag_list', assert_exist=False) is None:
+        put('dag_list', list())
     if get('functions_list', assert_exist=False) is None:
         put('functions_list', list())
+    if get('hpa_list', assert_exist=False) is None:
+        put('hpa_list', list())
     if get('jobs_list', assert_exist=False) is None:
         put('jobs_list', list())
     if get('dns_list', assert_exist=False) is None:
@@ -97,15 +103,13 @@ def delete_key(key):
         etcd_supplant.pop(key)
 
 
-
-
 @app.route('/Node', methods=['GET'])
 def handle_nodes():
     result = dict()
     result['nodes_list']: list = get('nodes_list')
     for node_instance_name in result['nodes_list']:
         result[node_instance_name] = get(node_instance_name)
-        try:    # we allow timeout
+        try:  # we allow timeout
             r = requests.get(url=result[node_instance_name]['url'] + "/heartbeat", timeout=0.01)
         except Exception as e:
             pass
@@ -163,7 +167,6 @@ def get_node_instance(node_instance_name: str):
         return json.dumps(dict()), 200
 
 
-
 @app.route('/', methods=['GET'])
 def get_all():
     return json.dumps('not good'), 200
@@ -205,6 +208,42 @@ def get_replica_set():
                 result[pod_instance_name] = pod_config
     # print(result)
     return json.dumps(result), 200
+
+
+@app.route('/HorizontalPodAutoscaler', methods=['GET'])
+def get_hpa():
+    result = dict()
+    result['hpa_list'] = get('hpa_list')
+    for hpa_instance in result['hpa_list']:
+        config = get(hpa_instance)
+        result[hpa_instance] = config
+    return json.dumps(result), 200
+
+
+@app.route('/HorizontalPodAutoscaler', methods=['POST'])
+def upload_hpa():
+    json_data = request.json
+    HPA_config: dict = json.loads(json_data)
+    assert HPA_config['kind'] == 'HorizontalPodAutoscaler'
+    replica_set_instance_name = HPA_config['name'] + uuid.uuid1().__str__()
+    replica_set_config = HPA_config
+    replica_set_config['instance_name'] = replica_set_instance_name
+    replica_set_config['spec'] = dict()
+    replica_set_config['spec']['replicas'] = replica_set_config['minReplicas']
+    replica_set_config['kind'] = 'ReplicaSet'
+    replica_set_config['created_time'] = time.time()
+    replica_set_config['last_change_time'] = time.time()
+    replica_set_config['isHPA'] = True
+    replica_set_config['pod_instances'] = list()
+    hpa_list: list = get('hpa_list')
+    hpa_list.append(replica_set_instance_name)
+    put('hpa_list', hpa_list)
+    replica_sets_list: list = get('replica_sets_list')
+    replica_sets_list.append(replica_set_instance_name)
+    put('replica_sets_list', replica_sets_list)
+    put(replica_set_instance_name, replica_set_config)
+
+    return "Successfully create HPA set instance {}".format(replica_set_instance_name), 200
 
 
 @app.route('/Dns', methods=['GET'])
@@ -318,6 +357,9 @@ def upload_replica_set():
     return "Successfully create replica set instance {}".format(replica_set_instance_name), 200
 
 
+
+
+
 @app.route('/Service', methods=['POST'])
 def upload_service():
     json_data = request.json
@@ -403,6 +445,11 @@ def update_replica_set(instance_name: str):
     return "Successfully update replica set instance {}".format(instance_name), 200
 
 
+@app.route('/Pod/<string:instance_name>', methods=['GET'])
+def get_pod_instance(instance_name: str):
+    return json.dumps(get(instance_name, assert_exist=False))
+
+
 @app.route('/Pod/<string:instance_name>/<string:behavior>', methods=['POST'])
 def post_pod(instance_name: str, behavior: str):
     if behavior == 'create':
@@ -483,9 +530,32 @@ def upload_function():
             flag = 1
     if not flag:
         functions_list.append(function_name)
+    else:  # replace the old one
+        old_function_config: dict = get(function_name)
+        old_pod_instances = old_function_config['pod_instances']
+        for old_pod_instance_name in old_pod_instances:
+            r = requests.post("{}/Pod/{}/remove".format(api_server_url, old_pod_instance_name))
     put('functions_list', functions_list)
     put(function_name, function_config)  # replace the old one if exist
     return json.dumps(get('functions_list')), 200
+
+
+def add_function_pod_instance(function_instance_name, function_config: dict):
+    upload_config: dict = function_config.copy()
+    upload_config['kind'] = 'Pod'
+    upload_config['last_activated_time'] = time.time()
+    # upload_config.pop('pod_instances')
+    r = requests.post("{}/Pod".format(api_server_url), json=json.dumps(upload_config))
+    if r.status_code == 200:
+        pod_config = json.loads(r.content.decode())
+        pod_instance_name = pod_config['instance_name']
+        function_config['pod_instances'].append(pod_instance_name)
+        put(function_instance_name, function_config)
+        # add the pod into the pod_instances list
+        return pod_instance_name
+    else:
+        return None
+
 
 @app.route('/Function/<string:instance_name>/<string:behavior>', methods=['POST'])
 def handle_function(instance_name: str, behavior: str):
@@ -499,7 +569,20 @@ def handle_function(instance_name: str, behavior: str):
         function_config['status'] = 'Uploaded'
         function_config['requirement_status'] = 'Uploaded'
         put(instance_name, function_config)  # replace the old one if exist
-    elif behavior == 'start':   # debug only
+    elif behavior == 'delete':
+        function_list: list = get('functions_list')
+        match_id = -1
+        for index, function_name in enumerate(function_list):
+            if function_name == instance_name:
+                match_id = index
+                break
+        if match_id != -1:
+            function_config = function_list[match_id]
+            function_list.pop(match_id)
+            put('functions_list', function_list)
+            for pod_instance_name in function_config['pod_instances']:
+                r = requests.post("{}/Pod/{}/remove".format(api_server_url, pod_instance_name), json=json.dumps(dict()))
+    elif behavior == 'start':  # debug only
         function_config = get(instance_name, assert_exist=False)
         if function_config is None:
             return "Not found", 404
@@ -519,48 +602,65 @@ def handle_function(instance_name: str, behavior: str):
                     valid_pod_instance_names.append(pod_instance_name)
         if len(valid_pod_instance_names) == 0:
             # if no instance exist, cold start
-            upload_config:dict = function_config.copy()
-            upload_config['kind'] = 'Pod'
-            upload_config.pop('pod_instances')
-            r = requests.post("{}/Pod".format(api_server_url), json=json.dumps(upload_config))
-            if r.status_code == 200:
-                pod_config = json.loads(r.content.decode())
-                pod_instance_name = pod_config['instance_name']
-                function_config['pod_instances'].append(pod_instance_name)
-                # add the pod into the pod_instances list
-                return "Wait for Cold Start", 300
+            pod_instance_name = add_function_pod_instance(instance_name, function_config.copy())
+            if pod_instance_name:
+                valid_pod_instance_names.append(pod_instance_name)
             else:
-                return "Error!", r.status_code
-        else:   # hot activate
-            # config is the parameter yaml, which is the context dict
-            # random pick
-            pod_instance_name = valid_pod_instance_names[random.randint(0, len(valid_pod_instance_names) - 1)]
-            pod_ip = pod_instance_name['ip']
-            context = config
-            function_name = context['function_name']
-            pod_url = pod_ip + '/function/module/{}'.format(function_name)
-            r = requests.post(pod_url, json=context)
-            if r.status_code == 200:
-                return json.dumps(json.loads(r.content.decode())), 200
-            else:
-                return "Activate error", 400
+                return "Serverless Pod build error", 300
+        # config is the parameter yaml, which is the context dict
+        # random pick
+        function_config['last_receive_time'] = time.time()
+        put(instance_name, function_config)
+        pod_instance_name = valid_pod_instance_names[random.randint(0, len(valid_pod_instance_names) - 1)]
+        pod_config = get(pod_instance_name)
+        pod_config['last_activated_time'] = time.time()
+        put(pod_instance_name, pod_config)
+        pod_ip = pod_config['ip']
+        context = config
+        function_name = context['function_name']
+        pod_url = "http://" + pod_ip + ':5052/function/module/{}'.format(function_name)
+        r = requests.post(pod_url, json=json.dumps(context))
+        if r.status_code == 200:
+            result = json.loads(r.content.decode())
+            result['ip'] = pod_ip
+            return json.dumps(result), 200
+        else:
+            return "Activate error", 400
+    elif behavior == 'add_instance':
+        function_config = get(instance_name, assert_exist=False)
+        if function_config is None:
+            return 'Not found ', 404
+        return add_function_pod_instance(instance_name, function_config.copy())
+
+
+@app.route('/DAG', methods=['GET'])
+def get_dags():
+    dag_list = get('dag_list')
+    result = dict()
+    result['dag_list'] = dag_list
+    for dag_name in dag_list:
+        dag_config = get(dag_name, assert_exist=False)
+        if dag_config:
+            result[dag_name] = dag_config
+    return json.dumps(result), 200
 
 
 @app.route('/DAG/<string:dag_name>', methods=['GET'])
 def get_dag(dag_name: str):
-    dag = get(dag_name)
+    dag = get(dag_name, assert_exist=False)
     return json.dumps(dag), 200
 
 
 def build_DAG_from_dict(dag_dict: dict):
-    if not dag_dict.__contains__('elements') or not dag_dict.__contains__('branch_condition') or not dag_dict.__contains__('name_data'):
+    if not dag_dict.__contains__('elements') or not dag_dict.__contains__(
+            'branch_condition') or not dag_dict.__contains__('name_data'):
         return None
     elements = dag_dict['elements']
     branch_condition = dag_dict['branch_condition']
     name_data = dag_dict['name_data']
-    name_dict = dict()
-    for name in name_data:
-        name_dict[name[0]] = name[1]['label']
+    node_id_to_name_dict = dict()
+    for name in name_data:  # ID to real user-defined name
+        node_id_to_name_dict[name[0]] = name[1]['label']
 
     node_list = list()
     node_dict = dict()
@@ -569,7 +669,7 @@ def build_DAG_from_dict(dag_dict: dict):
     for element in elements:
         element_id = element['id']
         if element.__contains__('position'):  # node
-            serverless_function = ServerlessFunction.from_dict(element, node_name=name_dict[element_id])
+            serverless_function = ServerlessFunction.from_dict(element, node_name=node_id_to_name_dict[element_id])
             if serverless_function:
                 node_list.append(serverless_function)
                 node_dict[element_id] = serverless_function
@@ -583,10 +683,16 @@ def build_DAG_from_dict(dag_dict: dict):
         else:
             return None
     for edge in edge_list:
+        print("edge source = {}, target = {}".format(edge.source, edge.target))
+        edge.source.add_out_edge(edge)
         edge_index = edge.index
         if branch_condition.__contains__(edge_index):
             edge.update_condition(branch_condition[edge_index])
     my_dag = DAG.from_node_list_and_edge_list(node_list, edge_list)
+    for node in node_list:
+        print("type = {}, node_name = {}, module = {}, function ={}".format(node.node_type, node.name, node.module_name, node.function_name))
+        for edge in node.out_edge:
+            print("out node = ", edge.target.name)
     return my_dag
 
 
@@ -596,28 +702,64 @@ def handle_DAG(dag_name: str, behavior: str):
         elements = json.loads(request.form.get('elements'))
         branch_condition = json.loads(request.form.get('localStorage'))
         name_data = json.loads(request.form.get("flowData"))['value']
-        dag_dict = {'elements': elements, 'branch_condition': branch_condition, 'name_data':name_data}
-        my_dag = build_DAG_from_dict(dag_dict)
+        dag_dict = {'elements': elements, 'branch_condition': branch_condition, 'name_data': name_data}
+        my_dag = build_DAG_from_dict(dag_dict)  # is not none means no serious error
         if my_dag:
-            put(dag_name, dag_dict)
+            dag_list: list = get('dag_list')
+            flag = 0
+            for name in dag_list:
+                if name == dag_name:
+                    flag = 1
+            if not flag:
+                dag_list.append(dag_name)
+            dag_dict['status'] = 'Uploaded'
+            dag_dict['initial_parameter_status'] = 'Not Found'
+            dag_dict['initial_parameter'] = dict()
+            put('dag_list', dag_list)
+            put(dag_name, dag_dict)  # replace the old one
             return "Successfully save dag", 200
         else:
             return "Save DAG Error", 500
+    elif behavior == 'upload_initial_parameter':
+        initial_parameter: dict = json.loads(request.json)
+        dag_config: dict = get(dag_name)
+        dag_config['initial_parameter'] = initial_parameter
+        dag_config['initial_parameter_status'] = 'Uploaded'
+        put(dag_name, dag_config)
     elif behavior == 'run':
-        my_dag: DAG = etcd_supplant[dag_name]
+        dag_config = get(dag_name)
+        my_dag: DAG = build_DAG_from_dict(dag_config)
         start_node = my_dag.start_node
         end_node: ServerlessFunction = my_dag.end_node
+        print("my_dag = ", my_dag)
+
+        print("my_dag = ", my_dag)
         current_node = start_node.out_edge[0].target
-
+        prev_node_result = dag_config['initial_parameter']
         while current_node != end_node:
+            parameters: dict = prev_node_result
+            parameters['function_name'] = current_node.function_name
+            print("parameters = ", parameters)
+            # first: run the current node and get result
+            module_name = current_node.module_name
+            function_instance_name = 'serverless-' + current_node.module_name
+            r = requests.post('{}/Function/{}/activate'.format(api_server_url, function_instance_name),
+                              json=json.dumps(parameters))
+            if r.status_code != 200:
+                return "{}.{} activation error!".format(module_name, current_node.function_name), 500
+            prev_node_result: dict = json.loads(r.content.decode())
+            success = 0
             current_out_edge = current_node.out_edge
-            if current_out_edge == 1:   # condition = true
-                function_instance_name = 'serverless-' + current_node.module_name
-                r = requests.post(api_server_url + '/Function/{}/activate'.format(function_instance_name))
-
-                / Function / < string: instance_name > / < string: behavior >
-
-        return "not"
+            for edge in current_out_edge:
+                condition = edge.condition
+                print("try to eval condition = ", condition)
+                if eval(condition):
+                    success = 1
+                    current_node = edge.target
+                    break
+            if success == 0:
+                return "Not node match the condition! ", 500
+        return json.dumps(prev_node_result), 200
 
 
 @app.route('/heartbeat', methods=['POST'])

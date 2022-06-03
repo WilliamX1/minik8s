@@ -482,3 +482,6 @@
 20.20.72.1 - - [03/Jun/2022:01:11:01 +0000] "GET /pod-3-service HTTP/1.1" 200 144 "-" "curl/7.68.0" "-"
 20.20.72.1 - - [03/Jun/2022:01:11:03 +0000] "GET /pod-3-service HTTP/1.1" 200 144 "-" "curl/7.68.0" "-"
 20.20.72.1 - - [03/Jun/2022:01:11:03 +0000] "GET /pod-3-service HTTP/1.1" 200 144 "-" "curl/7.68.0" "-"
+20.20.72.1 - - [03/Jun/2022:01:22:06 +0000] "GET / HTTP/1.1" 200 279 "-" "curl/7.68.0" "-"
+172.17.84.1 - - [03/Jun/2022:03:29:07 +0000] "GET / HTTP/1.1" 200 279 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" "-"
+172.17.84.1 - - [03/Jun/2022:03:29:07 +0000] "GET /favicon.ico HTTP/1.1" 404 555 "http://172.17.84.4/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" "-"

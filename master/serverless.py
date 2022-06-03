@@ -50,7 +50,8 @@ class Edge(object):
         source_node_id = init_dict['source']
         target_node_id = init_dict['target']
         if nodes.__contains__(source_node_id) and nodes.__contains__(target_node_id):
-            return Edge(edge_id, nodes[source_node_id], nodes[source_node_id], "True")
+            print("edge links ", nodes[source_node_id].module_name, nodes[target_node_id].module_name)
+            return Edge(edge_id, nodes[source_node_id], nodes[target_node_id], "True")
         else:
             return None
 

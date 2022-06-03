@@ -57,6 +57,11 @@ def get_dns_config_dict(api_server_url):
     return get(url)
 
 
+def get_dag_dict(api_server_url):
+    url = '{}/DAG'.format(api_server_url)
+    return get(url)
+
+
 def get_worker_url_list(api_server_url):
     url = '{}/Node'.format(api_server_url)
     nodes_dict: dict = get(url)

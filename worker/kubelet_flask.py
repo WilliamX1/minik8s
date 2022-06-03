@@ -111,7 +111,8 @@ def handle_Pod():
                 f.close()
             os.system('cp ./tmp/Dockerfile ./{}'.format(instance_name))
             os.system('cp ./tmp/serverless_server.py ./{}'.format(instance_name))
-            os.system("cd {} && docker build . -t {}".format(instance_name, module_name))
+            os.system("cd {} && docker build . -t {}".format(instance_name, instance_name))
+            config['containers'][0]['image'] = "{}:latest".format(instance_name)
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # update pod information such as ip, volume and ports
@@ -125,6 +126,7 @@ def handle_Pod():
         if index == -1:  # pod not found
             return "Not found", 404
         pods.pop(index)
+        pod.stop()
         pod.remove()
     elif bahavior == 'execute':
         # todo: check the logic here
@@ -160,9 +162,9 @@ def init_node():
     f.close()
 
     worker_info['WORKER_PORT'] = int(nodes_info_config['WORKER_PORT'])
-    cmd2 = ['bash', const.FLANNEL_SHELL_PATH, worker_info['MASTER_ETCD_CLIENT_URL']]
+    cmd2 = const.FLANNEL_PATH # + ' -etcd-endpoints=' + worker_info['MASTER_ETCD_CLIENT_URL']
     cmd3 = ['bash', const.DOCKER_SHELL_PATH]
-    utils.exec_command(cmd2, shell=False, background=True)
+    utils.exec_command(cmd2, shell=True, background=True)
     logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
     time.sleep(3)
     utils.exec_command(cmd3, shell=False, background=True)

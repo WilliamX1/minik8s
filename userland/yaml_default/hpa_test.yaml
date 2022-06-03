@@ -9,17 +9,10 @@ metrics:
   average_memory: 50
   time_period: 10
 containers:
-  - name: nginx
-    image: nginx
+  - name: hpa_test
+    image: hpa_test:latest
     command:
     resource:
       memory: 500m
       cpu: 1
-    port: 80
-  - name: jetty
-    image: jetty
-    command:
-    resource:
-      memory: 500m
-      cpu: 1
-    port: 8080
+    port: 5053
