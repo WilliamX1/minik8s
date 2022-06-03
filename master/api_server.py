@@ -611,7 +611,11 @@ def handle_DAG(dag_name: str, behavior: str):
 
         while current_node != end_node:
             current_out_edge = current_node.out_edge
-            if current_out_edge == 1:   #
+            if current_out_edge == 1:   # condition = true
+                function_instance_name = 'serverless-' + current_node.module_name
+                r = requests.post(api_server_url + '/Function/{}/activate'.format(function_instance_name))
+
+                / Function / < string: instance_name > / < string: behavior >
 
         return "not"
 
