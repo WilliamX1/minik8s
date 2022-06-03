@@ -383,7 +383,7 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
         tb = prettytable.PrettyTable()
         tb.field_names = ['name', 'instance_name', 'status', 'created time',
                           'type', 'cluster IP', "external IP",
-                          'port(s)']
+                          'port(s)', 'pod_instances']
     created_time = int(time.time() - service_config['created_time'])
     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
     name = service_config['name'] if service_config.get('name') is not None else '-'
@@ -393,13 +393,14 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
     externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
     ports: list = service_config.get('ports')
     show_ports = list()
+    pod_instances = service_config['pod_instances'] if service_config.get('pod_instances') is not None else list()
     if ports is not None:
         for p in ports:
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
     tb.add_row([name, service_instance_name, service_status, created_time.strip(),
-                type, clusterIP, externalIP, show_ports])
+                type, clusterIP, externalIP, show_ports, pod_instances])
     if show is True:
         print(tb)
 
@@ -413,7 +414,7 @@ def show_services(service_dict: dict):
     tb = prettytable.PrettyTable()
     tb.field_names = ['name', 'instance_name', 'status', 'created time',
                       'type', 'cluster IP', "external IP",
-                      'port(s)']
+                      'port(s)', 'pod_instances']
 
     for service_instance_name in service_dict['services_list']:
         service_config = service_dict[service_instance_name]

@@ -4,6 +4,7 @@ volume:
   - $/userland/final_check/pod-2/:/usr/share/nginx/html/
 cpu: 1
 mem: 12m
+strategy: roundrobin
 metadata:
   labels:
     app: xhd

@@ -1,3 +1,4 @@
+import random
 import time
 
 from flask import Flask, request
@@ -246,6 +247,7 @@ def post_pods():
     config['instance_name'] = instance_name
     config['status'] = 'Wait for Schedule'
     config['created_time'] = time.time()
+    config['strategy'] = config['strategy'] if config.get('strategy') is not None else 'roundrobin'
     # print("create {}".format(instance_name))
     pods_list: list = get('pods_list')
     pods_list.append(instance_name)
@@ -265,21 +267,27 @@ def schedule(config):
         if len(nodes_list) == 0:
             print("no node registered !")
 
-        schedule_counts = get('schedule_counts', assert_exist=False)
-        if schedule_counts is None or schedule_counts > 10:
-            put('schedule_counts', 0)
-        else:
-            put('schedule_counts', schedule_counts + 1)
-        schedule_counts = get('schedule_counts', assert_exist=True)
-
-        index = schedule_counts % len(nodes_list) if len(nodes_list) > 0 else 0
+        strategy = config['strategy'] if config.get('strategy') is not None else 'roundrobin'
         index_list = list()
-        for i in range(index, len(nodes_list)):
-            index_list.append(i)
-        for i in range(0, index):
-            index_list.append(i)
-        print("index list")
-        print(index_list)
+        if strategy == 'roundrobin':
+            schedule_counts = get('schedule_counts', assert_exist=False)
+            if schedule_counts is None or schedule_counts > 10:
+                put('schedule_counts', 0)
+            else:
+                put('schedule_counts', schedule_counts + 1)
+            schedule_counts = get('schedule_counts', assert_exist=True)
+
+            index = schedule_counts % len(nodes_list) if len(nodes_list) > 0 else 0
+            for i in range(index, len(nodes_list)):
+                index_list.append(i)
+            for i in range(0, index):
+                index_list.append(i)
+        elif strategy == 'random':
+            for i in range(0, len(nodes_list)):
+                index_list.append(i)
+            random.shuffle(index_list)
+        else:
+            logging.warning('strategy not assigned...')
         for i in index_list:
             node_instance_name = nodes_list[i]
             # todo: check node status here

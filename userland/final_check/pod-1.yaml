@@ -5,13 +5,14 @@ volume:
   - $/userland/final_check/pod-1/:/var/lib/jetty/webapps
 cpu: 2
 mem: 100m
+strategy: roundrobin # roundrobin or random
 metadata:
   labels:
     app: xhd
     version: major
 containers:
   - name: nginx
-    image: nginx
+    image: nginx:latest
     command:
     resource:
       cpu: 1

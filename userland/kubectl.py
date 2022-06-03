@@ -82,7 +82,9 @@ def main():
             if object_type == "pods":
                 pods_dict = utils.get_pod_dict(api_server_url=API_SERVER_URL)
                 tb = prettytable.PrettyTable()
-                tb.field_names = ['name', 'instance_name', 'status', 'created time', 'ip', 'volume', 'ports']
+                print(pods_dict)
+                tb.field_names = ['name', 'instance_name', 'status', 'created time', 'ip', 'volume', 'ports',
+                                  'cpu', 'mem', 'node', 'strategy']
                 for pod_instance_name in pods_dict['pods_list']:
                     pod_config = pods_dict.get(pod_instance_name)
                     if pod_config:
@@ -93,11 +95,16 @@ def main():
                         ip = pod_config['ip'] if pod_config.get('ip') is not None else '-'
                         volume = pod_config['volume'] if pod_config.get('volume') is not None else '-'
                         ports = pod_config['ports'] if pod_config.get('ports') is not None else '-'
+                        cpu = pod_config['cpu'] if pod_config.get('cpu') is not None else '-'
+                        mem = pod_config['mem'] if pod_config.get('mem') is not None else '-'
+                        node = pod_config['node'] if pod_config.get('node') is not None else '-'
+                        strategy = pod_config['strategy'] if pod_config.get('strategy') is not None else 'roundrobin'
                         tb.add_row([name, pod_instance_name, status, created_time.strip(),
-                                    ip, volume, ports])
+                                    ip, volume, ports, cpu, mem, node, strategy])
                 print(tb)
             elif object_type == "services":
                 service_dict = utils.get_service_dict(api_server_url=API_SERVER_URL)
+                print(service_dict)
                 kubeproxy.show_services(service_dict)
             elif object_type == 'replicasets':
                 rc_dict = utils.get_replicaset_dict(api_server_url=API_SERVER_URL)

@@ -28,7 +28,7 @@ def main():
                     continue
                 valid_nodes_list.append(node_instance_name)
                 last_receive_time = current_node['last_receive_time']
-                print(current_sec, last_receive_time)
+                # print(current_sec, last_receive_time)
                 if current_sec - last_receive_time > 200:
                     print("Node {} timeout!".format(node_instance_name))
                     r = requests.delete(url='{}/Node/{}'.format(api_server_url, node_instance_name))

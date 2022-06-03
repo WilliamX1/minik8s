@@ -55,11 +55,7 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
-<<<<<<< HEAD
-        url = "{}/Pod".format(API_SERVER_URL)
-=======
-        url = "{}/Function".format(api_server_url)
->>>>>>> 04b931f29bdcd855e2af4d016c45c1480b1e1b0e
+        url = "{}/Function".format(API_SERVER_URL)
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):
