@@ -511,6 +511,135 @@ def get_function():
         result[function_name] = get(function_name)
     return json.dumps(result), 200
 
+@app.route('/Job', methods=['GET'])
+def get_job():
+    result = dict()
+    result['jobs_list'] = get('jobs_list')
+    for job_name in result['jobs_list']:
+        result[job_name] = get(job_name)
+    return json.dumps(result), 200
+
+
+@app.route('/Job', methods=['POST'])
+def upload_job():
+    json_data = request.json
+    job_config: dict = json.loads(json_data)
+    job_name = job_config['name']
+    job_config['created_time'] = time.time()
+    job_config['status'] = 'Uploaded'
+    job_config['files_list'] = list()
+    job_config['pod_instances'] = list()
+    jobs_list: list = get('jobs_list')
+    # node instance name bind with physical mac address
+    flag = 0
+    for name in jobs_list:
+        if name == job_name:
+            flag = 1
+    if not flag:
+        jobs_list.append(job_name)
+    else:  # replace the old one
+        old_job_config: dict = get(job_name)
+        old_pod_instances = old_job_config['pod_instances']
+        for old_pod_instance_name in old_pod_instances:
+            r = requests.post("{}/Pod/{}/remove".format(api_server_url, old_pod_instance_name))
+    put('jobs_list', jobs_list)
+    put(job_name, job_config)  # replace the old one if exist
+    return json.dumps(get('jobs_list')), 200
+
+
+@app.route('/Job/<string:instance_name>/<string:behavior>', methods=['POST'])
+def handle_job(instance_name: str, behavior: str):
+    json_data = request.json
+    config: dict = json.loads(json_data)
+    if behavior == 'upload_file':
+        job_config = get(instance_name, assert_exist=False)
+        if job_config is None:
+            return "Not found", 404
+        file_name = config['file_name']
+        file_data = config['file_data']
+        files_list: list = job_config['files_list']
+        flag = 0
+        for name in files_list:
+            if name == file_name:
+                flag = 1
+        if not flag:
+            files_list.append(file_name)
+        job_config[file_name] = file_data
+        put(instance_name, job_config)
+    elif behavior == 'delete':
+        jobs_list: list = get('jobs_list')
+        match_id = -1
+        for index, job_name in enumerate(jobs_list):
+            if job_name == instance_name:
+                match_id = index
+                break
+        if match_id != -1:   # matched
+            job_config = jobs_list[match_id]
+            jobs_list.pop(match_id)
+            put('jobs_list', jobs_list)
+            for pod_instance_name in job_config['pod_instances']:
+                r = requests.post("{}/Pod/{}/remove".format(api_server_url, pod_instance_name), json=json.dumps(dict()))
+    elif behavior == 'start':
+        job_config = get(instance_name, assert_exist=False)
+        if job_config is None:
+            return 'Not found ', 404
+        job_pod_config: dict = job_config.copy()
+        job_pod_config['kind'] = 'Pod'
+        job_pod_config['isGPU'] = True
+        # upload_config.pop('pod_instances')
+        r = requests.post("{}/Pod".format(api_server_url), json=json.dumps(job_pod_config))
+        if r.status_code == 200:
+            pod_config = json.loads(r.content.decode())
+            pod_instance_name = pod_config['instance_name']
+            job_pod_config['pod_instances'].append(pod_instance_name)
+            put(instance_name, job_config)
+            # add the pod into the pod_instances list
+            return pod_instance_name, 200
+        else:
+            return "Wait for container build", 300
+    elif behavior == 'submit':
+        job_config = get(instance_name, assert_exist=False)
+        if job_config is None:
+            return 'Not found ', 404
+        if len(job_config['pod_instances']) < 1:
+            return 'Wait for Pod start', 300
+        job_config['last_receive_time'] = time.time()
+        put(instance_name, job_config)
+        pod_instance_name = job_config['pod_instances'][0]
+        pod_config = get(pod_instance_name)
+        pod_config['last_submitted_time'] = time.time()
+        put(pod_instance_name, pod_config)
+        pod_ip = pod_config['ip']
+        pod_url = "http://" + pod_ip + ':5054/submit'
+        upload_config = {"module_name": instance_name}
+        r = requests.post(pod_url, json=json.dumps(upload_config))
+        if r.status_code == 200:
+            result = json.loads(r.content.decode())
+            return json.dumps(result), 200
+        else:
+            return "Submit error", 400
+    elif behavior == 'download':
+        job_config = get(instance_name, assert_exist=False)
+        if job_config is None:
+            return 'Not found ', 404
+        if len(job_config['pod_instances']) < 1:
+            return 'Wait for Pod start', 300
+        job_config['last_receive_time'] = time.time()
+        put(instance_name, job_config)
+        pod_instance_name = job_config['pod_instances'][0]
+        pod_config = get(pod_instance_name)
+        pod_config['last_submitted_time'] = time.time()
+        put(pod_instance_name, pod_config)
+        pod_ip = pod_config['ip']
+        pod_url = "http://" + pod_ip + ':5054/download'
+        upload_config = {"module_name": instance_name}
+        r = requests.post(pod_url, json=json.dumps(upload_config))
+        if r.status_code == 200:
+            result = json.loads(r.content.decode())
+            return json.dumps(result), 200
+        else:
+            return "Download error", r.status_code
+
 
 @app.route('/Function', methods=['POST'])
 def upload_function():

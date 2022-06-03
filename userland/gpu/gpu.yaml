@@ -9,5 +9,4 @@ containers:
     resource:
       memory: 500m
       cpu: 1
-    port: 5052
-slurm_path: ./data/
+    port: 5054

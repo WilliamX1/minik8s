@@ -11,11 +11,14 @@ RUN pip install flask
 
 # define a mount point
 #RUN #ssh-keygen -q -t rsa -N '' -f /id_rsa
-ADD upload.sh upload.sh
-ADD instance_name/data/ /data/
+ADD ./data/ /data/
+ADD ./upload.sh /upload.sh
+ADD ./download.sh /download.sh
+ADD ./gpu_server.py /gpu_server.py
 
-EXPOSE 5052
+
+EXPOSE 5054
 
 # define command for this image
 #CMD ["/bin/bash", "a.sh"]
-#CMD ["python3","/serverless_server.py"]
+CMD ["python3","/gpu_server.py"]
