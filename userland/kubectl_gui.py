@@ -19,7 +19,10 @@ import kubeproxy
 import prettytable
 
 
-API_SERVER_URL = None # get update when kubelet starts
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
+yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+etcd_info_config: dict = yaml_loader.load(yaml_path)
+API_SERVER_URL = etcd_info_config['API_SERVER_URL']
 
 
 def choose_file():

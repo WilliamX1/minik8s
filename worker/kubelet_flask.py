@@ -76,25 +76,6 @@ def update_services(behavior: str):
     return json.dumps(service_config), 200
 
 
-@app.route('/ServerlessFunction/<string:instance_name>/upload', methods=['POST'])
-def upload_script(instance_name: str):
-    # todo : add serverless logic here
-    config = json.loads(request.json)
-    print(config)
-    data = config['script_data']
-    print(request.files)
-    f = open('./tmp/' + secure_filename('{}.py'.format(module_name)), 'w')
-    f.write(data)
-    f.close()
-    os.system("cd tmp && docker build . -t {}".format(module_name))
-    # import docker
-    #
-    # docker_client = docker.from_env(version='1.25', timeout=5)
-    # docker_client.images.build(path="./tmp")
-    # we will build a docker image with tag: <instance_name>:latest here
-    return 'file uploaded successfully'
-
-
 @app.route('/Pod', methods=['POST'])
 def handle_Pod():
     config: dict = json.loads(request.json)
@@ -118,15 +99,20 @@ def handle_Pod():
             if not os.path.exists(pod_dir):
                 print("pod dir = ", pod_dir)
                 os.mkdir(pod_dir)
-            data = config['script_data']
-            f = open(os.path.join(pod_dir, secure_filename('{}.py'.format(module_name))), 'w')
-            f.write(data)
+            f = open(os.path.join(pod_dir, secure_filename('my_module.py')), 'w')
+            f.write(config['script_data'])
             f.close()
             if config.__contains__('requirement'):
-                f = open(os.path.join(pod_dir, 'requirement.txt'), 'w')
-                f.write(data)
+                f = open(os.path.join(pod_dir, 'requirements.txt'), 'w')
+                f.write(config['requirement'])
                 f.close()
-            os.system("cd {} && docker build . -t {}".format(instance_name, module_name))
+            else:
+                f = open(os.path.join(pod_dir, 'requirements.txt'), 'w')
+                f.close()
+            os.system('cp ./tmp/Dockerfile ./{}'.format(instance_name))
+            os.system('cp ./tmp/serverless_server.py ./{}'.format(instance_name))
+            os.system("cd {} && docker build . -t {}".format(instance_name, instance_name))
+            config['containers'][0]['image'] = "{}:latest".format(instance_name)
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))
         # update pod information such as ip, volume and ports
@@ -140,6 +126,7 @@ def handle_Pod():
         if index == -1:  # pod not found
             return "Not found", 404
         pods.pop(index)
+        pod.stop()
         pod.remove()
     elif bahavior == 'execute':
         # todo: check the logic here
@@ -175,7 +162,7 @@ def init_node():
     f.close()
 
     worker_info['WORKER_PORT'] = int(nodes_info_config['WORKER_PORT'])
-    cmd2 = const.FLANNEL_PATH + ' -etcd-endpoints=' + worker_info['MASTER_ETCD_CLIENT_URL']
+    cmd2 = const.FLANNEL_PATH # + ' -etcd-endpoints=' + worker_info['MASTER_ETCD_CLIENT_URL']
     cmd3 = ['bash', const.DOCKER_SHELL_PATH]
     utils.exec_command(cmd2, shell=True, background=True)
     logging.warning('Please make sure flannel is running successfully, waiting for 3 seconds...')
@@ -196,6 +183,8 @@ def init_node():
     if node_config.get('pod_instances'):
         for pod_instance_name in node_config['pod_instances']:
             pod_config = node_config[pod_instance_name]
+            if pod_config.get('status') == 'Failed' or pod_config.get('status') == 'Succeeded':
+                continue
             if pod_config.__contains__("container_names"):
                 pods.append(entities.Pod(pod_config))
                 print("cover pod {}".format(pod_instance_name))

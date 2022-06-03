@@ -7,10 +7,12 @@ import requests
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
-import const
+import const, yaml_loader
 
-from api_server import get_api_server_url
-api_server_url = get_api_server_url()
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
+yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+etcd_info_config: dict = yaml_loader.load(yaml_path)
+api_server_url = etcd_info_config['API_SERVER_URL']
 
 
 def main():
