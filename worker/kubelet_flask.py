@@ -50,7 +50,8 @@ def execute_cmd():
     json_data = request.json
     config: dict = json.loads(json_data)
     cmd = config['cmd']
-    utils.exec_command(cmd, True)
+    for c in cmd:
+        utils.exec_command(c, True)
     return json.dumps(dict()), 200
 
 

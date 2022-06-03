@@ -481,7 +481,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     )
 
     pod_num = len(pod_ip_list)
-    for i in range(0, pod_num):
+    for i in range(pod_num - 1, -1, -1):
         kubesep = 'KUBE-SEP-' + utils.generate_random_str(12, 1)
         iptables['chains'].append(
             utils.create_chain('nat', kubesep, simulate=simulate)
@@ -491,7 +491,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
             prob = 1 / (pod_num - i)
             if i == pod_num - 1:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
@@ -500,7 +500,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                 )
             else:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep,
                                       ),
@@ -514,7 +514,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
         elif strategy == 'roundrobin':
             if i == pod_num - 1:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
@@ -523,7 +523,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                 )
             else:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
@@ -539,16 +539,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
             logging.error("Strategy Not Found! Use `random` or `roundrobin` Please")
 
         iptables['rules'].append(
-            utils.append_rule('nat', kubesep,
-                              utils.make_rulespec(
-                                  jump='KUBE-MARK-MASQ',
-                                  source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
-                              ),
-                              utils.make_target_extensions(),
-                              simulate=simulate)
-        )
-        iptables['rules'].append(
-            utils.append_rule('nat', kubesep,
+            utils.insert_rule ('nat', kubesep, 1,
                               utils.make_rulespec(
                                   jump='DNAT',
                                   protocol=protocol,
@@ -559,6 +550,16 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                               ),
                               simulate=simulate)
         )
+        iptables['rules'].append(
+            utils.insert_rule('nat', kubesep, 1,
+                              utils.make_rulespec(
+                                  jump='KUBE-MARK-MASQ',
+                                  source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
+                              ),
+                              utils.make_target_extensions(),
+                              simulate=simulate)
+        )
+
     logging.info("Service [%s] Cluster IP: [%s] Port: [%s] TargetPort: [%s] Strategy: [%s]"
                  % (service_name, cluster_ip, port, target_port, strategy))
 
@@ -609,7 +610,7 @@ def example():
                            port=80,
                            target_port=80,
                            protocol='tcp',
-                           pod_ip_list=['20.20.72.2'],
+                           pod_ip_list=['172.17.0.2', '172.17.0.3'],
                            strategy='random',
                            ip_prefix_len=32,
                            iptables=None)

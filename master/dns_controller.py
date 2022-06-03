@@ -53,7 +53,7 @@ def update_etc_hosts(hosts=True):
     """
     dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
     command = list()
-    clear_command = "echo \"127.0.0.1 localhost\" > {}".format(dns_config_dict['etc-hosts-path'])
+    clear_command = "echo 127.0.0.1 localhost > {}".format(dns_config_dict['etc-hosts-path'])
     base_echo_command = "echo {} >> {}"
     print(dns_config_dict)
     command.append(clear_command)
@@ -67,16 +67,15 @@ def update_etc_hosts(hosts=True):
         for worker_url in worker_url_list:
             url = "{}/cmd".format(worker_url)  # TODO: need to change
             upload_cmd = dict()
-            upload_cmd['cmd'] = ';'.join(command)
-            print(worker_url)
-            print(upload_cmd)
+            upload_cmd['cmd'] = command
             utils.post(url=url, config=upload_cmd)
     else:
         # Let Every Container of Every Pod to execute this command
-        command = ';'.join(command)
         # command = "/bin/sh -c \"{}\"".format(";".join(command))
         pod_dict = utils.get_pod_dict(api_server_url=api_server_url)
-        for pod_instance in pod_dict:
+        print('pod_dict')
+        print(pod_dict)
+        for pod_instance in pod_dict['pods_list']:
             url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')
             upload_cmd = dict()
             upload_cmd['cmd'] = command
@@ -97,7 +96,7 @@ def update_nginx_service():
                 print(pod_instance)
                 url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')
                 upload_cmd = dict()
-                upload_cmd['cmd'] = "nginx -s reload"
+                upload_cmd['cmd'] = ["nginx -s reload"]
                 utils.post(url=url, config=upload_cmd)
 
 
