@@ -1,13 +1,12 @@
 kind: Pod
-name: pod-4
+name: pod-6
 volume:
-  - $/userland/final_check/pod-4/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-6/:/usr/share/nginx/html/
 cpu: 1
 mem: 30m
 metadata:
   labels:
-    app: xhd
-    version: part
+    usage: isolation
 containers:
   - name: nginx
     image: nginx

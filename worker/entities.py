@@ -171,12 +171,16 @@ class Pod:
                 continue
             if container_name is None or container_name == name:
                 ct = self.client.containers.get(name)
-                cmd = str(cmd).split(';')
+                print('**********************')
+                print(cmd)
                 for c in cmd:
                     # TO DO
+                    print('++++++++++++++'
+                          '-------------')
+                    print(ct.id)
                     print(c)
-                    print('------------------')
-                    ct.exec_run(cmd=c)
+                    utils.exec_command('docker exec {} bash -c "{}"'.format(ct.id, c), shell=True)
+                    # ct.exec_run(cmd=c)
 
 
 def get_containers_status():

@@ -1,9 +1,9 @@
 kind: Pod
-name: pod-4
+name: pod-5
 volume:
-  - $/userland/final_check/pod-4/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-5/:/usr/share/nginx/html/
 cpu: 1
-mem: 30m
+mem: 12m
 metadata:
   labels:
     app: xhd
