@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import kubeproxy
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import utils, const, yaml_loader
@@ -109,8 +110,8 @@ def handle_Pod():
             else:
                 f = open(os.path.join(pod_dir, 'requirements.txt'), 'w')
                 f.close()
-            os.system('cp ./tmp/Dockerfile ./{}'.format(instance_name))
-            os.system('cp ./tmp/serverless_server.py ./{}'.format(instance_name))
+            os.system('cp {}/worker/tmp/Dockerfile ./{}'.format(ROOT_DIR, instance_name))
+            os.system('cp {}/worker/tmp/serverless_server.py ./{}'.format(ROOT_DIR, instance_name))
             os.system("cd {} && docker build . -t {}".format(instance_name, instance_name))
             config['containers'][0]['image'] = "{}:latest".format(instance_name)
         elif config.__contains__('isGPU'):
@@ -127,11 +128,11 @@ def handle_Pod():
                 f = open(os.path.join(data_dir, file_name), 'w')
                 f.write(config[file_name])
                 f.close()
-            os.system('cp ./gpu/Dockerfile ./{}'.format(instance_name))
-            os.system('cp ./gpu/gpu_server.py ./{}'.format(instance_name))
-            os.system('cp ./gpu/upload.sh ./{}'.format(instance_name))
-            os.system('cp ./gpu/download.sh ./{}'.format(instance_name))
-            os.system("cd {} && docker build . -t {}".format(instance_name, instance_name))
+            os.system('cp {}/worker/gpu/Dockerfile {}/worker/{}/'.format(ROOT_DIR, ROOT_DIR, instance_name))
+            os.system('cp {}/worker/gpu/gpu_server.py {}/worker/{}/'.format(ROOT_DIR, ROOT_DIR, instance_name))
+            os.system('cp {}/worker/gpu/upload.sh {}/worker/{}/'.format(ROOT_DIR, ROOT_DIR, instance_name))
+            os.system('cp {}/worker/gpu/download.sh {}/worker/{}/'.format(ROOT_DIR, ROOT_DIR, instance_name))
+            os.system("cd {}/worker/{} && docker build . -t {}".format(ROOT_DIR, instance_name, instance_name))
             config['containers'][0]['image'] = "{}:latest".format(instance_name)
         pods.append(entities.Pod(config))
         print('{} create pod {}'.format(node_instance_name, instance_name))

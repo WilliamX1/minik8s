@@ -345,6 +345,9 @@ def main():
                 job_name = submit_job_match.group(1)
                 url = "{}/Job/{}/submit".format(API_SERVER_URL, job_name)
                 r = requests.post(url=url, json=json.dumps(dict()))
+                print('--------------------------')
+                print(r.status_code)
+                print(r.content.decode())
                 if r.status_code == 404:
                     print("Job not found !")
                 elif r.status_code == 300:
@@ -357,6 +360,7 @@ def main():
                 job_name = download_job_match.group(1)
                 save_dir = download_job_match.group(2)
                 save_dir = os.path.join(BASE_DIR, save_dir)
+                print(save_dir)
                 url = "{}/Job/{}/download".format(API_SERVER_URL, job_name)
                 r = requests.post(url=url, json=json.dumps(dict()))
                 if r.status_code == 404:
@@ -368,6 +372,7 @@ def main():
                 elif r.status_code == 200:
                     download_config: dict = json.loads(r.content.decode())
                     files_list = download_config['files_list']
+                    print(download_config)
                     if not os.path.exists(save_dir):
                         os.mkdir(save_dir)
                     for file_name in files_list:

@@ -612,6 +612,8 @@ def handle_job(instance_name: str, behavior: str):
             return 'Wait for Pod start', 300
         job_config['last_receive_time'] = time.time()
         put(instance_name, job_config)
+        if len(job_config['pod_instances']) < 1:
+            return 'Not Found', 404
         pod_instance_name = job_config['pod_instances'][0]
         pod_config = get(pod_instance_name)
         pod_config['last_submitted_time'] = time.time()

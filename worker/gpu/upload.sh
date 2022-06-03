@@ -21,6 +21,7 @@ expect -c "
     expect \"stu639@*\" {send \"cd data\r\"}
     expect \"stu639@*\" {set timeout 500;send \"nvcc $modulename.cu -o $modulename -lcublas\r\"}
     expect \"stu639@*\" {set timeout 500;send \"sbatch $modulename.slurm\r\"}
+    expect \"stu639@*\" {set timeout 500;send \" exit\r\"}
 
 expect eof"
 
