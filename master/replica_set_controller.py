@@ -92,6 +92,7 @@ def main():
                     r = requests.post(url='{}/Pod/{}/remove'.format(api_server_url, to_delete_pod_instance_name),
                                       json=json.dumps(dict()))
                 # update the information into replica set config
+                replica_config['status'] = 'Running'
                 url = "{}/ReplicaSet/{}".format(api_server_url, replica_config['instance_name'])
                 json_data = json.dumps(replica_config)
                 r = requests.post(url=url, json=json_data)

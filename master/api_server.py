@@ -438,6 +438,7 @@ def update_dns(instance_name: str, behavior: str):
 def update_replica_set(instance_name: str):
     json_data = request.json
     config: dict = json.loads(json_data)
+    config['status'] = 'Creating'
     put(instance_name, config)
     return "Successfully update replica set instance {}".format(instance_name), 200
 

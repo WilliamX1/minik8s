@@ -122,7 +122,7 @@ def main():
                     tb.field_names = ['name', 'instance_name', 'status', 'created time', 'replicas']
                     for rc_instance_name in rc_dict['replica_sets_list']:
                         rc_config = rc_dict[rc_instance_name]
-                        rc_status = 'TO DO'  # todo
+                        rc_status = rc_dict['status'] if rc_dict.get('status') is not None else 'Running' # todo
                         created_time = int(time.time() - rc_config['created_time'])
                         created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
                         name = rc_config['name'] if rc_config.get('name') is not None else '-'

@@ -2,7 +2,7 @@
 
 python3 master/etcd_controller.py &
 etcd_controller_id=$!
-sleep 8s
+sleep 15s
 python3 master/api_server.py &
 api_server_id=$!
 sleep 1s
