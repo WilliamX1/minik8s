@@ -162,7 +162,6 @@ def handle_Pod():
 def init_node():
     iptable_path = os.path.dirname(os.path.realpath(__file__)) + "/sources/iptables"
     # utils.exec_command(command="echo \"127.0.0.1 localhost\" > /etc/hosts", shell=True)
-    utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
 
     print('Default File Path is /minik8s/worker/nodes_yaml/...')
     while True:
@@ -171,7 +170,12 @@ def init_node():
         if os.path.exists(yaml_path) is False:
             logging.warning('Filepath %s Not Exists...' % yaml_path)
         else:
-            break
+            restart = sys.argv[2] if len(sys.argv) > 2 else input("Restart / Init (if restart, it won't reset iptables): ")
+            if restart == 'Init':
+                utils.exec_command(command="iptables-restore < {}".format(iptable_path), shell=True)
+                break
+            elif restart == 'Restart':
+                break
     nodes_info_config: dict = yaml_loader.load(yaml_path)
     logging.info(nodes_info_config)
     worker_info['IP_ADDRESS'] = nodes_info_config['IP_ADDRESS']

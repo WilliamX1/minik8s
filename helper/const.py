@@ -5,6 +5,7 @@ FLANNEL_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'flanneld')
 ETCD_SHELL_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'etcd-shell.sh')
 DOCKER_SHELL_PATH = os.path.join(ROOT_DIR, 'worker', 'multi_machine', 'scripts', 'docker-shell.sh')
 API_SERVER_URL_PATH: str = os.path.join(ROOT_DIR, 'userland', '.api_server_url')
+MASTER_API_SERVER_URL_PATH: str = os.path.join(ROOT_DIR, 'master', '.api_server_url')
 # api_server_ip: str = 'http://192.168.1.12'
 # api_server_port: str = '5050'
 # api_server_url: str = 'http://192.168.1.12:5050'  # api server ip address locally
