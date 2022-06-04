@@ -1,0 +1,115 @@
+2022/06/04 04:26:32 [notice] 1#1: using the "epoll" event method
+2022/06/04 04:26:32 [notice] 1#1: nginx/1.21.6
+2022/06/04 04:26:32 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/06/04 04:26:32 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/06/04 04:26:32 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/06/04 04:26:32 [notice] 1#1: start worker processes
+2022/06/04 04:26:32 [notice] 1#1: start worker process 24
+2022/06/04 04:26:32 [notice] 1#1: start worker process 25
+2022/06/04 04:26:38 [notice] 1#1: using the "epoll" event method
+2022/06/04 04:26:38 [notice] 1#1: nginx/1.21.6
+2022/06/04 04:26:38 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/06/04 04:26:38 [notice] 1#1: OS: Linux 5.4.133-0504133-generic
+2022/06/04 04:26:38 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/06/04 04:26:38 [notice] 1#1: start worker processes
+2022/06/04 04:26:38 [notice] 1#1: start worker process 24
+2022/06/04 04:26:38 [notice] 1#1: start worker process 25
+2022/06/04 04:27:46 [error] 24#24: *1 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:27:47 [error] 25#25: *2 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:27:48 [error] 24#24: *3 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:27:48 [error] 25#25: *3 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:27:49 [error] 24#24: *4 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:02 [notice] 39#39: signal process started
+2022/06/04 04:28:02 [notice] 1#1: signal 1 (SIGHUP) received from 39, reconfiguring
+2022/06/04 04:28:02 [notice] 1#1: reconfiguring
+2022/06/04 04:28:02 [notice] 1#1: using the "epoll" event method
+2022/06/04 04:28:02 [notice] 1#1: start worker processes
+2022/06/04 04:28:02 [notice] 1#1: start worker process 45
+2022/06/04 04:28:02 [notice] 1#1: start worker process 46
+2022/06/04 04:28:02 [notice] 25#25: gracefully shutting down
+2022/06/04 04:28:02 [notice] 24#24: gracefully shutting down
+2022/06/04 04:28:02 [notice] 25#25: exiting
+2022/06/04 04:28:02 [notice] 24#24: exiting
+2022/06/04 04:28:02 [notice] 25#25: exit
+2022/06/04 04:28:02 [notice] 24#24: exit
+2022/06/04 04:28:02 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/06/04 04:28:02 [notice] 1#1: worker process 25 exited with code 0
+2022/06/04 04:28:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:02 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/06/04 04:28:02 [notice] 1#1: worker process 24 exited with code 0
+2022/06/04 04:28:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:02 [notice] 38#38: signal process started
+2022/06/04 04:28:02 [notice] 1#1: signal 1 (SIGHUP) received from 38, reconfiguring
+2022/06/04 04:28:02 [notice] 1#1: reconfiguring
+2022/06/04 04:28:02 [notice] 1#1: using the "epoll" event method
+2022/06/04 04:28:02 [notice] 1#1: start worker processes
+2022/06/04 04:28:02 [notice] 1#1: start worker process 43
+2022/06/04 04:28:02 [notice] 1#1: start worker process 44
+2022/06/04 04:28:02 [notice] 24#24: gracefully shutting down
+2022/06/04 04:28:02 [notice] 24#24: exiting
+2022/06/04 04:28:02 [notice] 24#24: exit
+2022/06/04 04:28:02 [notice] 25#25: gracefully shutting down
+2022/06/04 04:28:02 [notice] 25#25: exiting
+2022/06/04 04:28:02 [notice] 25#25: exit
+2022/06/04 04:28:02 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/06/04 04:28:02 [notice] 1#1: worker process 25 exited with code 0
+2022/06/04 04:28:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:02 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/06/04 04:28:02 [notice] 1#1: worker process 24 exited with code 0
+2022/06/04 04:28:02 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:06 [error] 46#46: *5 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:06 [error] 45#45: *6 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:09 [error] 46#46: *7 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:09 [error] 46#46: *8 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:10 [error] 46#46: *9 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:11 [error] 43#43: *4 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:13 [error] 44#44: *5 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:14 [error] 46#46: *10 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:36 [notice] 60#60: signal process started
+2022/06/04 04:28:36 [notice] 1#1: signal 1 (SIGHUP) received from 60, reconfiguring
+2022/06/04 04:28:36 [notice] 1#1: reconfiguring
+2022/06/04 04:28:36 [notice] 1#1: using the "epoll" event method
+2022/06/04 04:28:36 [notice] 1#1: start worker processes
+2022/06/04 04:28:36 [notice] 1#1: start worker process 66
+2022/06/04 04:28:36 [notice] 1#1: start worker process 67
+2022/06/04 04:28:37 [notice] 45#45: gracefully shutting down
+2022/06/04 04:28:37 [notice] 45#45: exiting
+2022/06/04 04:28:37 [notice] 45#45: exit
+2022/06/04 04:28:37 [notice] 46#46: gracefully shutting down
+2022/06/04 04:28:37 [notice] 46#46: exiting
+2022/06/04 04:28:37 [notice] 46#46: exit
+2022/06/04 04:28:37 [notice] 1#1: signal 17 (SIGCHLD) received from 46
+2022/06/04 04:28:37 [notice] 1#1: worker process 46 exited with code 0
+2022/06/04 04:28:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:37 [notice] 1#1: signal 17 (SIGCHLD) received from 45
+2022/06/04 04:28:37 [notice] 1#1: worker process 45 exited with code 0
+2022/06/04 04:28:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:37 [notice] 56#56: signal process started
+2022/06/04 04:28:37 [notice] 1#1: signal 1 (SIGHUP) received from 56, reconfiguring
+2022/06/04 04:28:37 [notice] 1#1: reconfiguring
+2022/06/04 04:28:37 [notice] 1#1: using the "epoll" event method
+2022/06/04 04:28:37 [notice] 1#1: start worker processes
+2022/06/04 04:28:37 [notice] 1#1: start worker process 62
+2022/06/04 04:28:37 [notice] 1#1: start worker process 63
+2022/06/04 04:28:37 [notice] 43#43: gracefully shutting down
+2022/06/04 04:28:37 [notice] 43#43: exiting
+2022/06/04 04:28:37 [notice] 43#43: exit
+2022/06/04 04:28:37 [notice] 44#44: gracefully shutting down
+2022/06/04 04:28:37 [notice] 44#44: exiting
+2022/06/04 04:28:37 [notice] 44#44: exit
+2022/06/04 04:28:37 [notice] 1#1: signal 17 (SIGCHLD) received from 43
+2022/06/04 04:28:37 [notice] 1#1: worker process 43 exited with code 0
+2022/06/04 04:28:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:37 [notice] 1#1: signal 17 (SIGCHLD) received from 44
+2022/06/04 04:28:37 [notice] 1#1: worker process 44 exited with code 0
+2022/06/04 04:28:37 [notice] 1#1: signal 29 (SIGIO) received
+2022/06/04 04:28:38 [error] 62#62: *6 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:39 [error] 66#66: *11 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:40 [error] 67#67: *12 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.71.1, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:49 [error] 66#66: *13 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:50 [error] 63#63: *7 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:50 [error] 66#66: *14 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:51 [error] 62#62: *8 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:51 [error] 66#66: *15 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:51 [error] 66#66: *16 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
+2022/06/04 04:28:52 [error] 66#66: *17 open() "/usr/share/nginx/html/pod-1-2-service" failed (2: No such file or directory), client: 20.20.57.0, server: localhost, request: "GET /pod-1-2-service HTTP/1.1", host: "minik8s-dns"
