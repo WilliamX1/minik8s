@@ -1,0 +1,19 @@
+kind: Pod
+name: pod-2
+volume:
+  - $/userland/final_check/pod-2/:/usr/share/nginx/html/
+cpu: 1
+mem: 12m
+strategy: roundrobin
+metadata:
+  labels:
+    app: xhd
+    version: major
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      cpu: 1
+      memory: 10m
+    port: 80

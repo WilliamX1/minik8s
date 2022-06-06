@@ -30,10 +30,11 @@ def alloc_service_clusterIP(service_dict: dict):
 
     while max_alloc_num > 0:
         max_alloc_num -= 1
-        num0 = service_clusterIP_prefix  # service ip should be like '18.xx.xx.xx'
-        num1 = random.randint(0, 255)
-        num2 = random.randint(0, 255)
-        num3 = random.randint(0, 255)
+        # service ip should be like '192.168.xx.xx'
+        num0 = service_clusterIP_prefix[0] if len(service_clusterIP_prefix) >= 1 else random.randint(0, 255)
+        num1 = service_clusterIP_prefix[1] if len(service_clusterIP_prefix) >= 2 else random.randint(0, 255)
+        num2 = service_clusterIP_prefix[2] if len(service_clusterIP_prefix) >= 3 else random.randint(0, 255)
+        num3 = service_clusterIP_prefix[3] if len(service_clusterIP_prefix) >= 4 else random.randint(0, 255)
         ip = '.'.join([str(num0), str(num1), str(num2), str(num3)])
         if ip not in ip_allocated:
             break
@@ -290,7 +291,7 @@ def create_service(service_config: dict, pods_dict: dict, simulate=False):
     pod_ip_list = list()
     for pod_instance in service_config['pod_instances']:
         pod_ip_list.append(pods_dict[pod_instance]['ip'])
-    strategy = 'random'  # 'random' or 'roundrobin'
+    strategy = service_config['strategy'] if service_config.get('strategy') is not None else 'random'  # 'random' or 'roundrobin'
 
     for eachports in ports:
         port = eachports['port']
@@ -380,24 +381,26 @@ def describe_service(service_config: dict, service_instance_name: str, tb=None, 
     """
     if tb is None:
         tb = prettytable.PrettyTable()
-        tb.field_names = ['name', 'status', 'created time',
+        tb.field_names = ['name', 'instance_name', 'status', 'created time',
                           'type', 'cluster IP', "external IP",
-                          'port(s)']
-    service_status = service_config['status']  # todo
+                          'port(s)', 'pod_instances']
     created_time = int(time.time() - service_config['created_time'])
     created_time = str(created_time // 60) + "m" + str(created_time % 60) + 's'
+    name = service_config['name'] if service_config.get('name') is not None else '-'
+    service_status = service_config['status'] if service_config.get('status') is not None else '-'
     type = '<none>' if service_config.get('type') is None else service_config['type']
     clusterIP = '<none>' if service_config.get('clusterIP') is None else service_config['clusterIP']
     externalIP = '<none>' if service_config.get('externalIP') is None else service_config['externalIP']
     ports: list = service_config.get('ports')
     show_ports = list()
+    pod_instances = service_config['pod_instances'] if service_config.get('pod_instances') is not None else list()
     if ports is not None:
         for p in ports:
             format = '%d->%d/%s' % (p['port'], p['targetPort'], p['protocol'])
             show_ports.append(format)
     show_ports = ','.join(show_ports)
-    tb.add_row([service_instance_name, service_status, created_time.strip(),
-                type, clusterIP, externalIP, show_ports])
+    tb.add_row([name, service_instance_name, service_status, created_time.strip(),
+                type, clusterIP, externalIP, show_ports, pod_instances])
     if show is True:
         print(tb)
 
@@ -409,9 +412,9 @@ def show_services(service_dict: dict):
     :return: a list of service running state
     """
     tb = prettytable.PrettyTable()
-    tb.field_names = ['name', 'status', 'created time',
+    tb.field_names = ['name', 'instance_name', 'status', 'created time',
                       'type', 'cluster IP', "external IP",
-                      'port(s)']
+                      'port(s)', 'pod_instances']
 
     for service_instance_name in service_dict['services_list']:
         service_config = service_dict[service_instance_name]
@@ -479,7 +482,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
     )
 
     pod_num = len(pod_ip_list)
-    for i in range(0, pod_num):
+    for i in range(pod_num - 1, -1, -1):
         kubesep = 'KUBE-SEP-' + utils.generate_random_str(12, 1)
         iptables['chains'].append(
             utils.create_chain('nat', kubesep, simulate=simulate)
@@ -489,7 +492,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
             prob = 1 / (pod_num - i)
             if i == pod_num - 1:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
@@ -498,7 +501,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                 )
             else:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep,
                                       ),
@@ -512,7 +515,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
         elif strategy == 'roundrobin':
             if i == pod_num - 1:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
@@ -521,7 +524,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                 )
             else:
                 iptables['rules'].append(
-                    utils.append_rule('nat', kubesvc,
+                    utils.insert_rule('nat', kubesvc, 1,
                                       utils.make_rulespec(
                                           jump=kubesep
                                       ),
@@ -537,16 +540,7 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
             logging.error("Strategy Not Found! Use `random` or `roundrobin` Please")
 
         iptables['rules'].append(
-            utils.append_rule('nat', kubesep,
-                              utils.make_rulespec(
-                                  jump='KUBE-MARK-MASQ',
-                                  source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
-                              ),
-                              utils.make_target_extensions(),
-                              simulate=simulate)
-        )
-        iptables['rules'].append(
-            utils.append_rule('nat', kubesep,
+            utils.insert_rule ('nat', kubesep, 1,
                               utils.make_rulespec(
                                   jump='DNAT',
                                   protocol=protocol,
@@ -557,6 +551,16 @@ def set_iptables_clusterIP(cluster_ip, service_name, port, target_port, protocol
                               ),
                               simulate=simulate)
         )
+        iptables['rules'].append(
+            utils.insert_rule('nat', kubesep, 1,
+                              utils.make_rulespec(
+                                  jump='KUBE-MARK-MASQ',
+                                  source='/'.join([pod_ip_list[i], str(ip_prefix_len)])
+                              ),
+                              utils.make_target_extensions(),
+                              simulate=simulate)
+        )
+
     logging.info("Service [%s] Cluster IP: [%s] Port: [%s] TargetPort: [%s] Strategy: [%s]"
                  % (service_name, cluster_ip, port, target_port, strategy))
 
@@ -607,7 +611,7 @@ def example():
                            port=80,
                            target_port=80,
                            protocol='tcp',
-                           pod_ip_list=['20.20.72.2'],
+                           pod_ip_list=['172.17.0.2', '172.17.0.3'],
                            strategy='random',
                            ip_prefix_len=32,
                            iptables=None)

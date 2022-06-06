@@ -1,32 +1,34 @@
 kind: Pod
 name: pod-1
 volume:
-  - $/userland/final_check/pod-1/html/:/usr/share/nginx/html/
-cpu: 1
-mem: 300m
+  - $/userland/final_check/pod-1/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-1/:/var/lib/jetty/webapps
+cpu: 2
+mem: 100m
+strategy: roundrobin # roundrobin or random
 metadata:
   labels:
     app: xhd
     version: major
 containers:
   - name: nginx
-    image: nginx
+    image: nginx:latest
     command:
     resource:
       cpu: 1
-      memory: 100m
+      memory: 40m
     port: 80
   - name: jetty
     image: jetty
     command:
     resource:
       cpu: 1
-      memory: 100m
+      memory:
     port: 8080
   - name: busybox
     image: busybox
     command: ['sh', '-c', 'sleep 36000000']
     resource:
       cpu: 1
-      memory: 100m
+      memory: 10m
     port:

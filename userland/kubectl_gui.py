@@ -19,7 +19,10 @@ import kubeproxy
 import prettytable
 
 
-api_server_url = const.api_server_url
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
+yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+etcd_info_config: dict = yaml_loader.load(yaml_path)
+API_SERVER_URL = etcd_info_config['API_SERVER_URL']
 
 
 def choose_file():
@@ -39,7 +42,7 @@ def upload_yaml():
     except Exception as e:
         print(e.__str__())
         return
-    url = "{}/{}".format(api_server_url, config['kind'])
+    url = "{}/{}".format(API_SERVER_URL, config['kind'])
     try:
         json_data = json.dumps(config)
         r = requests.post(url=url, json=json_data)
@@ -55,7 +58,7 @@ def upload_python_script():
     python_path = entry1.get()
     print('the python path is：', python_path)
     try:
-        url = "{}/Pod".format(api_server_url)
+        url = "{}/Function".format(API_SERVER_URL)
         module_name = None
         with open(python_path) as f:
             for i in range(len(f.name) - 1, 0, -1):
@@ -64,7 +67,8 @@ def upload_python_script():
                     break
             content = f.read()
         assert module_name
-        config: dict = yaml_loader.load('./yaml_defualt/my_function.yaml')
+        function_yaml_template = os.path.join(BASE_DIR, './yaml_default/my_function.yaml')
+        config: dict = yaml_loader.load(function_yaml_template)
         config['name'] += module_name
         config['metadata']['labels']['module_name'] = module_name
         config['containers'][0]['name'] = module_name

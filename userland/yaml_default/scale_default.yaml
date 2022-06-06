@@ -1,16 +1,25 @@
 kind: HorizontalPodAutoscaler
-name: example-pod
-prekind: pod
+name: example-HPA-pod
 minReplicas: 3
 maxReplicas: 7
 cpu: 2
 mem: 700m
+metrics:
+  average_cpu: 50
+  average_memory: 50
+  time_period: 10
 containers:
-  - name: zookeeper
+  - name: nginx
+    image: nginx
+    command:
     resource:
       memory: 500m
       cpu: 1
-  - name: busybox
+    port: 80
+  - name: jetty
+    image: jetty
+    command:
     resource:
-      memory: 200m
+      memory: 500m
       cpu: 1
+    port: 8080

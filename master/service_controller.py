@@ -6,18 +6,19 @@ import time
 
 import requests
 
-
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 sys.path.append(os.path.join(BASE_DIR, '../helper'))
 sys.path.append(os.path.join(BASE_DIR, '../worker'))
-import utils, const
+import utils, const, yaml_loader
 import kubeproxy
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
-api_server_url = const.api_server_url
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
+yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+etcd_info_config: dict = yaml_loader.load(yaml_path)
+api_server_url = etcd_info_config['API_SERVER_URL']
 
 
 def update_worker_server(service_config: dict, pods_dict: dict, behavior: str):
@@ -106,13 +107,14 @@ def _none():
 
 def main():
     while True:
+        time.sleep(const.service_controller_flush_interval)
         try:
             r = requests.get(url='{}/Service'.format(api_server_url))
             service_dict = json.loads(r.content.decode('UTF-8'))
             r = requests.get(url='{}/Pod'.format(api_server_url))
             pods_dict = json.loads(r.content.decode('UTF-8'))
         except Exception as e:
-            logging.warning('Connect API Server Failure!')
+            print('Connect API Server Failure!', e)
             continue
         for service_name in service_dict['services_list']:
             service_config: dict = service_dict[service_name]
@@ -136,7 +138,6 @@ def main():
             elif status == 'None':
                 _none()
         print("Current Services are：{}".format(service_dict['services_list']))
-        time.sleep(const.service_controller_flush_interval)
 
 
 if __name__ == '__main__':

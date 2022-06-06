@@ -1,0 +1,21 @@
+kind: ReplicaSet
+name: dns-nginx-server-pod
+volume:
+  - $/master/dns/nginx/conf/:/etc/nginx/conf.d/
+  - $/master/dns/nginx/html/:/usr/share/nginx/html/
+  - $/master/dns/nginx/log/:/var/log/nginx/
+cpu: 1
+mem: 100m
+spec:
+  replicas: 3
+metadata:
+  labels:
+    app: dns-nginx-server
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 30m
+      cpu: 1
+    port: 80

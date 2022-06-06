@@ -1,0 +1,35 @@
+// flow.jsx
+
+import React from 'react';
+import { ReactFlowProvider } from 'react-flow-renderer';
+import Sider from './Sider';
+import Graph from './Graph';
+import Toolbar from './Toolbar';
+import Modal from './components/Modal';
+// 引入 Provider
+import { FlowContextProvider } from './context';
+
+import './flow.css';
+
+export default function FlowPage() {
+  localStorage.clear();
+  localStorage.setItem('DAG_name', 'DAG_name');
+  return (
+    <div className="container">
+      <FlowContextProvider>
+        <ReactFlowProvider>
+          {/* 顶部工具栏 */}
+          <Toolbar />
+          <div className="main">
+            {/* 侧边栏，展示可拖拽的节点 */}
+            <Sider />
+            {/* 画布，处理核心逻辑 */}
+            <Graph />
+          </div>
+          {/* 弹窗，配置节点数据 */}
+          <Modal />
+        </ReactFlowProvider>
+      </FlowContextProvider>
+    </div>
+  );
+}

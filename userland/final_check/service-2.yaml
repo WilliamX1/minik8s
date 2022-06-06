@@ -1,0 +1,12 @@
+kind: Service
+name: pod-3-4-5-service
+type: ClusterIP
+clusterIP: 192.168.99.99
+strategy: roundrobin
+selector:
+  app: xhd
+  version: part
+ports:
+  - protocol: tcp
+    port: 99
+    targetPort: 80

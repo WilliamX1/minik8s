@@ -10,9 +10,13 @@ sys.path.append(os.path.join(BASE_DIR, '../worker'))
 import kubedns
 
 import yaml_loader, const, utils
-import worker_server
 
-api_server_url = const.api_server_url
+
+ROOT_DIR = os.path.join(BASE_DIR, os.path.pardir)
+yaml_path = os.path.join(ROOT_DIR, 'worker', 'nodes_yaml', 'master.yaml')
+etcd_info_config: dict = yaml_loader.load(yaml_path)
+api_server_url = etcd_info_config['API_SERVER_URL']
+
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -26,13 +30,11 @@ def init_dns_server():
     - start a dns for this service, default is 1`ns-nginx-server-service`
     :return: None
     """
-    config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-replica-set.yaml")
+    config: dict = yaml_loader.load(const.DNS_REPLICASET_PATH)
     url = "{}/ReplicaSet".format(api_server_url)
-    # config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-pod.yaml")
-    # url = "{}/Pod".format(api_server_url)
     utils.post(url=url, config=config)
 
-    config: dict = yaml_loader.load("../userland/dns/dns-nginx-server-service.yaml")
+    config: dict = yaml_loader.load(const.DNS_SERVICE_PATH)
     url = "{}/Service".format(api_server_url)
     utils.post(url=url, config=config)
 
@@ -41,12 +43,6 @@ def init_dns_server():
     dns_config_dict['dns-server-ip'] = config['clusterIP']
     url = "{}/Dns/Config".format(api_server_url)
     utils.post(url=url, config=dns_config_dict)
-
-    """
-    config: dict = yaml_loader.load('./dns/dns-nginx-server-dns.yaml')
-    url = "{}/Dns".format(api_server_url)
-    helper.post(url=url, config=config)
-    """
 
 
 def update_etc_hosts(hosts=True):
@@ -61,7 +57,7 @@ def update_etc_hosts(hosts=True):
     """
     dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
     command = list()
-    clear_command = "echo \"127.0.0.1 localhost\" > {}".format(dns_config_dict['etc-hosts-path'])
+    clear_command = "echo 127.0.0.1 localhost > {}".format(dns_config_dict['etc-hosts-path'])
     base_echo_command = "echo {} >> {}"
     print(dns_config_dict)
     command.append(clear_command)
@@ -71,16 +67,19 @@ def update_etc_hosts(hosts=True):
         # Let Host Machine to execute this command
         command1 = "sudo systemctl restart network-manager"
         command.append(command1)
-        url = "{}/cmd".format(worker_server.worker_url)  # TODO: need to change
-        upload_cmd = dict()
-        upload_cmd['cmd'] = ';'.join(command)
-        print(upload_cmd)
-        utils.post(url=url, config=upload_cmd)
+        worker_url_list = utils.get_worker_url_list(api_server_url=api_server_url)
+        for worker_url in worker_url_list:
+            url = "{}/cmd".format(worker_url)  # TODO: need to change
+            upload_cmd = dict()
+            upload_cmd['cmd'] = command
+            utils.post(url=url, config=upload_cmd)
     else:
         # Let Every Container of Every Pod to execute this command
-        command = "/bin/sh -c \"{}\"".format(";".join(command))
+        # command = "/bin/sh -c \"{}\"".format(";".join(command))
         pod_dict = utils.get_pod_dict(api_server_url=api_server_url)
-        for pod_instance in pod_dict:
+        print('pod_dict')
+        print(pod_dict)
+        for pod_instance in pod_dict['pods_list']:
             url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')
             upload_cmd = dict()
             upload_cmd['cmd'] = command
@@ -101,7 +100,7 @@ def update_nginx_service():
                 print(pod_instance)
                 url = "{}/Pod/{}/{}".format(api_server_url, pod_instance, 'execute')
                 upload_cmd = dict()
-                upload_cmd['cmd'] = "nginx -s reload"
+                upload_cmd['cmd'] = ["nginx -s reload"]
                 utils.post(url=url, config=upload_cmd)
 
 
@@ -141,13 +140,18 @@ def _none():
 
 
 def main():
-    last_time = 0.0
     while True:
-        time.sleep(1)
-        dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
-        dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
-        service_dict = utils.get_service_dict(api_server_url=api_server_url)
+        time.sleep(const.dns_controller_flush_interval)
+        try:
+            dns_config_dict = utils.get_dns_config_dict(api_server_url=api_server_url)
+            dns_dict = utils.get_dns_dict(api_server_url=api_server_url)
+            service_dict = utils.get_service_dict(api_server_url=api_server_url)
+        except Exception as e:
+            print('Connect API Server Failure!', e)
+            continue
         # this should only execute once
+        if dns_config_dict is None:
+            continue
         if dns_config_dict.get('dns-server-ip') is None:
             init_dns_server()
 
@@ -205,7 +209,6 @@ def main():
             update_etc_hosts(hosts=True)
 
         logging.info("Current DNS are: {}".format(dns_dict['dns_list']))
-        time.sleep(const.dns_controller_flush_interval)
 
 
 if __name__ == '__main__':

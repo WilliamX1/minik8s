@@ -1,0 +1,12 @@
+kind: Job
+name: add
+cpu: 1
+mem: 500m
+containers:
+  - name: placeholder
+    image: placeholder:latest
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 5054

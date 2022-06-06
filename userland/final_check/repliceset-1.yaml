@@ -1,0 +1,20 @@
+kind: ReplicaSet
+name: pod-1-replicaset
+volume:
+  - $/userland/final_check/pod-1/:/usr/share/nginx/html/
+cpu: 1
+mem: 100m
+spec:
+  replicas: 3
+metadata:
+  labels:
+    app: xhd
+    version: major
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      memory: 30m
+      cpu: 1
+    port: 80

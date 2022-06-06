@@ -1,0 +1,18 @@
+kind: Pod
+name: pod-5
+volume:
+  - $/userland/final_check/pod-5/:/usr/share/nginx/html/
+cpu: 1
+mem: 12m
+metadata:
+  labels:
+    app: xhd
+    version: part
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      cpu: 1
+      memory: 10m
+    port: 80

@@ -7,11 +7,15 @@
 /bin/
 /target/
 
+node_modules/
+*.log
+
 .idea/
 
 .DS_Store
 .AppleDouble
-.LSOverride
+.LSO
+verride
 
 # Icon must end with two \r
 Icon

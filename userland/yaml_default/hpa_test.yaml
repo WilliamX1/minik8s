@@ -1,0 +1,18 @@
+kind: HorizontalPodAutoscaler
+name: example-HPA-pod
+minReplicas: 3
+maxReplicas: 7
+cpu: 2
+mem: 700m
+metrics:
+  average_cpu: 50
+  average_memory: 50
+  time_period: 10
+containers:
+  - name: hpa_test
+    image: hpa_test:latest
+    command:
+    resource:
+      memory: 500m
+      cpu: 1
+    port: 5053

@@ -24,7 +24,7 @@ stages:
           - pip3 install docker
           - bash ./sources/rabbitma-install.sh
           - pip3 install -r requirements.txt
-          - bash run.sh
+#          - bash run.sh
       - step: publish@general_artifacts
         name: publish_general_artifacts
         displayName: 上传制品

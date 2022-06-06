@@ -1,0 +1,17 @@
+kind: Pod
+name: pod-6
+volume:
+  - $/userland/final_check/pod-6/:/usr/share/nginx/html/
+cpu: 1
+mem: 30m
+metadata:
+  labels:
+    usage: isolation
+containers:
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+      cpu: 1
+      memory: 10m
+    port: 80

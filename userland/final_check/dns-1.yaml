@@ -1,0 +1,10 @@
+kind: Dns
+name: dns-1
+host: minik8s-dns
+paths:
+  - path: pod-1-2-service
+    service_name: pod-1-2-service
+    service_port: 88
+  - path: pod-3-4-5-service
+    service_name: pod-3-4-5-service
+    service_port: 99
