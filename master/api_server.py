@@ -23,7 +23,7 @@ import etcd_controller
 app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 
-use_etcd = True
+use_etcd = False  # True
 etcd = etcd3.client(port=2379)
 etcd_supplant = dict()
 api_server_url = None
