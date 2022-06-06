@@ -35,4 +35,4 @@ kill -9 $replica_set_controller_id
 kill -9 $garbage_collector_id
 kill -9 $node_controller_id
 kill -9 $api_server_id
-kill -9 $etcd_controller_id
+# kill -9 $etcd_controller_id
