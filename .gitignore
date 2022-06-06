@@ -8,6 +8,7 @@
 /target/
 
 /__pycharm__/
+/__pycache__/
 
 node_modules/
 *.log
