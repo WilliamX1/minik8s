@@ -21,7 +21,7 @@ sleep 1s
 python3 master/dns_controller.py &
 dns_controller_id=$!
 sleep 1s
-python3 worker/kubelet_flask.py worker1.yaml &
+python3 worker/kubelet_flask.py worker1.yaml Init &
 kubelet_flask_id=$!
 # sleep 1s
 # python3 userland/kubectl.py &

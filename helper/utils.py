@@ -43,9 +43,11 @@ def get_node_dict(api_server_url):
     url = '{}/Node'.format(api_server_url)
     return get(url)
 
+
 def get_function_dict(api_server_url):
     url = '{}/Function'.format(api_server_url)
     return get(url)
+
 
 def get_dns_dict(api_server_url):
     url = '{}/Dns'.format(api_server_url)
@@ -75,11 +77,6 @@ def get_worker_url_list(api_server_url):
     for node_instance in nodes_dict['nodes_list']:
         worker_url_list.append(nodes_dict[node_instance]['url'])
     return worker_url_list
-
-
-def get_node_dict(api_server_url):
-    url = '{}/Node'.format(api_server_url)
-    return get(url)
 
 
 def post(url: str, config: dict):
@@ -342,4 +339,3 @@ def make_target_extensions(to_destination=None, mark=None, match=None, mode=None
             target.append(dst_type)
 
     return target
-

@@ -37,8 +37,7 @@ def load(filename):
     base_dir = os.path.dirname(filename) if filename != '-' else os.getcwd()
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(base_dir),
-        auto_reload=False,)
-        # extensions=['jinja2.ext.with_'])
+        auto_reload=False, )
 
     template = env.get_template(os.path.basename(filename))
     config = yaml.load(template.render(env=os.environ),

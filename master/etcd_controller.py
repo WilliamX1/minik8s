@@ -38,4 +38,4 @@ if __name__ == '__main__':
     start_etcd()
     print('Etcd is running...')
     while True:
-        continue
+        time.sleep(10)
