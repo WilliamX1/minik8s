@@ -1018,17 +1018,17 @@ docker run -p 5000:5000 serverless_test
 
 我们在host主机输入`http://127.0.0.1:5000/function/my_module/my_function`进行访问，我们可以看到结果如下：
 
-![image-20220516151500514](readme/image-20220516151500514.png)
+![image-20220516151500514](./README/image-20220516151500514.png)
 
 ### Serverless DAG的支持
 
 如果API Server中已经有了DAG，以及分支的转移条件，接下来做的事情无非就是API Server从开始节点一个个调用节点上定义的函数，然后根据边上的分支判断语句，去判断接下来运行哪个函数。如果我们单纯的使用txt去定义节点和边当然也是可以的，那这部分就毫无难度了。DAG_uploader前端如下。
 
-![image-20220516170632507](readme/image-20220516170632507.png)
+![image-20220516170632507](./README/image-20220516170632507.png)
 
 可以在边上设定分支转移条件：
 
-<img src="readme/image-20220516170659533.png" alt="image-20220516170659533" style="zoom:50%;" />
+<img src="./README/image-20220516170659533.png" alt="image-20220516170659533" style="zoom:50%;" />
 
 视频演示是：_9-HPA+Serverless.mp4_
 
