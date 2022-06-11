@@ -1,4 +1,4 @@
-# 第11组Minik8s 验收报告
+# Minik8s
 
 成员
 
@@ -7,6 +7,13 @@
 - 刘一翔 @ [liuyixiang42](https://github.com/liuyixiang42)
 
 感谢 **赵子铭** 助教和 **柳清源** 助教在本项目开发过程中的指导与帮助。
+
+>  本项目中提及的所有视频演示均可在 [Google Drive](https://drive.google.com/drive/folders/1WIHG2nCDOIMy4DTylEe37e8E_3EXKwk6?usp=sharing) 中观看和下载。
+
+**Minik8s 是一个类似于 [Kubernetes](https://kubernetes.io/) 的迷你容器编排工具，能够在多机上对满足 CRI 接口的容器进行管理，支持容器声明周期管理、动态伸缩、自动扩容等基本功能，并且基于 minik8s 实现了 Serverless 平台集成。**具体要求可以参考以下实验文档。
+
+- [Minik8s实验-基本要求](./doc/Minik8s实验-基本要求.pdf)
+- [Minik8s实验-验收指南](./doc/Minik8s实验-验收指南.pdf)
 
 ## 目录
 
@@ -49,16 +56,16 @@
 
 ### 总体架构
 
-​	Minik8s的架构视图如下，整体上参考了课上所提供的minik8s best practice的架构，可以分成了用户空间、控制面和worker节点三块。
+Minik8s的架构视图如下，整体上参考了课上所提供的minik8s best practice的架构，可以分成了用户空间、控制面和worker节点三块。
 
 <img src="README/image-20220607193915746.png" style="zoom:67%;" />
 
-​	在用户空间中，我们提供了三个用户可执行的脚本，适应用户的不同需求。这三个脚本最终都会向api server发出请求，api server根据相应的逻辑进行调度和转发。我们提供了大量的controller来监控对应的状态。对于kubelet的请求，api server会转发到对应的worker。
+在用户空间中，我们提供了三个用户可执行的脚本，适应用户的不同需求。这三个脚本最终都会向api server发出请求，api server根据相应的逻辑进行调度和转发。我们提供了大量的controller来监控对应的状态。对于kubelet的请求，api server会转发到对应的worker。
 在多机方面，每个worker都会配置flannel，由flannel打通多机的ip分配和转发。
 
 ### 软件栈
 
-​	Minik8s的软件栈如下图所示，整个minik8s基本上采用python语言实现。
+Minik8s的软件栈如下图所示，整个minik8s基本上采用python语言实现。
 
 <img src="README/image-20220607194259061.png" alt="image-20220607194259061" style="zoom:67%;" />
 
@@ -78,14 +85,15 @@ gitee仓库地址：https://gitee.com/Leimak/minik8s
 
 ![image-20220607194836800](README/image-20220607194836800.png)
 
-​	项目测试流程分为代码走查和同行审查。在每周组会中，开发功能的组员被要求向其余两位组员逐条讲解代码并描述功能的设计、框架、实现思路。其余两位组员对其中的细节和可能存在的问题进行质询，从而保证软件质量。
-​	而同行审查主要是在分支合并的过程中，要求指派另一名组员作为审查人员和测试人员，从而对功能的实现和BUG进行进一步的测试和检查，提高软件质量。
+项目测试流程分为代码走查和同行审查。在每周组会中，开发功能的组员被要求向其余两位组员逐条讲解代码并描述功能的设计、框架、实现思路。其余两位组员对其中的细节和可能存在的问题进行质询，从而保证软件质量。
+
+而同行审查主要是在分支合并的过程中，要求指派另一名组员作为审查人员和测试人员，从而对功能的实现和BUG进行进一步的测试和检查，提高软件质量。
 
 <img src="README/image-20220607195732490.png" alt="image-20220607195732490" style="zoom: 50%;" />
 
 ### CI/CD
 
-​	本项目采用持续集成和持续部署框架，架构为gitee go架构，布署在gitee：Kami-code / Minik8s仓库。主要流水线包括`BranchPipeline`，`PRPipeline`，`MasterPipeline`。
+本项目采用持续集成和持续部署框架，架构为gitee go架构，布署在gitee：Kami-code / Minik8s仓库。主要流水线包括`BranchPipeline`，`PRPipeline`，`MasterPipeline`。
 
 ![image-20220607200238542](README/image-20220607200238542.png)
 
@@ -93,13 +101,13 @@ gitee仓库地址：https://gitee.com/Leimak/minik8s
 
 ![image-20220607200335800](README/image-20220607200335800.png)
 
-​	编译对象为对应分支代码，内容包括python构建和上传制品，构建过程在gitee镜像中更新pip工具，换源为https://pypi.tuna.tsinghua.edu.cn/simple源，注意，在先版本gitee镜像中存在setup tool无法正常使用导致编译不通过的情况，故需要更新setup tool，之后需要运行/sources/rabbitma-install.sh安装rabbitma组件并根据requirements文档安装项目相应依赖，最后运行run.sh
+编译对象为对应分支代码，内容包括python构建和上传制品，构建过程在gitee镜像中更新pip工具，换源为https://pypi.tuna.tsinghua.edu.cn/simple源，注意，在先版本gitee镜像中存在setup tool无法正常使用导致编译不通过的情况，故需要更新setup tool，之后需要运行/sources/rabbitma-install.sh安装rabbitma组件并根据requirements文档安装项目相应依赖，最后运行run.sh
 
 ![image-20220607200355374](README/image-20220607200355374.png)
 
-​	run.sh运行逻辑为并发运行master节点的api_server.py  node_controller.py  garbage_collector.py  replica_set_controller.py  service_controller.py  dns_controller.py  以及worker节点的kubelet_flask.py，记录其进程pid，在其正常运行4s后根据记录的pid将其关闭。
+run.sh运行逻辑为并发运行master节点的api_server.py  node_controller.py  garbage_collector.py  replica_set_controller.py  service_controller.py  dns_controller.py  以及worker节点的kubelet_flask.py，记录其进程pid，在其正常运行4s后根据记录的pid将其关闭。
 
-​	上传制品产物名为默认BUILD_ARTIFACT，制品名为默认output，基于build_python。
+上传制品产物名为默认BUILD_ARTIFACT，制品名为默认output，基于build_python。
 
 ![image-20220607200421569](README/image-20220607200421569.png)
 
@@ -107,13 +115,13 @@ gitee仓库地址：https://gitee.com/Leimak/minik8s
 
 ![image-20220607200456181](README/image-20220607200456181.png)
 
-​	上传制品和发布均采用gitee go默认版本格式。
+上传制品和发布均采用gitee go默认版本格式。
 
 `PRPipeline`流水线主要包括编译，用来维护pull request后的分支代码
 
 ![image-20220607200543602](README/image-20220607200543602.png)
 
-​	编译对象为合并后的分支代码，编译内容同BranchPipeline编译。
+编译对象为合并后的分支代码，编译内容同BranchPipeline编译。
 
 `MasterPipeline`流水线主要包括编译和发布，用来维护master分支的代码，以master分支为对象的pull request也会触发MasterPipeline。
 
@@ -243,7 +251,7 @@ $ sudo ./pycharm.sh
 
 如何让 worker 加入 minik8s 集群？如何分配全局唯一的 ip ？如何连通多台主机间的网络通信？这些都是部署多机 minik8s 的关键问题所在。具体地，我们使用 Flask 进行网络通信来实现 worker 节点与 master 节点之间的消息传递，使用 Flannel + etcd 来实现多台主机上分配给 Pod 的 ip 地址是全局唯一的。
 
-视频演示是 _1-Node.mp4_。
+视频演示是 [1-Node.mp4](https://drive.google.com/file/d/1OrlWpDiY6zEPDTesxSbV6EwUqZNK9XdJ/view?usp=sharing)。
 
 > 演示对 Node 抽象进行配置和操作的流程与运行情况。
 > - 演示配置文件时，需演示自行设计的 Node 配置文件相关接口，并简述各字段含义。
@@ -316,7 +324,7 @@ $ python3 ./userland/kubectl.py
 
 Pod 作为多个 Docker Container 的集合体，是 minik8s 的最小调度单位，因此，我们设计了 Pod 类来更加清晰地阐明和存储 Pod 的信息，采用 Python Docker SDK 来启动具体的容器。在网络方面，我们为每个 Pod 都额外启动一个 pause 容器，其他所有用户自定义的容器都与它共享网络栈。
 
-视频演示是 _2-a-Pod.mp4_，_2-b-Pod.mp4_，_2-c-Pod.mp4_，_2-d-Pod.mp4_。
+视频演示是 [2-a-Pod.mp4](https://drive.google.com/file/d/1Jic0tluvHfZOHbcJxuxFfEDIOWNQ9Zhl/view?usp=sharing)，[2-b-Pod.mp4](https://drive.google.com/file/d/1CFBIjBUQfWzz1-yz5cm_KI7mH9lVqPbF/view?usp=sharing)，[2-c-Pod.mp4](https://drive.google.com/file/d/13sgXwQbWwndUX0AbW3Ha9ZXaWuXgA7Ld/view?usp=sharing)，[2-d-Pod.mp4](https://drive.google.com/file/d/12d4QORtS8_k9p3kkXgQJ3ayms4z7X3Ke/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建包含多容器 Pod 的配置文件与运行状况。
 > - 演示的 Pod 配置文件中需包含：配置种类（kind），Pod 名称（name），容器的镜像名称与版本，容器镜像所执行的命令，对容器资源用量的限制，容器所暴露的端口，且单 Pod 内应包含多个容器。
@@ -475,7 +483,7 @@ $ docker exec jetty-xxx cat /var/lib/jetty/webapps/index.html
 
 Service 作为一种虚拟的，凌驾在多个 Pod 之上的 k8s 抽象，难点在于如何将用户对自定义的虚拟 ip 的访问有策略性地转发到实际的 Pod 的 ip 上。我们参考 kubernetes 对 iptables 的修改，适当删减了部分涉及过滤的规则（因为无需用到），并采用直接执行 shell 命令的方式写入虚拟机的 iptables 来实现 Service 的可访问性。
 
-演示视频是 _3-a-Service.mp4_，_3-b-c-d-Service.mp4_。
+演示视频是 [3-a-Service.mp4](https://drive.google.com/file/d/1D6YsYMrfjsY72842oAJ6LyMGQEcLnykr/view?usp=sharing)，[3-b-c-d-Service.mp4](https://drive.google.com/file/d/1R9U5p5BDTA4q7mnDyjHFWmjcTgU8OGZa/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建 Service 的配置文件及运行情况。
 > - 演示的 Service 配置文件中包括：配置种类（kind），Service 名称（name），Service 对 Pod 的筛选（selector），Service 暴露的端口（ports）。
@@ -562,7 +570,7 @@ $ python3 ./master/service_controller.py
 
 ReplicaSet抽象的难点在于如何监控Pod的状态，所以每个worker节点的kubelet都会定时地发送自己节点所启动的心跳包给API Server，然后由ReplicaSet Controller进行Pod状态的监控以及保持和期望的replica数量的统一。
 
-演示视频是 _4-a-b-c-ReplicaSet.mp4_。
+演示视频是 [4-a-b-c-ReplicaSet.mp4](https://drive.google.com/file/d/1SXRhOT-Ke5MldTG6tamVN2YaAM-caUWN/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建ReplicaSet（Deployment）的配置。
 >
@@ -635,7 +643,7 @@ containers:  # 容器
 
 HPA主要是基于ReplicaSet实现的，我们在ReplicaSet Controller执行逻辑之前，先根据HPA指标动态修改HPA对应的ReplicaSet的replica数量。
 
-演示视频是 _5-HPA+Serverless copy.mp4_。
+演示视频是 [5-HPA+Serverless.mp4](https://drive.google.com/file/d/1toe0QMIwf3dtVU1vqgfJ_DwfIuFt5h4v/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建HPA的配置。
 >
@@ -685,7 +693,7 @@ containers:
 
 DNS 与转发的精髓在于当看到一个域名时如何正确地将其解析到对应 Service 的虚拟 ip 上去，由于要实现多个子路径对应不同 Service，所以不能仅仅改动 `/etc/hosts` 文件。经过与赵子铭助教的交流，我们放弃了原先使用 coredns 来实现的想法，而是自己搭建了一个 Nginx 的服务来进行反向代理，同时我们发现 Nginx 自身可能存在缺陷造成有极少数请求可能反向代理失败，但大多数时间是完全 OK 的。
 
-演示视频是 _6-Dns.mp4_。
+演示视频是 [6-Dns.mp4](https://drive.google.com/file/d/1oWdrs9l345bKOv9N9F8Y1NxXHDElQFuO/view?usp=sharing)。
 
 > 演示利用配置文件对 DNS 与转发规则进行配置的配置文件与运行状况。
 > - 演示的配置文件中需包含：配置名称（name），配置类型（kind），主路径（host），子路径（path），以及转发的目标 Service，且配置文件中应包含多个对应不同 Service 的子路径。
@@ -772,7 +780,7 @@ server {
 
 容错实现的关键在于使用 etcd 作为持久化存储，我们规定仅有 master 节点可以写入 etcd，因此 etcd 只须运行在 master 节点上，降低了实现的复杂度。而恢复 Pod，Service 以及 Dns 就需要根据这几个抽象各自的特点，进行有选择性地重启或重新写入一些东西，为了增加程序鲁棒性，我们还给用户提供了 `restart` 和 `update` 命令来强制重启和更新 Service 或 Dns，在正常的控制面重启场景中无需用到，但在某些特殊的或是不曾考虑过的场景中，就可以手动刷新 Service 或 Dns，从而实现了在任何场景中的容错。
 
-视频演示是 _7-Etcd.mp4_。
+视频演示是 [7-Etcd.mp4](https://drive.google.com/file/d/1ckGdaWrRf2p1MV97ie6OI5OHh-TvkbmG/view?usp=sharing)。
 
 > 演示 Pod 和 Service 的容错。
 > - 启动一个 Pod 和 Service，然后对 minik8s 的控制面（api-server， controller，scheduler，该节点的 kubelet，不包括 etcd）全部进行重启，重启过程中 Pod 能够正常运行。
@@ -793,7 +801,7 @@ server {
 
 ### 支持 GPU 应用
 
-视频演示是 _8-GPU.mp4_。
+视频演示是 [8-GPU.mp4](https://drive.google.com/file/d/17j5XIf6pto_5NpJMW0p1pLKAz8uVBbfH/view?usp=sharing)。
 
 我们设计的 GPU的yaml文件如下：
 
@@ -887,6 +895,8 @@ expect eof"
 ```
 
 ### Serverless
+
+视频演示是 [9-HPA+Serverless.mp4](https://drive.google.com/file/d/1Ok2vJGvtlgl129gE7q5V5Yjqeu8TLUrv/view?usp=sharing)。
 
 ### 简介
 
