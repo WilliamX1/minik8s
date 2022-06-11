@@ -481,7 +481,7 @@ $ docker exec jetty-xxx cat /var/lib/jetty/webapps/index.html
 
 Service 作为一种虚拟的，凌驾在多个 Pod 之上的 k8s 抽象，难点在于如何将用户对自定义的虚拟 ip 的访问有策略性地转发到实际的 Pod 的 ip 上。我们参考 kubernetes 对 iptables 的修改，适当删减了部分涉及过滤的规则（因为无需用到），并采用直接执行 shell 命令的方式写入虚拟机的 iptables 来实现 Service 的可访问性。
 
-演示视频是 [3-a-Service.mp4](https://drive.google.com/file/d/1D6YsYMrfjsY72842oAJ6LyMGQEcLnykr/view?usp=sharing)，[3-b-c-d-Service.mp4](https://drive.google.com/file/d/1R9U5p5BDTA4q7mnDyjHFWmjcTgU8OGZa/view?usp=sharing)。
+视频演示是 [3-a-Service.mp4](https://drive.google.com/file/d/1D6YsYMrfjsY72842oAJ6LyMGQEcLnykr/view?usp=sharing)，[3-b-c-d-Service.mp4](https://drive.google.com/file/d/1R9U5p5BDTA4q7mnDyjHFWmjcTgU8OGZa/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建 Service 的配置文件及运行情况。
 > - 演示的 Service 配置文件中包括：配置种类（kind），Service 名称（name），Service 对 Pod 的筛选（selector），Service 暴露的端口（ports）。
@@ -568,7 +568,7 @@ $ python3 ./master/service_controller.py
 
 ReplicaSet抽象的难点在于如何监控Pod的状态，所以每个worker节点的kubelet都会定时地发送自己节点所启动的心跳包给API Server，然后由ReplicaSet Controller进行Pod状态的监控以及保持和期望的replica数量的统一。
 
-演示视频是 [4-a-b-c-ReplicaSet.mp4](https://drive.google.com/file/d/1SXRhOT-Ke5MldTG6tamVN2YaAM-caUWN/view?usp=sharing)。
+视频演示是 [4-a-b-c-ReplicaSet.mp4](https://drive.google.com/file/d/1SXRhOT-Ke5MldTG6tamVN2YaAM-caUWN/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建ReplicaSet（Deployment）的配置。
 >
@@ -641,7 +641,7 @@ containers:  # 容器
 
 HPA主要是基于ReplicaSet实现的，我们在ReplicaSet Controller执行逻辑之前，先根据HPA指标动态修改HPA对应的ReplicaSet的replica数量。
 
-演示视频是 [5-HPA+Serverless.mp4](https://drive.google.com/file/d/1toe0QMIwf3dtVU1vqgfJ_DwfIuFt5h4v/view?usp=sharing)。
+视频演示是 [5-HPA+Serverless.mp4](https://drive.google.com/file/d/1toe0QMIwf3dtVU1vqgfJ_DwfIuFt5h4v/view?usp=sharing)。
 
 > 1. 演示利用配置文件创建HPA的配置。
 >
@@ -691,7 +691,7 @@ containers:
 
 DNS 与转发的精髓在于当看到一个域名时如何正确地将其解析到对应 Service 的虚拟 ip 上去，由于要实现多个子路径对应不同 Service，所以不能仅仅改动 `/etc/hosts` 文件。经过与赵子铭助教的交流，我们放弃了原先使用 coredns 来实现的想法，而是自己搭建了一个 Nginx 的服务来进行反向代理，同时我们发现 Nginx 自身可能存在缺陷造成有极少数请求可能反向代理失败，但大多数时间是完全 OK 的。
 
-演示视频是 [6-Dns.mp4](https://drive.google.com/file/d/1oWdrs9l345bKOv9N9F8Y1NxXHDElQFuO/view?usp=sharing)。
+视频演示是 [6-Dns.mp4](https://drive.google.com/file/d/1oWdrs9l345bKOv9N9F8Y1NxXHDElQFuO/view?usp=sharing)。
 
 > 演示利用配置文件对 DNS 与转发规则进行配置的配置文件与运行状况。
 > - 演示的配置文件中需包含：配置名称（name），配置类型（kind），主路径（host），子路径（path），以及转发的目标 Service，且配置文件中应包含多个对应不同 Service 的子路径。
