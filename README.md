@@ -10,7 +10,7 @@
 
 >  本项目中提及的所有视频演示均可在 [Google Drive](https://drive.google.com/drive/folders/1WIHG2nCDOIMy4DTylEe37e8E_3EXKwk6?usp=sharing) 中观看和下载。
 
-**Minik8s 是一个类似于 [Kubernetes](https://kubernetes.io/) 的迷你容器编排工具，能够在多机上对满足 CRI 接口的容器进行管理，支持容器声明周期管理、动态伸缩、自动扩容等基本功能，并且基于 minik8s 实现了 Serverless 平台集成。**具体要求可以参考以下实验文档。
+**Minik8s 是一个类似于 [Kubernetes](https://kubernetes.io/) 的迷你容器编排工具，能够在多机上对满足 CRI 接口的容器进行管理，支持容器声明周期管理、动态伸缩、自动扩容等基本功能，并且基于 minik8s 实现了 Serverless 平台集成。** 具体要求可以参考以下实验文档。
 
 - [Minik8s实验-基本要求](./doc/Minik8s实验-基本要求.pdf)
 - [Minik8s实验-验收指南](./doc/Minik8s实验-验收指南.pdf)
