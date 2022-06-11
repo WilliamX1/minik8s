@@ -26,8 +26,6 @@
 - [开发过程说明](#开发过程说明)
   - [CI/CD](#CICD)
 
-- [目录](#目录)
-
 - [安装](#安装)
 
 - [配置](#配置)
@@ -47,7 +45,7 @@
   - [支持 GPU 应用](#支持-GPU-应用)
   - [Serverless](#Serverless)
     - [第一个思路（废弃）](#第一个思路废弃)
-    - [第二个思路（目前实现，助教推荐）](#第二个思路目前实现，助教推荐)
+    - [第二个思路（目前实现，助教推荐）](#第二个思路目前实现助教推荐)
     - [Serverless DAG的支持](#Serverless-DAG的支持)
 
 - [参考资料](#参考资料)
@@ -101,7 +99,7 @@ gitee仓库地址：https://gitee.com/Leimak/minik8s
 
 ![image-20220607200335800](README/image-20220607200335800.png)
 
-编译对象为对应分支代码，内容包括python构建和上传制品，构建过程在gitee镜像中更新pip工具，换源为https://pypi.tuna.tsinghua.edu.cn/simple源，注意，在先版本gitee镜像中存在setup tool无法正常使用导致编译不通过的情况，故需要更新setup tool，之后需要运行/sources/rabbitma-install.sh安装rabbitma组件并根据requirements文档安装项目相应依赖，最后运行run.sh
+编译对象为对应分支代码，内容包括python构建和上传制品，构建过程在gitee镜像中更新pip工具，换源为 https://pypi.tuna.tsinghua.edu.cn/simple 源，注意，在先版本gitee镜像中存在setup tool无法正常使用导致编译不通过的情况，故需要更新setup tool，之后需要运行/sources/rabbitma-install.sh安装rabbitma组件并根据requirements文档安装项目相应依赖，最后运行run.sh
 
 ![image-20220607200355374](README/image-20220607200355374.png)
 
@@ -219,7 +217,7 @@ $ sudo ./pycharm.sh
 	- `kubectl_gui.py`：minik8s 的用户图形化交互界面，主要用作选择 `yaml` 文件上传。
 - `/worker`：worker 相关。
 	- `/HPA_test_docker` 
-	- `/gpu`
+	- `/gpu`：minik8s 的 GPU 支持部分。
 	- `/multi_machine` 
 		- `/configs`：`flannel` 的配置文件，可用作设置全局分配 `ip` 的网段，默认是 `20.20.0.0/16`
 		- `/etcd`：做持久化存储所用的本地 `etcd`。
@@ -426,7 +424,7 @@ $ docker exec jetty-xxxx curl localhost:8080
 kind: Pod
 name: pod-2
 volume:
-	- $/userland/final_check/pod-2/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-2/:/usr/share/nginx/html/
 cpu: 1
 mem: 12m
 strategy: roundrobin
