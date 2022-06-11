@@ -1,6 +1,12 @@
 # 第11组Minik8s 验收报告
 
-成员：鲍辰、徐惠东、刘一翔
+成员
+
+- 鲍辰 @ [Kami-code](https://github.com/Kami-code)
+- 徐惠东 @ [WilliamX1](https://github.com/WilliamX1)
+- 刘一翔 @ [liuyixiang42](https://github.com/liuyixiang42)
+
+感谢 **赵子铭** 助教和 **柳清源** 助教在本项目开发过程中的指导与帮助。
 
 ## 目录
 
@@ -11,7 +17,7 @@
 - [分工和贡献度](#分工和贡献度)
 
 - [开发过程说明](#开发过程说明)
-  - [CI/CD](#CI/CD)
+  - [CI/CD](#CICD)
 
 - [目录](#目录)
 
@@ -24,17 +30,17 @@
 - [运行逻辑](#运行逻辑)
 
 - [验收答辩](#验收答辩)
-  - [部署多机](#部署多机)
-  - [实现 Pod 抽象，对容器声明周期进行管理](#实现 Pod 抽象，对容器声明周期进行管理)
-  - [实现 Service 抽象](#实现 Service 抽象)
-  - [实现 Pod ReplicaSet 抽象](#实现 Pod ReplicaSet 抽象)
-  - [动态伸缩（auto-scaling）](#动态伸缩（auto-scaling）)
-  - [DNS 与转发](#DNS 与转发)
+  - [部署多机](#部署多机-minik8s)
+  - [实现 Pod 抽象，对容器声明周期进行管理](#实现-pod-抽象对容器声明周期进行管理)
+  - [实现 Service 抽象](#实现-Service-抽象)
+  - [实现 Pod ReplicaSet 抽象](#实现-Pod-ReplicaSet-抽象)
+  - [动态伸缩（auto-scaling）](#动态伸缩auto-scaling)
+  - [DNS 与转发](#DNS-与转发)
   - [容错](#容错)
-  - [支持 GPU 应用](#支持 GPU 应用)
+  - [支持 GPU 应用](#支持-GPU-应用)
   - [Serverless](#Serverless)
-    - [第一个思路（废弃）](#第一个思路（废弃）)
-    - [第二个思路（目前实现，助教推荐）](#第二个思路（目前实现，助教推荐）)
+    - [第一个思路（废弃）](#第一个思路废弃)
+    - [第二个思路（目前实现，助教推荐）](#第二个思路目前实现，助教推荐)
     - [Serverless DAG的支持](#Serverless-DAG的支持)
 
 - [参考资料](#参考资料)
@@ -322,37 +328,37 @@ Pod 作为多个 Docker Container 的集合体，是 minik8s 的最小调度单�
 kind: Pod
 name: pod-1  # Pod 名称
 volume:  # 挂载卷
-	- $/userland/final_check/pod-1/:/usr/share/nginx/html/
-	- $/userland/final_check/pod-1/:/var/lib/jetty/webapps
+  - $/userland/final_check/pod-1/:/usr/share/nginx/html/
+  - $/userland/final_check/pod-1/:/var/lib/jetty/webapps
 cpu: 2  # 总的 CPU 限制
 mem: 100m  # 总的内存限制
 strategy: roundrobin  # 调度策略
 metadata:
-	labels:  # Pod 的标签，用于匹配 Service 
-		app: xhd
-		version: major
-containers:  # Pod 内容器列表
-	- name: nginx  # 容器名称，在运行时会加上唯一后缀以防止与其他容器重名
-		image: nginx:latest  # 容器镜像名称与版本
-		command:
-		resource:
-			cpu: 1  # 单容器的 CPU 限制
-			memory: 40m  # 单容器的内存限制
-		port: 80  # 容器暴露的端口，需要与 DockerFile 构建时暴露出的服务端口一致
-	- name: jetty
-		image: jetty
-		command:
-		resource:
-			cpu: 1
-			memory:
-		port: 8080
-	- name: busybox
-		image: busybox
-		command: ['sh', '-c', 'sleep 36000000']  # 容器镜像所执行的命令
-		resource:
-			cpu: 1
-			memory: 10m
-		port:
+  labels:  # Pod 的标签，用于匹配 Service 
+    app: xhd
+    version: major
+  containers:  # Pod 内容器列表
+    - name: nginx  # 容器名称，在运行时会加上唯一后缀以防止与其他容器重名
+      image: nginx:latest  # 容器镜像名称与版本
+      command:
+      resource:
+      cpu: 1  # 单容器的 CPU 限制
+      memory: 40m  # 单容器的内存限制
+      port: 80  # 容器暴露的端口，需要与 DockerFile 构建时暴露出的服务端口一致
+    - name: jetty
+      image: jetty
+      command:
+      resource:
+      cpu: 1
+      memory:
+      port: 8080
+    - name: busybox
+      image: busybox
+      command: ['sh', '-c', 'sleep 36000000']  # 容器镜像所执行的命令
+      resource:
+      cpu: 1
+      memory: 10m
+      port:
 ```
 
 我们可以运用 `kubectl` 来用命令行上传并创建 Pod，也可以用 `kubectl_gui` 来用图形化界面上传并创建 Pod，两种方式都会进行文件路径是否存在以及 `yaml` 文件内容是否合法的判断。注意我们用 `$` 符合来表示项目所在根目录，在本次演示用中即为 `/home/xhd/Desktop/minik8s/`。
@@ -417,17 +423,17 @@ cpu: 1
 mem: 12m
 strategy: roundrobin
 metadata:
-	labels: 
-		app: xhd
-		version: major
+  labels: 
+    app: xhd
+    version: major
 containers:
-	- name: nginx
-		image: nginx
-		command:
-		resource:
-			cpu: 1
-			memory: 10m
-		port: 80
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+    cpu: 1
+    memory: 10m
+    port: 80
 ```
 
 我们继续运行 `pod-1.yaml` 和 `pod-2.yaml` 两个文件，他们都被指定为轮询策略，可以看到他们被调度到了不同节点，我们再分别从两台虚拟机中用 `docker ps -a` 检查发现确实如此，符合轮询策略。轮询策略具体实现是在 etcd 中存储一个单调递增的数（上限为 10，即递增到 10 之后又会变成 0），用来判断当前调度时的节点编号下标，调度成功后将该值加一并存入 etcd 中。
@@ -484,12 +490,12 @@ type: ClusterIP  # Service 类型，已经为 ExternalIP 留出接口，方便�
 clusterIP: 192.168.88.88  # cluster ip，因为安全组配置的原因需要在 192.168.0.0/16 网段内，用户未指定时会自动生成
 strategy: random  # 调度策略，有 random/roundrobin
 selector:  # 用于匹配 pod 的 labels，必须完全匹配才行
-	app: xhd
-	version: major
+  app: xhd
+  version: major
 ports:
-	- protocol: tcp  # 网络协议
-		port: 88  # service 暴露的端口
-		targetPort: 80  # 定向到的 pod 的实际暴露端口 
+  - protocol: tcp  # 网络协议
+    port: 88  # service 暴露的端口
+    targetPort: 80  # 定向到的 pod 的实际暴露端口 
 ```
 
 同理我们可以通过 `kubectl` 命令行或者 `kubectl_gui` 图形化界面来创建 Service。
@@ -569,23 +575,23 @@ ReplicaSet抽象的难点在于如何监控Pod的状态，所以每个worker节�
 kind: ReplicaSet  # 种类 
 name: pod-1-replicaset  # 名称
 volume:
-	- $/userland/final_check/pod-1/:/usr/share/nginx/html  # 挂载目录
+  - $/userland/final_check/pod-1/:/usr/share/nginx/html  # 挂载目录
 cpu: 1  # cpu 限制
 mem: 100m  # 内存限制
 spec:
-	replicas: 3  # replica 数目
+  replicas: 3  # replica 数目
 metadata:
-	labels:  # 用于匹配 Service，和 Pod 的 labels 原理一样
-		app: xhd
-		version: major
+  labels:  # 用于匹配 Service，和 Pod 的 labels 原理一样
+    app: xhd
+    version: major
 containers:  # 容器
-	- name: nginx
-		image: nginx
-		command:
-		resource:
-			memory: 30m
-			cpu: 1
-		port: 80
+  - name: nginx
+    image: nginx
+    command:
+    resource:
+    memory: 30m
+    cpu: 1
+    port: 80
 ```
 
 和其Pod的yaml文件主要相差在`kind`和`spec:replica`上。
@@ -692,12 +698,12 @@ kind: Dns  # 配置类型
 name: dns-1  # 配置名称
 host: minik8s-dns  # 主路径
 paths:
-	- path: pod-1-2-service  # 子路径，配合主路径使用
-		service_name: pod-1-2-service  # 匹配的 Service 名称
-		service_port: 88  # Service 暴露的端口
-	- path: pod-3-4-5-service
-		service_name: pod-3-4-5-service
-		service_port: 99
+  - path: pod-1-2-service  # 子路径，配合主路径使用
+    service_name: pod-1-2-service  # 匹配的 Service 名称
+    service_port: 88  # Service 暴露的端口
+  - path: pod-3-4-5-service
+    service_name: pod-3-4-5-service
+    service_port: 99
 ```
 
 首先我们分别创建 2 个 Service 如下。
@@ -733,14 +739,14 @@ $ python3 dns_controller.py
 
 ```yaml
 server {
-	listen: 80
-	server_name minik8s-dns;
-	location /pod-1-2-service {
-		proxy_pass http://192.168.88.88:88/;
-	}
-	location /pod-3-4-5-service {
-		proxy_pass http://192.168.99.99:99/;
-	}
+  listen: 80
+    server_name minik8s-dns;
+    location /pod-1-2-service {
+    proxy_pass http://192.168.88.88:88/;
+  }
+  location /pod-3-4-5-service {
+    proxy_pass http://192.168.99.99:99/;
+  }
 }
 ```
 
@@ -797,13 +803,13 @@ name: add  # 名称
 cpu: 1  # cpu 限制 
 mem: 500m  # 内存限制
 containers:  # 构建的容器
-	- name: placeholder
-		image: placeholder:latest
-		command:
-		resource:
-			memory: 500m
-			cpu: 1
-		port: 5054  # 开放的端口
+  - name: placeholder
+    image: placeholder:latest
+    command:
+    resource:
+    memory: 500m
+    cpu: 1
+    port: 5054  # 开放的端口
 ```
 
 > 1. 演示任务的提交
@@ -893,7 +899,7 @@ expect eof"
 1. 用户通过API主动触发，我们可以认为是通过kubectl进行主动调用。
 2. 云产品事件主动触发，比如说定期触发、满足某些条件触发等。这个通常是Serverless的高阶功能，我们不需要实现。
 
-<img src="readme/5413ca7292d769e5ec0c121edbaa6b0a.png" alt="https://main.qcloudimg.com/raw/5413ca7292d769e5ec0c121edbaa6b0a.png" style="zoom:67%;" />
+<img src="./README/5413ca7292d769e5ec0c121edbaa6b0a.png" alt="https://main.qcloudimg.com/raw/5413ca7292d769e5ec0c121edbaa6b0a.png" style="zoom:67%;" />
 
 为了实现Function的抽象，我们的解决方案如下：
 
